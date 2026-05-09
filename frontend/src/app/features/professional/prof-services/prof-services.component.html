@@ -1,23 +1,42 @@
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color:#244AFD;">My Services</h4>
-    <button class="btn text-white fw-semibold" style="background:#244AFD;" (click)="showForm=!showForm; error=''; success=''">
+<div class="svc-page">
+
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <h4 class="page-title">My Services</h4>
+    <button class="btn-toggle" [class.cancel]="showForm"
+            (click)="showForm=!showForm; error=''; success=''">
       {{ showForm ? 'Cancel' : '+ Add Service' }}
     </button>
   </div>
 
-  <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
-  <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
+  <!-- ── Alerts ──────────────────────────────────────────────────────── -->
+  <div *ngIf="success" class="svc-alert" [class]="'svc-alert ' + successType">
+    <svg viewBox="0 0 20 20" fill="currentColor" style="width:16px;height:16px;flex-shrink:0;">
+      <path *ngIf="successType==='success'" fill-rule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      <path *ngIf="successType==='warning'" fill-rule="evenodd"
+            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      <path *ngIf="successType==='danger'" fill-rule="evenodd"
+            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+    </svg>
+    {{ success }}
+  </div>
+  <div *ngIf="error" class="svc-alert error">{{ error }}</div>
 
-  <!-- Add Service Form -->
-  <div *ngIf="showForm" class="card border-0 shadow-sm p-4 mb-4">
-    <h6 class="fw-bold mb-3">New Service</h6>
+  <!-- ── Add Service Form ─────────────────────────────────────────────── -->
+  <div *ngIf="showForm" class="form-card">
+    <div class="form-card-title">New Service</div>
 
-    <!-- Quick pick from salon owner's list -->
-    <div class="mb-3 p-3 rounded" style="background:#f0f4ff;border:1px solid #244AFD;">
-      <label class="form-label fw-semibold small" style="color:#244AFD;">
-        📋 Quick Pick from Salon Services
-      </label>
+    <!-- Quick pick -->
+    <div class="quick-pick">
+      <div class="quick-pick-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+          <rect x="9" y="3" width="6" height="4" rx="1"/>
+        </svg>
+        Quick Pick from Salon Services
+      </div>
       <select class="form-select" [formControl]="$any(form.get('ownerServiceId'))"
               (change)="onOwnerServiceSelect($event)">
         <option value="">— Select a salon service to auto-fill —</option>
@@ -27,39 +46,42 @@
           </option>
         </optgroup>
       </select>
-      <small class="text-muted">Selecting a service auto-fills the form below. You can still edit the price.</small>
+      <small style="color:#6b7a99;font-size:.76rem;margin-top:.3rem;display:block;">
+        Selecting a service auto-fills the form below. You can still edit the price.
+      </small>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()">
       <div class="row g-3">
 
-        <!-- Service Name -->
+        <!-- Category first (drives name dropdown) -->
         <div class="col-md-6">
-          <label class="form-label fw-semibold">Service Name <span class="text-danger">*</span></label>
-          <input class="form-control" formControlName="name" placeholder="e.g. Bridal Makeup">
-        </div>
-
-        <!-- Category dropdown -->
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+          <label class="form-label">Category <span class="text-danger">*</span></label>
           <select class="form-select" formControlName="category">
             <option value="">Select category</option>
             <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
-            <option value="Hair">Hair</option>
-            <option value="Beard">Beard</option>
-            <option value="Skin">Skin</option>
-            <option value="Nails">Nails</option>
-            <option value="Makeup">Makeup</option>
-            <option value="Body">Body</option>
-            <option value="Grooming">Grooming</option>
-            <option value="Packages">Packages</option>
-            <option value="Special">Special</option>
           </select>
+        </div>
+
+        <!-- Service Name — dropdown based on category -->
+        <div class="col-md-6">
+          <label class="form-label">Service Name <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="name"
+                  [disabled]="!form.get('category')?.value">
+            <option value="">
+              {{ form.get('category')?.value ? 'Select service name' : 'Select category first' }}
+            </option>
+            <option *ngFor="let n of serviceNameOptions" [value]="n">{{ n }}</option>
+          </select>
+          <div *ngIf="form.get('name')?.invalid && form.get('name')?.touched"
+               style="color:#c0392b;font-size:.76rem;margin-top:.2rem;">
+            Service name is required.
+          </div>
         </div>
 
         <!-- Target Group -->
         <div class="col-md-4">
-          <label class="form-label fw-semibold">For (Target Group) <span class="text-danger">*</span></label>
+          <label class="form-label">For (Target Group) <span class="text-danger">*</span></label>
           <select class="form-select" formControlName="targetGroup">
             <option value="WOMEN">Women</option>
             <option value="MEN">Men</option>
@@ -69,42 +91,50 @@
 
         <!-- Price -->
         <div class="col-md-4">
-          <label class="form-label fw-semibold">Price (₹) <span class="text-danger">*</span></label>
-          <input type="number" class="form-control" formControlName="price" placeholder="e.g. 500">
+          <label class="form-label">Price (₹) <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" formControlName="price" placeholder="e.g. 500" min="1">
         </div>
 
         <!-- Duration -->
         <div class="col-md-4">
-          <label class="form-label fw-semibold">Duration (mins)</label>
+          <label class="form-label">Duration (mins)</label>
           <select class="form-select" formControlName="durationMins">
             <option *ngFor="let d of durations" [value]="d">{{ d }} min</option>
           </select>
         </div>
 
-        <!-- Discount -->
+        <!-- Discount — clamps to 0 on negative -->
         <div class="col-md-4">
-          <label class="form-label fw-semibold">Discount %</label>
-          <input type="number" class="form-control" formControlName="discountPct" min="0" max="100">
+          <label class="form-label">Discount %</label>
+          <input type="number" class="form-control" formControlName="discountPct"
+                 min="0" max="100"
+                 (blur)="clampDiscount()" (input)="clampDiscount()"
+                 placeholder="0">
+          <small style="color:#8a90a0;font-size:.74rem;">0–100. Negative values reset to 0.</small>
         </div>
 
       </div>
-      <button type="submit" class="btn text-white fw-semibold mt-3 px-4"
-              style="background:#244AFD;" [disabled]="form.invalid || submitting">
-        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
-        Add Service
-      </button>
+
+      <div class="mt-3">
+        <button type="submit" class="btn-primary" [disabled]="form.invalid || submitting">
+          <span *ngIf="submitting"
+                class="spinner-border spinner-border-sm"
+                style="width:14px;height:14px;border-width:2px;"></span>
+          Add Service
+        </button>
+      </div>
     </form>
   </div>
 
-  <!-- Services Table -->
-  <div *ngIf="loading" class="text-center py-4">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <!-- ── Services Table ───────────────────────────────────────────────── -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#2d4a6e;"></div>
   </div>
 
-  <div class="card border-0 shadow-sm" *ngIf="!loading">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+  <div class="table-card" *ngIf="!loading">
+    <div style="overflow-x:auto;">
+      <table class="svc-table">
+        <thead>
           <tr>
             <th>Name</th>
             <th>Category</th>
@@ -119,39 +149,58 @@
         </thead>
         <tbody>
           <tr *ngFor="let s of services">
-            <td class="fw-semibold">{{ s.name }}</td>
-            <td>{{ s.category }}</td>
+            <td class="svc-name">{{ s.name }}</td>
+            <td style="color:#555;">{{ s.category }}</td>
             <td>
-              <span [class]="targetGroupBadge(s.targetGroup)">
+              <span class="tg-pill"
+                    [style.background]="targetGroupBg(s.targetGroup)"
+                    [style.color]="targetGroupColor(s.targetGroup)">
                 {{ targetGroupLabel(s.targetGroup) }}
               </span>
             </td>
-            <td>{{ s.durationMins }} min</td>
+            <td style="color:#555;">{{ s.durationMins }} min</td>
             <td>₹{{ s.price }}</td>
             <td>{{ s.discountPct || 0 }}%</td>
-            <td class="fw-bold text-success">₹{{ effectivePrice(s.price, s.discountPct) | number:'1.0-0' }}</td>
+            <td class="price-effective">₹{{ effectivePrice(s.price, s.discountPct) | number:'1.0-0' }}</td>
             <td>
-              <!-- Status dropdown: null/true = active, false = inactive -->
-              <select class="form-select form-select-sm"
-                      style="width:115px;"
+              <select class="status-select"
+                      [class.active-status]="s.isActive !== false"
+                      [class.inactive-status]="s.isActive === false"
                       [value]="s.isActive === false ? 'inactive' : 'active'"
                       (change)="onStatusChange(s, $event)">
-                <option value="active">✅ Active</option>
-                <option value="inactive">⏸ Inactive</option>
+                <option value="active">● Active</option>
+                <option value="inactive">✕ Inactive</option>
               </select>
             </td>
             <td>
-              <button class="btn btn-sm btn-outline-danger" title="Delete service"
-                      (click)="deleteService(s.id)">🗑</button>
+              <button class="btn-delete" title="Delete service" (click)="deleteService(s.id)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                </svg>
+              </button>
             </td>
           </tr>
+
           <tr *ngIf="services.length === 0">
-            <td colspan="8" class="text-center text-muted py-4">
-              No services yet. Add your first service above!
+            <td colspan="9">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                  <rect x="9" y="3" width="6" height="4" rx="1"/>
+                  <line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/>
+                </svg>
+                <div>No services yet. Click <strong>+ Add Service</strong> to get started.</div>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
+
 </div>

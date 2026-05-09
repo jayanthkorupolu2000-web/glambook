@@ -1,149 +1,431 @@
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color:#244AFD;">My Profile</h4>
-    <button *ngIf="!editMode" class="btn btn-outline-primary" (click)="startEdit()">Edit Profile</button>
-    <div *ngIf="editMode" class="d-flex gap-2">
-      <button class="btn btn-secondary" (click)="editMode=false">Cancel</button>
-      <button class="btn text-white" style="background:#244AFD;" (click)="save()" [disabled]="saving">
-        <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>Save
-      </button>
+<div class="profile-page">
+
+  <!-- ── Top bar ──────────────────────────────────────────────────────────── -->
+  <div class="page-header">
+    <h4 class="page-title">My Profile</h4>
+    <div class="d-flex gap-2">
+      <button *ngIf="!editMode" class="btn-edit-profile" (click)="startEdit()">Edit Profile</button>
+      <ng-container *ngIf="editMode">
+        <button class="btn-secondary-outline" (click)="editMode=false">Cancel</button>
+        <button class="btn-primary-solid" (click)="save()" [disabled]="saving">
+          <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"
+                style="width:14px;height:14px;border-width:2px;"></span>
+          Save
+        </button>
+      </ng-container>
     </div>
   </div>
 
-  <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
-  <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
+  <div *ngIf="success" class="alert alert-success py-2 mb-3">{{ success }}</div>
+  <div *ngIf="error"   class="alert alert-danger  py-2 mb-3">{{ error }}</div>
 
   <div *ngIf="loading" class="text-center py-5">
     <div class="spinner-border" style="color:#244AFD;"></div>
   </div>
 
-  <div *ngIf="profile && !loading" class="row g-4">
-    <!-- Photo Section -->
-    <div class="col-md-3 text-center">
-      <div class="mb-3">
-        <img *ngIf="photoPreview || profile.profilePhotoUrl"
-             [src]="photoPreview || profile.profilePhotoUrl"
-             class="rounded-circle border" style="width:120px;height:120px;object-fit:cover;">
-        <div *ngIf="!photoPreview && !profile.profilePhotoUrl"
-             class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
-             style="width:120px;height:120px;background:#244AFD;color:#fff;font-size:2.5rem;font-weight:700;">
-          {{ profile.name.charAt(0) }}
+  <div *ngIf="profile && !loading" class="profile-card">
+    <div class="row g-0">
+
+      <!-- ── Sidebar ─────────────────────────────────────────────────────── -->
+      <div class="col-md-3 sidebar pb-3 pb-md-0 mb-3 mb-md-0">
+        <div class="avatar-wrap">
+          <img *ngIf="photoPreview || profile.profilePhotoUrl"
+               [src]="photoPreview || profile.profilePhotoUrl"
+               class="avatar-img">
+          <div *ngIf="!photoPreview && !profile.profilePhotoUrl"
+               class="avatar-initials">
+            {{ profile.name.charAt(0) }}
+          </div>
         </div>
-      </div>
-      <input type="file" #photoInput accept=".jpg,.jpeg,.png,.webp" class="d-none" (change)="onPhotoSelected($event)">
-      <button class="btn btn-sm btn-outline-primary mb-2" (click)="photoInput.click()">Choose Photo</button>
-      <button *ngIf="selectedPhoto" class="btn btn-sm btn-primary d-block mx-auto" (click)="uploadPhoto()">Upload</button>
-      <div class="mt-2">
-        <span *ngFor="let s of stars(5)" [style.color]="s <= profile.averageRating ? '#f5a623' : '#ccc'" class="fs-5">★</span>
-        <div class="text-muted small">{{ profile.averageRating | number:'1.1-1' }} ({{ profile.totalReviews }} reviews)</div>
-      </div>
-      <div class="mt-2">
-        <span class="badge" [class]="profile.status === 'ACTIVE' ? 'bg-success' : profile.status === 'PENDING' ? 'bg-warning' : 'bg-danger'">
+
+        <input type="file" #photoInput accept=".jpg,.jpeg,.png,.webp"
+               class="d-none" (change)="onPhotoSelected($event)">
+        <button class="btn-choose-photo mb-2" (click)="photoInput.click()">Choose Photo</button>
+        <button *ngIf="selectedPhoto"
+                class="btn-primary-solid d-block mb-2" style="font-size:.78rem;padding:.3rem .9rem;"
+                (click)="uploadPhoto()">Upload</button>
+
+        <div class="stars-row mt-2">
+          <span *ngFor="let s of stars(5)"
+                [class.star-off]="s > profile.averageRating">★</span>
+        </div>
+        <div class="rating-text">
+          {{ profile.averageRating | number:'1.1-1' }} ({{ profile.totalReviews }} reviews)
+        </div>
+
+        <span class="status-pill"
+              [class.status-active]="profile.status === 'ACTIVE'"
+              [class.status-pending]="profile.status === 'PENDING'"
+              [class.status-other]="profile.status !== 'ACTIVE' && profile.status !== 'PENDING'">
           {{ profile.status }}
         </span>
       </div>
-    </div>
 
-    <!-- Profile Details -->
-    <div class="col-md-9">
-      <div *ngIf="!editMode">
-        <div class="row g-3">
-          <div class="col-md-6"><label class="text-muted small">Name</label><p class="fw-semibold">{{ profile.name }}</p></div>
-          <div class="col-md-6"><label class="text-muted small">Email</label><p class="fw-semibold">{{ profile.email }}</p></div>
-          <div class="col-md-6"><label class="text-muted small">City</label><p class="fw-semibold">{{ profile.city }}</p></div>
-          <div class="col-md-6"><label class="text-muted small">Specialization</label><p class="fw-semibold">{{ profile.specialization }}</p></div>
-          <div class="col-md-6"><label class="text-muted small">Experience</label><p class="fw-semibold">{{ profile.experienceYears }} years</p></div>
-          <div class="col-md-6"><label class="text-muted small">Response Time</label><p class="fw-semibold">{{ profile.responseTimeHrs }} hrs</p></div>
-          <div class="col-md-6"><label class="text-muted small">Salon Owner</label><p class="fw-semibold">{{ profile.salonOwnerName }}</p></div>
-          <div class="col-md-6"><label class="text-muted small">Instagram</label><p class="fw-semibold">{{ profile.instagramHandle || '—' }}</p></div>
-          <div class="col-12"><label class="text-muted small">Bio</label><p>{{ profile.bio || '—' }}</p></div>
-          <div class="col-md-6">
-            <label class="text-muted small">Available at Salon</label>
-            <p><span [class]="profile.isAvailableSalon ? 'badge bg-success' : 'badge bg-secondary'">
-              {{ profile.isAvailableSalon ? 'Yes' : 'No' }}
-            </span></p>
+      <!-- ── Main content ────────────────────────────────────────────────── -->
+      <div class="col-md-9 ps-md-4">
+
+        <!-- ════════════════ VIEW MODE ════════════════ -->
+        <div *ngIf="!editMode">
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Name</label>
+              <p>{{ profile.name }}</p>
+            </div>
+            <div class="info-item">
+              <label>Email</label>
+              <p>{{ profile.email }}</p>
+            </div>
+            <div class="info-item">
+              <label>City</label>
+              <p>{{ profile.city }}</p>
+            </div>
+            <div class="info-item">
+              <label>Specialization</label>
+              <p>{{ profile.specialization }}</p>
+            </div>
+            <div class="info-item">
+              <label>Experience</label>
+              <p>{{ profile.experienceYears }} years</p>
+            </div>
+            <div class="info-item">
+              <label>Response Time</label>
+              <p>{{ profile.responseTimeHrs }} hrs</p>
+            </div>
+            <div class="info-item">
+              <label>Salon Owner</label>
+              <p>{{ profile.salonOwnerName }}</p>
+            </div>
+            <div class="info-item">
+              <label>Instagram</label>
+              <p>{{ profile.instagramHandle || '—' }}</p>
+            </div>
+            <div class="info-item full">
+              <label>Bio</label>
+              <p style="font-weight:400;color:#555;">{{ profile.bio || '—' }}</p>
+            </div>
+            <div class="info-item full">
+              <label>Service Areas</label>
+              <p>{{ profile.serviceAreas || '—' }}</p>
+            </div>
           </div>
-          <div class="col-md-6">
-            <label class="text-muted small">Home Visits</label>
-            <p>
-              <span [class]="profile.isAvailableHome ? 'badge bg-success' : 'badge bg-secondary'">
+
+          <hr class="section-divider">
+
+          <!-- Certifications -->
+          <div class="mb-3">
+            <div class="info-item mb-2"><label>Certifications</label></div>
+            <div *ngIf="certificates.length === 0" style="color:#aab0c0;font-size:.88rem;">—</div>
+            <div class="cert-list">
+              <div *ngFor="let cert of certificates" class="cert-row">
+                <!-- File-type icon -->
+                <div class="cert-icon" [class.img-type]="!cert.isPdf" [class.pdf-type]="cert.isPdf">
+                  <!-- Image icon -->
+                  <svg *ngIf="!cert.isPdf" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  <!-- PDF icon -->
+                  <svg *ngIf="cert.isPdf" viewBox="0 0 24 24" fill="none" stroke="#c62828" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
+                  </svg>
+                </div>
+                <span class="cert-name">{{ cert.name }}</span>
+                <button class="btn-view-cert" (click)="viewCertificate(cert)">View</button>
+              </div>
+            </div>
+          </div>
+
+          <hr class="section-divider">
+
+          <!-- Availability -->
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Available at Salon</label>
+              <span class="avail-pill" [class.avail-yes]="profile.isAvailableSalon"
+                    [class.avail-no]="!profile.isAvailableSalon">
+                <span class="avail-dot"></span>
+                {{ profile.isAvailableSalon ? 'Yes' : 'No' }}
+              </span>
+            </div>
+            <div class="info-item">
+              <label>Home Visits</label>
+              <span class="avail-pill" [class.avail-yes]="profile.isAvailableHome"
+                    [class.avail-no]="!profile.isAvailableHome">
+                <span class="avail-dot"></span>
                 {{ profile.isAvailableHome ? 'Yes' : 'No' }}
+                <span *ngIf="profile.isAvailableHome && profile.travelRadiusKm"
+                      style="font-weight:400;color:#555;font-size:.75rem;">
+                  · {{ profile.travelRadiusKm }} km
+                </span>
               </span>
-              <span *ngIf="profile.isAvailableHome && profile.travelRadiusKm" class="ms-2 text-muted small">
-                (within {{ profile.travelRadiusKm }} km)
-              </span>
-            </p>
-          </div>
-          <div *ngIf="profile.isAvailableHome" class="col-12">
-            <div class="p-2 rounded" style="background:#f0f4ff;border-left:3px solid #244AFD;">
-              <small class="fw-semibold" style="color:#244AFD;">🏠 Home Visit Info</small>
-              <div class="small text-muted mt-1">
-                Travel radius: <strong>{{ profile.travelRadiusKm || 0 }} km</strong> from {{ profile.city }}.
-                Customers within this radius can book home visits.
-                <span *ngIf="profile.serviceAreas"> · Areas: {{ profile.serviceAreas }}</span>
+            </div>
+            <div *ngIf="profile.isAvailableHome" class="info-item full">
+              <div class="home-info-box">
+                <strong>Home Visit:</strong> Travel radius
+                <strong>{{ profile.travelRadiusKm || 0 }} km</strong> from {{ profile.city }}.
+                <span *ngIf="profile.serviceAreas"> Areas: {{ profile.serviceAreas }}</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <form *ngIf="editMode" [formGroup]="form">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Specialization</label>
-            <input class="form-control" formControlName="specialization">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Experience (years)</label>
-            <input type="number" class="form-control" formControlName="experienceYears">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Response Time (hrs)</label>
-            <input type="number" class="form-control" formControlName="responseTimeHrs">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Instagram Handle</label>
-            <input class="form-control" formControlName="instagramHandle" placeholder="@username">
-          </div>
-          <div class="col-12">
-            <label class="form-label fw-semibold">Bio</label>
-            <textarea class="form-control" rows="3" formControlName="bio"></textarea>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Certifications</label>
-            <textarea class="form-control" rows="2" formControlName="certifications"></textarea>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Service Areas (comma-separated)</label>
-            <input class="form-control" formControlName="serviceAreas">
-          </div>
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Travel Radius (km)</label>
-            <input type="number" class="form-control" formControlName="travelRadiusKm" min="0" max="50">
-            <small class="text-muted">
-              How far you travel for home visits. Set 0 if you don't do home visits.
-            </small>
-          </div>
-          <div class="col-md-3 d-flex align-items-center gap-2 mt-4">
-            <input type="checkbox" class="form-check-input" formControlName="isAvailableSalon" id="salon">
-            <label class="form-check-label fw-semibold" for="salon">Available at Salon</label>
-          </div>
-          <div class="col-md-3 d-flex align-items-center gap-2 mt-4">
-            <input type="checkbox" class="form-check-input" formControlName="isAvailableHome" id="home"
-                   (change)="onHomeVisitToggle($event)">
-            <label class="form-check-label fw-semibold" for="home">Home Visits</label>
-          </div>
-          <!-- Show travel radius hint when home visits enabled -->
-          <div *ngIf="form.get('isAvailableHome')?.value" class="col-12">
-            <div class="p-2 rounded" style="background:#f0f4ff;border-left:3px solid #244AFD;">
-              <small style="color:#244AFD;">🏠 Home Visit enabled — set your travel radius above.</small>
-              <div class="small text-muted">
-                Customers within <strong>{{ form.get('travelRadiusKm')?.value || 0 }} km</strong> of your city can book you for home visits.
+        <!-- ════════════════ EDIT MODE ════════════════ -->
+        <form *ngIf="editMode" [formGroup]="form">
+          <div class="row g-3">
+
+            <!-- Specialization -->
+            <div class="col-md-6">
+              <label class="form-label">Specialization</label>
+              <select class="form-select" formControlName="specialization">
+                <option value="" disabled>Select specialization…</option>
+                <option *ngFor="let opt of specializationOptions" [value]="opt">{{ opt }}</option>
+              </select>
+              <div *ngIf="form.get('specialization')?.invalid && form.get('specialization')?.touched"
+                   class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                Specialization is required.
               </div>
             </div>
+
+            <!-- Experience -->
+            <div class="col-md-6">
+              <label class="form-label">Experience (years)</label>
+              <input type="number" class="form-control" formControlName="experienceYears"
+                     min="0" (blur)="clampExperience()" (input)="clampExperience()">
+              <small class="text-muted" style="font-size:.75rem;">Auto-corrects negative values to 0.</small>
+            </div>
+
+            <!-- Response Time -->
+            <div class="col-md-6">
+              <label class="form-label">Response Time (hrs)</label>
+              <input type="number" class="form-control" formControlName="responseTimeHrs">
+            </div>
+
+            <!-- Instagram -->
+            <div class="col-md-6">
+              <label class="form-label">Instagram Handle</label>
+              <input class="form-control" formControlName="instagramHandle" placeholder="@username">
+            </div>
+
+            <!-- Bio -->
+            <div class="col-12">
+              <label class="form-label">Bio</label>
+              <textarea class="form-control" rows="3" formControlName="bio"></textarea>
+            </div>
+
+            <!-- Certifications -->
+            <div class="col-12">
+              <label class="form-label">Certifications</label>
+
+              <!-- Saved list -->
+              <div *ngIf="certificates.length > 0" class="cert-list mb-3">
+                <div *ngFor="let cert of certificates; let i = index" class="cert-row">
+                  <div class="cert-icon" [class.img-type]="!cert.isPdf" [class.pdf-type]="cert.isPdf">
+                    <svg *ngIf="!cert.isPdf" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <svg *ngIf="cert.isPdf" viewBox="0 0 24 24" fill="none" stroke="#c62828" stroke-width="2"
+                         stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
+                    </svg>
+                  </div>
+                  <span class="cert-name">{{ cert.name }}</span>
+                  <button type="button" class="btn-view-cert" (click)="viewCertificate(cert)">View</button>
+                  <button type="button" class="btn-remove-cert" (click)="removeCertificate(i)"
+                          title="Remove">✕</button>
+                </div>
+              </div>
+
+              <!-- Pending panel -->
+              <div *ngIf="pendingCertFile" class="pending-cert-panel">
+                <div class="file-info">
+                  {{ pendingCertFile.name }}
+                  <span class="file-size">({{ (pendingCertFile.size / 1024 / 1024).toFixed(2) }} MB)</span>
+                </div>
+                <img *ngIf="pendingCertPreview" [src]="pendingCertPreview" alt="Preview">
+                <div *ngIf="pendingCertIsPdf" class="text-muted mb-2"
+                     style="font-size:.8rem;font-style:italic;">PDF — no preview available.</div>
+                <label class="form-label" style="font-size:.8rem;">
+                  Certificate Name <span class="text-danger">*</span>
+                </label>
+                <input class="form-control form-control-sm mb-2"
+                       [(ngModel)]="pendingCertName"
+                       [ngModelOptions]="{standalone: true}"
+                       placeholder="e.g. Advanced Hair Coloring Certificate"
+                       maxlength="80">
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn-primary-solid" (click)="addCertificate()">
+                    Add Certificate
+                  </button>
+                  <button type="button" class="btn-secondary-outline" (click)="cancelPendingCert()">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+
+              <!-- Add button -->
+              <div *ngIf="!pendingCertFile">
+                <input type="file" #certInput accept=".jpg,.jpeg,.png,.webp,.pdf"
+                       class="d-none" (change)="onCertFileSelected($event)">
+                <button type="button" class="btn-add-cert" (click)="certInput.click()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Add Certificate
+                </button>
+                <div class="text-muted mt-1" style="font-size:.75rem;">
+                  JPG, PNG, WEBP or PDF · max 3 MB · multiple allowed
+                </div>
+              </div>
+
+              <div *ngIf="certError" class="text-danger mt-1" style="font-size:.8rem;">{{ certError }}</div>
+              <input type="hidden" formControlName="certifications">
+            </div>
+
+            <!-- Service Areas -->
+            <div class="col-md-6">
+              <label class="form-label">Service Areas</label>
+              <div *ngIf="availableServiceAreas.length === 0"
+                   class="text-muted" style="font-size:.82rem;font-style:italic;">
+                Select a specialization first.
+              </div>
+              <div *ngIf="availableServiceAreas.length > 0" class="service-area-list">
+                <div *ngFor="let area of availableServiceAreas" class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         [id]="'area_' + area"
+                         [checked]="isAreaSelected(area)"
+                         (change)="toggleArea(area, $any($event.target).checked)">
+                  <label class="form-check-label" [for]="'area_' + area">{{ area }}</label>
+                </div>
+              </div>
+              <input type="hidden" formControlName="serviceAreas">
+              <small class="text-muted" style="font-size:.75rem;">
+                Selected: {{ form.get('serviceAreas')?.value || 'none' }}
+              </small>
+            </div>
+
+            <!-- Travel Radius -->
+            <div class="col-md-6">
+              <label class="form-label">Travel Radius (km)</label>
+              <input type="number" class="form-control" formControlName="travelRadiusKm"
+                     min="0" max="10"
+                     (blur)="clampTravelRadius()" (input)="clampTravelRadius()">
+              <small class="text-muted" style="font-size:.75rem;">
+                0–10 km. Negative → 0, above 10 → 10. Set 0 if no home visits.
+              </small>
+            </div>
+
+            <!-- Availability toggles -->
+            <div class="col-12">
+              <div class="d-flex gap-4 flex-wrap mt-1">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" role="switch"
+                         formControlName="isAvailableSalon" id="salon"
+                         style="width:2.2em;height:1.2em;">
+                  <label class="form-check-label fw-semibold ms-1" for="salon"
+                         style="font-size:.88rem;">Available at Salon</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" role="switch"
+                         formControlName="isAvailableHome" id="home"
+                         style="width:2.2em;height:1.2em;"
+                         (change)="onHomeVisitToggle($event)">
+                  <label class="form-check-label fw-semibold ms-1" for="home"
+                         style="font-size:.88rem;">Home Visits</label>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="form.get('isAvailableHome')?.value" class="col-12">
+              <div class="home-info-box">
+                Home Visit enabled — set your travel radius above.
+                Customers within
+                <strong>{{ form.get('travelRadiusKm')?.value || 0 }} km</strong>
+                of your city can book you.
+              </div>
+            </div>
+
           </div>
+        </form>
+
+      </div><!-- /col-md-9 -->
+    </div><!-- /row -->
+  </div><!-- /profile-card -->
+</div><!-- /profile-page -->
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     Certificate Viewer Overlay
+══════════════════════════════════════════════════════════════════════════ -->
+<div *ngIf="viewingCert" class="viewer-overlay" (click)="closeViewer()">
+  <div class="viewer-card" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="viewer-header">
+      <div class="viewer-title">
+        <!-- Inline icon in header -->
+        <div class="cert-icon" style="width:30px;height:30px;border-radius:7px;"
+             [class.img-type]="!viewingCert.isPdf" [class.pdf-type]="viewingCert.isPdf">
+          <svg *ngIf="!viewingCert.isPdf" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <svg *ngIf="viewingCert.isPdf" viewBox="0 0 24 24" fill="none" stroke="#c62828" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
+          </svg>
         </div>
-      </form>
+        {{ viewingCert.name }}
+      </div>
+      <button class="viewer-close" (click)="closeViewer()" aria-label="Close">✕</button>
     </div>
+
+    <!-- Image preview -->
+    <div *ngIf="!viewingCert.isPdf && viewingCert.previewUrl">
+      <img [src]="viewingCert.previewUrl" [alt]="viewingCert.name" class="viewer-img">
+    </div>
+
+    <!-- PDF fallback -->
+    <div *ngIf="viewingCert.isPdf" class="viewer-fallback">
+      <div class="fallback-icon pdf">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#c62828" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/>
+        </svg>
+      </div>
+      <p class="cert-title">{{ viewingCert.name }}</p>
+      <p>PDF files cannot be previewed inline.</p>
+      <a [href]="viewingCert.assetPath" target="_blank" class="btn-primary-solid"
+         style="display:inline-block;text-decoration:none;">Open PDF in new tab</a>
+    </div>
+
+    <!-- Image no-preview fallback -->
+    <div *ngIf="!viewingCert.isPdf && !viewingCert.previewUrl" class="viewer-fallback">
+      <div class="fallback-icon img">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+      </div>
+      <p class="cert-title">{{ viewingCert.name }}</p>
+      <p>Preview not available for previously saved certificates.</p>
+      <a [href]="viewingCert.assetPath" target="_blank" class="btn-primary-solid"
+         style="display:inline-block;text-decoration:none;">Open in new tab</a>
+    </div>
+
   </div>
 </div>

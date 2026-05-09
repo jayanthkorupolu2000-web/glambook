@@ -26,7 +26,6 @@ public class AppointmentResponse {
     private String homeAddress;
     private String homeAccessNotes;
     private BigDecimal totalAmount;
-    private Long groupBookingId;
     private Long rebookedFromId;
     private List<PaymentResponse> payments;
     private boolean canReview;

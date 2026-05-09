@@ -3,12 +3,14 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { AppointmentResponse } from '../../../models/customer.model';
 import { AuthService } from '../../../services/auth.service';
 import { CustomerAppointmentService } from '../../../services/customer-appointment.service';
+import { ReviewPhotoStoreService } from '../../../services/review-photo-store.service';
 
 const BASE = 'http://localhost:8080';
 
 @Component({
   selector: 'app-customer-appointments',
-  templateUrl: './customer-appointments.component.html'
+  templateUrl: './customer-appointments.component.html',
+  styleUrls: ['./customer-appointments.component.css']
 })
 export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   appointments: AppointmentResponse[] = [];
@@ -60,7 +62,8 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     private apptService: CustomerAppointmentService,
     private http: HttpClient,
     private auth: AuthService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private photoStore: ReviewPhotoStoreService
   ) {}
 
   ngOnInit(): void {
@@ -294,14 +297,21 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     const files = (event.target as HTMLInputElement).files;
     if (!files) return;
     this.reviewPhotos = Array.from(files);
-    // Convert to data-URLs for persistent storage
     this.reviewPhotoPreview = [];
-    this.reviewPhotos.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        this.reviewPhotoPreview.push(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+
+    // Read all files as data-URLs — wait for ALL to complete before marking ready
+    const readers = this.reviewPhotos.map((file, idx) =>
+      new Promise<void>(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          this.reviewPhotoPreview[idx] = e.target?.result as string;
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      })
+    );
+    Promise.all(readers).then(() => {
+      this.reviewPhotoPreview = [...this.reviewPhotoPreview]; // trigger change detection
     });
   }
 
@@ -320,32 +330,36 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   private doCreateReview(): void {
     if (!this.reviewingAppt) return;
 
-    // Capture photos before async call (they may be cleared)
-    const photosToStore = [...this.reviewPhotoPreview];
-
     if (this.reviewPhotos.length > 0) {
-      // Send as multipart so backend saves the actual files
-      const formData = new FormData();
-      const data = {
-        professionalId: this.reviewingAppt.professionalId,
-        appointmentId: this.reviewingAppt.id,
-        qualityRating: this.reviewQualityRating,
-        timelinessRating: this.reviewTimelinessRating,
-        professionalismRating: this.reviewProfessionalismRating,
-        comment: this.reviewComment
-      };
-      formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
-      this.reviewPhotos.forEach(f => formData.append('photos', f, f.name));
+      // Read all photos as data-URLs synchronously before submitting
+      // so localStorage store is always populated correctly
+      this.readAllPhotosAsDataUrls(this.reviewPhotos).then(dataUrls => {
+        const formData = new FormData();
+        const data = {
+          professionalId: this.reviewingAppt!.professionalId,
+          appointmentId: this.reviewingAppt!.id,
+          qualityRating: this.reviewQualityRating,
+          timelinessRating: this.reviewTimelinessRating,
+          professionalismRating: this.reviewProfessionalismRating,
+          comment: this.reviewComment
+        };
+        formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+        this.reviewPhotos.forEach(f => formData.append('photos', f, f.name));
 
-      this.http.post<any>(`${BASE}/api/reviews`, formData).subscribe({
-        next: () => { this.onReviewSuccess('Review submitted!'); },
-        error: (err: any) => {
-          this.reviewError = err?.error?.message || 'Failed to submit review.';
-          this.reviewLoading = false;
-        }
+        this.http.post<any>(`${BASE}/api/reviews`, formData).subscribe({
+          next: (created: any) => {
+            if (created?.id && dataUrls.length > 0) {
+              this.photoStore.savePhotos(created.id, dataUrls);
+            }
+            this.onReviewSuccess('Review submitted!');
+          },
+          error: (err: any) => {
+            this.reviewError = err?.error?.message || 'Failed to submit review.';
+            this.reviewLoading = false;
+          }
+        });
       });
     } else {
-      // No photos — plain JSON is fine
       const body = {
         professionalId: this.reviewingAppt.professionalId,
         appointmentId: this.reviewingAppt.id,
@@ -371,26 +385,30 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     const reviewId = existingReview.id;
 
     if (this.reviewPhotos.length > 0) {
-      // Send as multipart so backend saves the actual files
-      const formData = new FormData();
-      const data = {
-        comment: this.reviewComment,
-        qualityRating: this.reviewQualityRating,
-        timelinessRating: this.reviewTimelinessRating,
-        professionalismRating: this.reviewProfessionalismRating
-      };
-      formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
-      this.reviewPhotos.forEach(f => formData.append('photos', f, f.name));
+      this.readAllPhotosAsDataUrls(this.reviewPhotos).then(dataUrls => {
+        const formData = new FormData();
+        const data = {
+          comment: this.reviewComment,
+          qualityRating: this.reviewQualityRating,
+          timelinessRating: this.reviewTimelinessRating,
+          professionalismRating: this.reviewProfessionalismRating
+        };
+        formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+        this.reviewPhotos.forEach(f => formData.append('photos', f, f.name));
 
-      this.http.patch<any>(`${BASE}/api/reviews/${reviewId}`, formData).subscribe({
-        next: (updated: any) => {
-          this.myReviews.set(this.reviewingAppt!.id, updated);
-          this.onReviewSuccess('Review updated!');
-        },
-        error: (err: any) => {
-          this.reviewError = err?.error?.message || 'Failed to update review.';
-          this.reviewLoading = false;
-        }
+        this.http.patch<any>(`${BASE}/api/reviews/${reviewId}`, formData).subscribe({
+          next: (updated: any) => {
+            if (dataUrls.length > 0) {
+              this.photoStore.appendPhotos(reviewId, dataUrls);
+            }
+            this.myReviews.set(this.reviewingAppt!.id, updated);
+            this.onReviewSuccess('Review updated!');
+          },
+          error: (err: any) => {
+            this.reviewError = err?.error?.message || 'Failed to update review.';
+            this.reviewLoading = false;
+          }
+        });
       });
     } else {
       this.http.patch<any>(`${BASE}/api/reviews/${reviewId}`, {
@@ -409,6 +427,17 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  /** Read an array of File objects into base64 data-URLs, preserving order */
+  private readAllPhotosAsDataUrls(files: File[]): Promise<string[]> {
+    return Promise.all(
+      files.map(file => new Promise<string>(resolve => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      }))
+    );
   }
 
   private onReviewSuccess(msg: string): void {

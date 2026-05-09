@@ -11,6 +11,7 @@ import com.salon.exception.UnauthorizedException;
 import com.salon.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,8 +37,11 @@ public class ReviewService {
     private final AppointmentRepository appointmentRepository;
     private final ProfessionalNotificationRepository professionalNotificationRepository;
 
-    private static final String UPLOAD_DIR = "frontend/src/assets/review-photos/";
-    private static final String PHOTO_URL_PREFIX = "assets/review-photos/";
+    @Value("${review.photo.dir:../frontend/src/assets/review-photos}")
+    private String reviewPhotoDir;
+
+    @Value("${review.photo.url-prefix:assets/review-photos/}")
+    private String reviewPhotoUrlPrefix;
 
     // ── Create ────────────────────────────────────────────────────────────────
 
@@ -197,7 +201,7 @@ public class ReviewService {
         List<String> paths = new ArrayList<>();
         if (files == null || files.isEmpty()) return paths;
         try {
-            Path dir = Paths.get(UPLOAD_DIR);
+            Path dir = Paths.get(reviewPhotoDir);
             Files.createDirectories(dir);
             for (MultipartFile file : files) {
                 if (file == null || file.isEmpty()) continue;
@@ -205,8 +209,8 @@ public class ReviewService {
                 String filename = UUID.randomUUID() + ext;
                 Path dest = dir.resolve(filename);
                 file.transferTo(dest.toFile());
-                // Store as Angular asset path — served directly by the frontend
-                paths.add(PHOTO_URL_PREFIX + filename);
+                // Return Angular-relative asset path — served directly by ng serve / ng build
+                paths.add(reviewPhotoUrlPrefix + filename);
             }
         } catch (IOException e) {
             log.error("Failed to save review photos: {}", e.getMessage());
@@ -233,6 +237,7 @@ public class ReviewService {
                 .comment(review.getComment())
                 .photos(review.getPhotos())
                 .professionalResponse(review.getProfessionalResponse())
+                .professionalResponseAt(review.getProfessionalResponseAt())
                 .status(review.getStatus() != null ? review.getStatus().name() : "ACTIVE")
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())

@@ -8,7 +8,6 @@ import { OwnerLoyaltyComponent } from './loyalty/owner-loyalty.component';
 import { OwnerComplaintsComponent } from './owner-complaints/owner-complaints.component';
 import { OwnerConsultationsComponent } from './owner-consultations/owner-consultations.component';
 import { OwnerDashboardComponent } from './owner-dashboard.component';
-import { OwnerGroupBookingsComponent } from './owner-group-bookings/owner-group-bookings.component';
 import { OwnerNotificationsComponent } from './owner-notifications/owner-notifications.component';
 import { OwnerProfileComponent } from './owner-profile/owner-profile.component';
 import { OwnerReportsComponent } from './owner-reports/owner-reports.component';
@@ -33,7 +32,6 @@ const routes: Routes = [
       { path: 'complaints', component: OwnerComplaintsComponent },
       { path: 'reports', component: OwnerReportsComponent },
       { path: 'notifications', component: OwnerNotificationsComponent },
-      { path: 'group-bookings', component: OwnerGroupBookingsComponent },
       { path: 'consultations', component: OwnerConsultationsComponent }
     ]
   }
@@ -52,7 +50,6 @@ const routes: Routes = [
     OwnerComplaintsComponent,
     OwnerReportsComponent,
     OwnerNotificationsComponent,
-    OwnerGroupBookingsComponent,
     OwnerConsultationsComponent
   ],
   imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule.forChild(routes)]

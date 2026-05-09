@@ -5,7 +5,8 @@ import { SalonPolicyResponse, SalonPolicyService } from '../../../services/salon
 
 @Component({
   selector: 'app-prof-policies',
-  templateUrl: './prof-policies.component.html'
+  templateUrl: './prof-policies.component.html',
+  styleUrls: ['./prof-policies.component.css']
 })
 export class ProfPoliciesComponent implements OnInit {
   policies: SalonPolicyResponse[] = [];

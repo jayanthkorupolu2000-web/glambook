@@ -47,7 +47,7 @@ public class Professional {
     @Column(name = "profile_photo_url")
     private String profilePhotoUrl;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String certifications;
 
     @Column(name = "training_details", columnDefinition = "TEXT")

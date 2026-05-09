@@ -197,6 +197,30 @@ public class ProfessionalAvailabilityController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{slotId}/type")
+    @Operation(summary = "Update the slot type (e.g. WORKING ↔ BREAK)")
+    public ResponseEntity<AvailabilityResponse> updateSlotType(
+            @PathVariable Long professionalId,
+            @PathVariable Long slotId,
+            @RequestBody java.util.Map<String, String> body) {
+        ProfessionalAvailability slot = availabilityRepository.findById(slotId)
+                .orElseThrow(() -> new ResourceNotFoundException("Slot not found"));
+        if (slot.isBooked()) {
+            throw new ConflictException("Cannot change type of a booked slot");
+        }
+        String newType = body.get("slotType");
+        if (newType == null || newType.isBlank()) {
+            throw new com.salon.exception.ValidationException("slotType is required");
+        }
+        try {
+            slot.setSlotType(com.salon.entity.SlotType.valueOf(newType));
+        } catch (IllegalArgumentException e) {
+            throw new com.salon.exception.ValidationException("Invalid slotType: " + newType);
+        }
+        ProfessionalAvailability saved = availabilityRepository.save(slot);
+        return ResponseEntity.ok(toResponse(saved));
+    }
+
     private AvailabilityResponse toResponse(ProfessionalAvailability s) {
         AvailabilityResponse r = new AvailabilityResponse();
         r.setId(s.getId());

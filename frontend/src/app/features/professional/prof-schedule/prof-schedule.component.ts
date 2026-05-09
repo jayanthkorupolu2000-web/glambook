@@ -91,4 +91,11 @@ export class ProfScheduleComponent implements OnInit {
   get bookedCount(): number {
     return this.todaySlots.filter(s => s.booked).length;
   }
+
+  get totalRemainingSlots(): number {
+    // Only count slots that are not completed and not past
+    return this.todaySlots.filter(s => 
+      s.slotStatus !== 'COMPLETED' && !s.past
+    ).length;
+  }
 }

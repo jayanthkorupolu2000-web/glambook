@@ -28,7 +28,6 @@ export class CustomerDashboardHomeComponent implements OnInit {
     { id: 'favorites', icon: '❤️', label: 'My Favorites' },
     { id: 'orders', icon: '📦', label: 'My Orders' },
     { id: 'loyalty', icon: '⭐', label: 'Loyalty & Rewards' },
-    { id: 'group-bookings', icon: '👥', label: 'Group Bookings' },
     { id: 'notifications', icon: '🔔', label: 'Notifications' }
   ];
 

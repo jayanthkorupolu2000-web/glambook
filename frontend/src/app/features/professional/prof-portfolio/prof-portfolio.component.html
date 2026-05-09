@@ -1,99 +1,123 @@
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color:#244AFD;">My Portfolio</h4>
-    <button class="btn text-white fw-semibold" style="background:#244AFD;" (click)="openModal()">
-      + Add Portfolio Item
-    </button>
-  </div>
-
-  <div *ngIf="success" class="alert alert-success py-2 alert-dismissible">
-    {{ success }}
-    <button type="button" class="btn-close" (click)="success=''"></button>
-  </div>
-  <div *ngIf="error && !showModal" class="alert alert-danger py-2 alert-dismissible">
-    {{ error }}
-    <button type="button" class="btn-close" (click)="error=''"></button>
-  </div>
-
-  <!-- Tabs -->
-  <ul class="nav nav-tabs mb-4">
-    <li class="nav-item" *ngFor="let tab of [
-      {k:'ALL',l:'All'},
-      {k:'BEFORE_AFTER',l:'Before & After'},
-      {k:'VIDEO',l:'Videos'},
-      {k:'FEATURED',l:'⭐ Featured'}
-    ]">
-      <button class="nav-link fw-semibold" [class.active]="activeTab===tab.k"
-              style="color:#000 !important;" (click)="applyTab(tab.k)">{{ tab.l }}</button>
-    </li>
-  </ul>
-
-  <div *ngIf="loading" class="text-center py-4">
-    <div class="spinner-border" style="color:#244AFD;"></div>
-  </div>
-
-  <!-- Portfolio Grid -->
-  <div class="row g-3" *ngIf="!loading">
-    <div *ngFor="let item of filtered" class="col-md-4 col-sm-6">
-      <div class="pf-card">
-
-        <!-- Before / After -->
-        <ng-container *ngIf="isPairItem(item)">
-          <div class="pf-ba-header">
-            <div class="pf-ba-label pf-before-label">BEFORE</div>
-            <div class="pf-ba-label pf-after-label">AFTER</div>
-          </div>
-          <div class="pf-ba-images">
-            <div class="pf-ba-side">
-              <img [src]="beforeUrl(item)" class="pf-img" alt="Before"
-                   (error)="onImgError($event)">
-            </div>
-            <div class="pf-ba-side">
-              <img [src]="afterUrl(item)" class="pf-img" alt="After"
-                   (error)="onImgError($event)">
-            </div>
-          </div>
-        </ng-container>
-
-        <!-- Video -->
-        <ng-container *ngIf="isVideoItem(item)">
-          <div class="pf-video-wrap">
-            <video controls class="pf-video">
-              <source [src]="displayUrl(item)" type="video/mp4">
-            </video>
-          </div>
-        </ng-container>
-
-        <!-- Single Photo -->
-        <ng-container *ngIf="!isPairItem(item) && !isVideoItem(item)">
-          <div class="pf-img-wrap">
-            <img [src]="displayUrl(item)" class="pf-img pf-single" alt="Portfolio photo"
-                 (error)="onImgError($event)">
-          </div>
-        </ng-container>
-
-        <!-- Card body -->
-        <div class="pf-meta">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <span *ngIf="item.serviceTag" class="badge bg-secondary me-1">{{ item.serviceTag }}</span>
-              <span *ngIf="item.isFeatured" class="badge bg-warning text-dark">⭐</span>
-            </div>
-            <button class="btn btn-sm btn-outline-danger py-0 px-2" (click)="deleteItem(item)">🗑</button>
-          </div>
-          <div *ngIf="item.tags" class="pf-tags">
-            <span *ngFor="let t of item.tags.split(',')" class="pf-tag">{{ t.trim() }}</span>
-          </div>
-          <p *ngIf="item.caption" class="small text-muted mt-2 mb-0">{{ item.caption }}</p>
-          <p *ngIf="item.testimonial" class="small fst-italic text-muted mt-1 mb-0">"{{ item.testimonial }}"</p>
-          <div class="text-muted mt-1" style="font-size:.7rem;">{{ item.createdAt | date:'dd MMM yyyy' }}</div>
-        </div>
+<div class="portfolio-page">
+  <div class="container-fluid py-4">
+    <div class="page-header">
+      <div>
+        <h4 class="page-title">🎨 My Portfolio</h4>
+        <p class="page-subtitle">Showcase your best work and attract more clients</p>
       </div>
+      <button class="btn-add-portfolio" (click)="openModal()">
+        <span class="btn-icon">+</span> Add Portfolio Item
+      </button>
     </div>
 
-    <div *ngIf="filtered.length === 0" class="col-12 text-center text-muted py-5">
-      <div style="font-size:3rem;">🎨</div>
-      <p class="mt-2">No portfolio items yet. Add your first one!</p>
+    <div *ngIf="success" class="alert alert-success alert-modern">
+      <span class="alert-icon">✓</span>
+      {{ success }}
+      <button type="button" class="btn-close" (click)="success=''"></button>
+    </div>
+    <div *ngIf="error && !showModal" class="alert alert-danger alert-modern">
+      <span class="alert-icon">⚠</span>
+      {{ error }}
+      <button type="button" class="btn-close" (click)="error=''"></button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="portfolio-tabs">
+      <button *ngFor="let tab of [
+        {k:'ALL',l:'All Items', icon:'🎨'},
+        {k:'BEFORE_AFTER',l:'Before & After', icon:'📸'},
+        {k:'VIDEO',l:'Videos', icon:'🎬'}
+      ]" 
+      class="tab-btn" 
+      [class.active]="activeTab===tab.k"
+      (click)="applyTab(tab.k)">
+        <span class="tab-icon">{{ tab.icon }}</span>
+        {{ tab.l }}
+      </button>
+    </div>
+
+    <div *ngIf="loading" class="loading-state">
+      <div class="spinner-border" style="color:#244AFD;"></div>
+      <p>Loading portfolio...</p>
+    </div>
+
+    <!-- Portfolio Grid -->
+    <div class="portfolio-grid" *ngIf="!loading">
+      <div *ngFor="let item of filtered" class="portfolio-item">
+        <div class="pf-card">
+
+          <!-- Before / After -->
+          <ng-container *ngIf="isPairItem(item)">
+            <div class="pf-ba-header">
+              <div class="pf-ba-label pf-before-label">BEFORE</div>
+              <div class="pf-ba-label pf-after-label">AFTER</div>
+            </div>
+            <div class="pf-ba-images">
+              <div class="pf-ba-side">
+                <img [src]="beforeUrl(item)" class="pf-img" alt="Before"
+                     (error)="onImgError($event)">
+              </div>
+              <div class="pf-ba-side">
+                <img [src]="afterUrl(item)" class="pf-img" alt="After"
+                     (error)="onImgError($event)">
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Video -->
+          <ng-container *ngIf="isVideoItem(item)">
+            <div class="pf-video-wrap">
+              <div class="video-overlay">🎬</div>
+              <video controls class="pf-video">
+                <source [src]="displayUrl(item)" type="video/mp4">
+              </video>
+            </div>
+          </ng-container>
+
+          <!-- Single Photo -->
+          <ng-container *ngIf="!isPairItem(item) && !isVideoItem(item)">
+            <div class="pf-img-wrap">
+              <img [src]="displayUrl(item)" class="pf-img pf-single" alt="Portfolio photo"
+                   (error)="onImgError($event)">
+            </div>
+          </ng-container>
+
+          <!-- Card body -->
+          <div class="pf-meta">
+            <div class="pf-header">
+              <div class="pf-badges">
+                <span *ngIf="item.serviceTag" class="badge badge-service">{{ item.serviceTag }}</span>
+
+              </div>
+              <button class="btn-delete" (click)="deleteItem(item)" title="Delete">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                </svg>
+              </button>
+            </div>
+            <div *ngIf="item.tags" class="pf-tags">
+              <span *ngFor="let t of item.tags.split(',')" class="pf-tag">{{ t.trim() }}</span>
+            </div>
+            <p *ngIf="item.caption" class="pf-caption">{{ item.caption }}</p>
+            <p *ngIf="item.testimonial" class="pf-testimonial">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
+              </svg>
+              {{ item.testimonial }}
+            </p>
+            <div class="pf-date">{{ item.createdAt | date:'dd MMM yyyy' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="filtered.length === 0" class="empty-state">
+        <div class="empty-icon">🎨</div>
+        <h5>No portfolio items yet</h5>
+        <p>Start showcasing your work by adding your first portfolio item!</p>
+        <button class="btn-add-portfolio" (click)="openModal()">
+          <span class="btn-icon">+</span> Add Your First Item
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -101,137 +125,161 @@
 <!-- ══════════════════════════════════════════════════════════════════════════
      UNIFIED ADD MODAL
      ══════════════════════════════════════════════════════════════════════════ -->
-<div *ngIf="showModal" class="modal d-block" style="background:rgba(0,0,0,.5);" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
+<div *ngIf="showModal" class="modal-overlay" (click)="showModal=false">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-content-custom">
 
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold" style="color:#244AFD;">+ Add Portfolio Item</h5>
-        <button type="button" class="btn-close" (click)="showModal=false"></button>
+      <div class="modal-header-custom">
+        <div>
+          <h5 class="modal-title-custom">✨ Add Portfolio Item</h5>
+          <p class="modal-subtitle">Showcase your best work</p>
+        </div>
+        <button type="button" class="btn-close-custom" (click)="showModal=false">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
       </div>
 
-      <div class="modal-body">
-        <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
-
-        <!-- Info banner -->
-        <div class="alert alert-info py-2 small mb-3">
-          <strong>How it works:</strong> Select your file → preview appears → fill in details → click Save.
-          The file path is auto-generated from the filename and saved to the backend.
-          <br>Make sure the file is placed in <code>frontend/src/assets/portfolio/</code>.
+      <div class="modal-body-custom">
+        <div *ngIf="error" class="alert alert-danger alert-modern">
+          <span class="alert-icon">⚠</span>
+          {{ error }}
         </div>
 
         <form [formGroup]="form">
 
           <!-- Upload Mode Toggle -->
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Upload Type</label>
-            <div class="d-flex gap-3">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" formControlName="uploadMode"
-                       value="single" id="mode-single">
-                <label class="form-check-label" for="mode-single">
-                  🖼️ Single Photo / Video
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" formControlName="uploadMode"
-                       value="pair" id="mode-pair">
-                <label class="form-check-label" for="mode-pair">
-                  📸 Before & After Pair
-                </label>
-              </div>
+          <div class="form-section">
+            <label class="form-label-custom">Upload Type</label>
+            <div class="upload-type-selector">
+              <label class="upload-type-option" [class.selected]="uploadMode==='single'">
+                <input type="radio" formControlName="uploadMode" value="single" class="radio-hidden">
+                <div class="option-content">
+                  <span class="option-icon">🖼️</span>
+                  <div>
+                    <div class="option-title">Single Photo / Video</div>
+                    <div class="option-desc">Upload one image or short video clip</div>
+                  </div>
+                </div>
+              </label>
+              <label class="upload-type-option" [class.selected]="uploadMode==='pair'">
+                <input type="radio" formControlName="uploadMode" value="pair" class="radio-hidden">
+                <div class="option-content">
+                  <span class="option-icon">📸</span>
+                  <div>
+                    <div class="option-title">Before & After Pair</div>
+                    <div class="option-desc">Show transformation results</div>
+                  </div>
+                </div>
+              </label>
             </div>
           </div>
 
           <!-- ── Single file ── -->
-          <div *ngIf="uploadMode === 'single'" class="mb-4">
-            <label class="form-label fw-semibold">
-              Select File <span class="text-danger">*</span>
+          <div *ngIf="uploadMode === 'single'" class="form-section">
+            <label class="form-label-custom">
+              Select File <span class="required">*</span>
             </label>
-            <input type="file" class="form-control"
-                   accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
-                   (change)="onFileSelected($event, 'single')">
-            <small class="text-muted">JPG / PNG / WEBP (max 5 MB) · MP4 / WEBM (max 30 MB)</small>
-
-            <!-- Preview -->
-            <div *ngIf="singlePreview" class="mt-3">
-              <video *ngIf="isVideo" controls style="max-height:180px;max-width:100%;border-radius:6px;">
-                <source [src]="singlePreview">
-              </video>
-              <img *ngIf="!isVideo" [src]="singlePreview"
-                   class="rounded" style="max-height:180px;max-width:100%;object-fit:cover;">
+            <div class="file-upload-area">
+              <input type="file" class="file-input-hidden" id="singleFile"
+                     accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                     (change)="onFileSelected($event, 'single')">
+              <label for="singleFile" class="file-upload-label">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                </svg>
+                <span class="upload-text">Click to upload or drag and drop</span>
+                <span class="upload-hint">JPG, PNG, WEBP (max 5 MB) · MP4, WEBM (max 30 MB)</span>
+              </label>
             </div>
 
-            <!-- Generated path -->
-            <div *ngIf="form.value.filePath" class="mt-2">
-              <small class="text-muted">Will be saved as: </small>
-              <code class="small">{{ form.value.filePath }}</code>
+            <!-- Preview -->
+            <div *ngIf="singlePreview" class="preview-container">
+              <div class="preview-label">Preview:</div>
+              <video *ngIf="isVideo" controls class="preview-video">
+                <source [src]="singlePreview">
+              </video>
+              <img *ngIf="!isVideo" [src]="singlePreview" class="preview-image">
             </div>
           </div>
 
           <!-- ── Before / After pair ── -->
-          <div *ngIf="uploadMode === 'pair'" class="row g-3 mb-4">
-            <div class="col-6">
-              <label class="form-label fw-semibold">Before Photo <span class="text-danger">*</span></label>
-              <input type="file" class="form-control"
-                     accept="image/jpeg,image/png,image/webp"
-                     (change)="onFileSelected($event, 'before')">
-              <img *ngIf="beforePreview" [src]="beforePreview"
-                   class="mt-2 w-100 rounded" style="height:130px;object-fit:cover;">
-              <div *ngIf="form.value.beforePath" class="mt-1">
-                <code class="small text-muted">{{ form.value.beforePath }}</code>
+          <div *ngIf="uploadMode === 'pair'" class="form-section">
+            <div class="pair-upload-grid">
+              <div class="pair-upload-col">
+                <label class="form-label-custom">Before Photo <span class="required">*</span></label>
+                <div class="file-upload-area-small">
+                  <input type="file" class="file-input-hidden" id="beforeFile"
+                         accept="image/jpeg,image/png,image/webp"
+                         (change)="onFileSelected($event, 'before')">
+                  <label for="beforeFile" class="file-upload-label-small">
+                    <span class="upload-icon">📷</span>
+                    <span>Upload Before</span>
+                  </label>
+                </div>
+                <img *ngIf="beforePreview" [src]="beforePreview" class="preview-image-small">
               </div>
-            </div>
-            <div class="col-6">
-              <label class="form-label fw-semibold">After Photo <span class="text-danger">*</span></label>
-              <input type="file" class="form-control"
-                     accept="image/jpeg,image/png,image/webp"
-                     (change)="onFileSelected($event, 'after')">
-              <img *ngIf="afterPreview" [src]="afterPreview"
-                   class="mt-2 w-100 rounded" style="height:130px;object-fit:cover;">
-              <div *ngIf="form.value.afterPath" class="mt-1">
-                <code class="small text-muted">{{ form.value.afterPath }}</code>
+              <div class="pair-upload-col">
+                <label class="form-label-custom">After Photo <span class="required">*</span></label>
+                <div class="file-upload-area-small">
+                  <input type="file" class="file-input-hidden" id="afterFile"
+                         accept="image/jpeg,image/png,image/webp"
+                         (change)="onFileSelected($event, 'after')">
+                  <label for="afterFile" class="file-upload-label-small">
+                    <span class="upload-icon">📷</span>
+                    <span>Upload After</span>
+                  </label>
+                </div>
+                <img *ngIf="afterPreview" [src]="afterPreview" class="preview-image-small">
               </div>
             </div>
           </div>
 
           <!-- Metadata fields -->
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Service Tag <span class="text-danger">*</span></label>
-              <input class="form-control" formControlName="serviceTag"
-                     placeholder="e.g. Bridal Makeup, Haircut">
+          <div class="form-section">
+            <div class="form-row">
+              <div class="form-col">
+                <label class="form-label-custom">Service Tag <span class="required">*</span></label>
+                <select class="form-select-custom" formControlName="serviceTag">
+                  <option value="">Select a service...</option>
+                  <option *ngFor="let service of services" [value]="service.name">
+                    {{ service.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-col">
+                <label class="form-label-custom">Tags</label>
+                <input class="form-input-custom" formControlName="tags"
+                       placeholder="e.g. Makeup, Bridal, Women">
+                <small class="form-hint">Comma-separated</small>
+              </div>
             </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Tags</label>
-              <input class="form-control" formControlName="tags"
-                     placeholder="e.g. Makeup,Bridal,Women">
-              <small class="text-muted">Comma-separated</small>
+            <div class="form-row">
+              <div class="form-col-full">
+                <label class="form-label-custom">Caption</label>
+                <input class="form-input-custom" formControlName="caption"
+                       placeholder="Short description (optional)">
+              </div>
             </div>
-            <div class="col-12">
-              <label class="form-label fw-semibold">Caption</label>
-              <input class="form-control" formControlName="caption"
-                     placeholder="Short description (optional)">
+            <div class="form-row">
+              <div class="form-col-full">
+                <label class="form-label-custom">Client Testimonial</label>
+                <textarea class="form-textarea-custom" rows="3" formControlName="testimonial"
+                          placeholder="What did the client say? (optional)"></textarea>
+              </div>
             </div>
-            <div class="col-12">
-              <label class="form-label fw-semibold">Client Testimonial</label>
-              <textarea class="form-control" rows="2" formControlName="testimonial"
-                        placeholder="What did the client say? (optional)"></textarea>
-            </div>
-            <div class="col-12 d-flex align-items-center gap-2">
-              <input type="checkbox" class="form-check-input" formControlName="featured" id="featured">
-              <label class="form-check-label fw-semibold" for="featured">⭐ Mark as Featured</label>
-            </div>
+
           </div>
 
         </form>
       </div>
 
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="showModal=false">Cancel</button>
-        <button class="btn text-white fw-semibold" style="background:#244AFD;"
-                [disabled]="submitting" (click)="submit()">
-          <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
+      <div class="modal-footer-custom">
+        <button class="btn-secondary-custom" (click)="showModal=false">Cancel</button>
+        <button class="btn-primary-custom" [disabled]="submitting" (click)="submit()">
+          <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+          <span *ngIf="!submitting">💾</span>
           {{ submitting ? 'Saving...' : 'Save to Portfolio' }}
         </button>
       </div>

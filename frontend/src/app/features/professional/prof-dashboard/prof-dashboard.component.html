@@ -1,92 +1,121 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">Welcome, Professional! 👋</h4>
+<div class="dash-page">
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <!-- ── Welcome ──────────────────────────────────────────────────────────── -->
+  <div class="welcome-header">
+    <h4 class="welcome-title">Welcome back, {{ profName }}!</h4>
+    <p class="welcome-sub">Here's your performance overview for today.</p>
   </div>
 
-  <!-- Summary Cards -->
-  <div class="row g-3 mb-4" *ngIf="!loading">
-    <div class="col-md-2 col-sm-6">
-      <div class="card border-0 shadow-sm text-center p-3">
-        <div class="fs-2 fw-bold text-success">₹{{ analytics?.totalEarnings || 0 | number:'1.0-0' }}</div>
-        <div class="text-muted small">Total Earnings</div>
-      </div>
-    </div>
-    <div class="col-md-2 col-sm-6">
-      <div class="card border-0 shadow-sm text-center p-3">
-        <div class="fs-2 fw-bold text-warning">{{ analytics?.averageRating || 0 | number:'1.1-1' }}★</div>
-        <div class="text-muted small">Avg Rating ({{ analytics?.totalReviews || 0 }} reviews)</div>
-      </div>
-    </div>
-    <div class="col-md-2 col-sm-6">
-      <div class="card border-0 shadow-sm text-center p-3">
-        <div class="fs-2 fw-bold" style="color:#244AFD;">{{ analytics?.completedAppointments || 0 }}</div>
-        <div class="text-muted small">Completed Appointments</div>
-      </div>
-    </div>
-    <div class="col-md-2 col-sm-6">
-      <div class="card border-0 shadow-sm text-center p-3">
-        <div class="fs-2 fw-bold text-danger">{{ unreadCount }}</div>
-        <div class="text-muted small">Unread Notifications</div>
-      </div>
-    </div>
-    <div class="col-md-2 col-sm-6">
-      <div class="card border-0 shadow-sm text-center p-3"
-           [class.border-danger]="complaintsCount > 0"
-           [style.border-width]="complaintsCount > 0 ? '2px' : '1px'"
-           [style.border-style]="'solid'">
-        <div class="fs-2 fw-bold" [class.text-danger]="complaintsCount > 0" [class.text-muted]="complaintsCount === 0">
-          {{ complaintsCount }}
+  <!-- ── Loading ──────────────────────────────────────────────────────────── -->
+  <div *ngIf="loading" class="loading-wrap">
+    <div class="spinner"></div>
+    <span>Loading dashboard…</span>
+  </div>
+
+  <div *ngIf="!loading">
+
+    <!-- ── KPI Strip ──────────────────────────────────────────────────────── -->
+    <div class="kpi-strip">
+
+      <!-- Earnings -->
+      <div class="kpi-tile">
+        <div class="kpi-icon-box" style="background:#e6f9f0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1a9e5c" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+          </svg>
         </div>
-        <div class="text-muted small">Open Complaints</div>
-        <div *ngIf="complaintsCount >= 4" class="badge bg-danger mt-1 small">⚠️ Suspension Risk</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Quick Actions -->
-  <div class="row g-3 mb-4">
-    <div class="col-12">
-      <h6 class="fw-bold text-muted mb-3">QUICK ACTIONS</h6>
-    </div>
-    <div class="col-md-2 col-sm-4" *ngFor="let action of quickActions">
-      <div class="card border-0 shadow-sm text-center p-3 h-100"
-           style="cursor:pointer;transition:transform .15s"
-           (click)="navigate(action.route)"
-           (mouseenter)="action.hover=true" (mouseleave)="action.hover=false"
-           [style.transform]="action.hover ? 'translateY(-3px)' : ''">
-        <div class="fs-2 mb-1">{{ action.icon }}</div>
-        <div class="small fw-semibold">{{ action.label }}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Popular Services -->
-  <div class="row g-3" *ngIf="analytics?.popularServices?.length">
-    <div class="col-md-6">
-      <div class="card border-0 shadow-sm p-3">
-        <h6 class="fw-bold mb-3">Top Services</h6>
-        <div *ngFor="let s of analytics!.popularServices" class="d-flex justify-content-between py-1 border-bottom">
-          <span class="small">{{ s.serviceName }}</span>
-          <span class="badge" style="background:#244AFD;">{{ s.bookingCount }} bookings</span>
+        <div>
+          <div class="kpi-val" style="color:#1a9e5c;">₹{{ analytics?.totalEarnings || 0 | number:'1.0-0' }}</div>
+          <div class="kpi-lbl">Total Earnings</div>
         </div>
       </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card border-0 shadow-sm p-3">
-        <h6 class="fw-bold mb-3">Peak Stats</h6>
-        <div class="d-flex gap-3">
-          <div class="text-center">
-            <div class="text-muted small">Peak Day</div>
-            <span class="badge fs-6 mt-1" style="background:#244AFD;">{{ analytics?.peakBookingDay || 'N/A' }}</span>
+
+      <!-- Rating -->
+      <div class="kpi-tile">
+        <div class="kpi-icon-box" style="background:#fff8e1;">
+          <svg viewBox="0 0 24 24" fill="#c77c00" stroke="none">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-val" style="color:#c77c00;">{{ analytics?.averageRating || 0 | number:'1.1-1' }}★</div>
+          <div class="kpi-lbl">Avg Rating · {{ analytics?.totalReviews || 0 }} reviews</div>
+        </div>
+      </div>
+
+      <!-- Completed -->
+      <div class="kpi-tile">
+        <div class="kpi-icon-box" style="background:#eef2f8;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2d4a6e" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-val">{{ analytics?.completedAppointments || 0 }}</div>
+          <div class="kpi-lbl">Completed</div>
+        </div>
+      </div>
+
+      <!-- Complaints -->
+      <div class="kpi-tile" [class.danger-tile]="complaintsCount > 0">
+        <div class="kpi-icon-box"
+             [style.background]="complaintsCount > 0 ? '#fdecea' : '#f4f6fb'">
+          <svg viewBox="0 0 24 24" fill="none"
+               [attr.stroke]="complaintsCount > 0 ? '#c0392b' : '#8a90a0'"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-val" [style.color]="complaintsCount > 0 ? '#c0392b' : '#1e2340'">
+            {{ complaintsCount }}
           </div>
-          <div class="text-center">
-            <div class="text-muted small">Peak Hour</div>
-            <span class="badge bg-success fs-6 mt-1">{{ analytics?.peakBookingHour || 0 }}:00</span>
-          </div>
+          <div class="kpi-lbl">Open Complaints</div>
+          <div *ngIf="complaintsCount >= 4" class="suspension-chip">⚠ Suspension Risk</div>
         </div>
       </div>
+
+      <!-- Notifications -->
+      <div class="kpi-tile">
+        <div class="kpi-icon-box" style="background:#fff3e0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#e65c00" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-val" [style.color]="unreadCount > 0 ? '#e65c00' : '#1e2340'">{{ unreadCount }}</div>
+          <div class="kpi-lbl">Unread Notifications</div>
+        </div>
+      </div>
+
     </div>
+
+    <!-- ── Quick Actions ──────────────────────────────────────────────────── -->
+    <div class="section-label">Quick Actions</div>
+    <div class="action-grid">
+      <div *ngFor="let a of quickActions"
+           class="action-tile"
+           (click)="navigate(a.route)"
+           (mouseenter)="a.hover=true"
+           (mouseleave)="a.hover=false">
+        <div class="action-icon" [style.background]="a.bg">
+          <svg viewBox="0 0 24 24" fill="none" [attr.stroke]="a.color" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path [attr.d]="a.svgPath"/>
+            <path *ngIf="a.svgPath2" [attr.d]="a.svgPath2"/>
+          </svg>
+        </div>
+        <div class="action-label">{{ a.label }}</div>
+      </div>
+    </div>
+
+
+
   </div>
 </div>

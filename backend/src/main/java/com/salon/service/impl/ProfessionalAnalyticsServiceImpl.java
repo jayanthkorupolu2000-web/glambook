@@ -43,15 +43,21 @@ public class ProfessionalAnalyticsServiceImpl implements ProfessionalAnalyticsSe
         res.setAverageRating(avg != null ? avg : 0.0);
         res.setTotalReviews((int) reviewRepository.countByProfessionalId(professionalId));
 
-        // Retention rate
-        Set<Long> customerIds = all.stream().map(a -> a.getCustomer().getId()).collect(Collectors.toSet());
+        // Retention rate — guard against null customer (shouldn't happen but be safe)
+        Set<Long> customerIds = all.stream()
+                .filter(a -> a.getCustomer() != null)
+                .map(a -> a.getCustomer().getId())
+                .collect(Collectors.toSet());
         long repeatCustomers = customerIds.stream()
-                .filter(cid -> all.stream().filter(a -> a.getCustomer().getId().equals(cid)).count() > 1)
+                .filter(cid -> all.stream()
+                        .filter(a -> a.getCustomer() != null && a.getCustomer().getId().equals(cid))
+                        .count() > 1)
                 .count();
         res.setClientRetentionRate(customerIds.isEmpty() ? 0.0 : (double) repeatCustomers / customerIds.size() * 100);
 
-        // Popular services
+        // Popular services — skip appointments where service was deleted (null)
         Map<Long, Long> serviceCount = all.stream()
+                .filter(a -> a.getService() != null)
                 .collect(Collectors.groupingBy(a -> a.getService().getId(), Collectors.counting()));
         List<ServicePopularityResponse> popular = serviceCount.entrySet().stream()
                 .sorted(Map.Entry.<Long, Long>comparingByValue().reversed())
@@ -61,8 +67,10 @@ public class ProfessionalAnalyticsServiceImpl implements ProfessionalAnalyticsSe
                     sp.setServiceId(e.getKey());
                     sp.setBookingCount(e.getValue());
                     sp.setTotalRevenue(BigDecimal.ZERO);
-                    all.stream().filter(a -> a.getService().getId().equals(e.getKey()))
-                            .findFirst().ifPresent(a -> sp.setServiceName(a.getService().getName()));
+                    all.stream()
+                       .filter(a -> a.getService() != null && a.getService().getId().equals(e.getKey()))
+                       .findFirst()
+                       .ifPresent(a -> sp.setServiceName(a.getService().getName()));
                     return sp;
                 }).collect(Collectors.toList());
         res.setPopularServices(popular);

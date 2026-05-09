@@ -1,165 +1,223 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4">My Appointments</h4>
+<div class="appt-page">
+  <h4 class="page-title">My Appointments</h4>
 
-  <ul class="nav nav-tabs mb-4">
-    <li class="nav-item" *ngFor="let tab of [
-      {k:'upcoming',l:'Upcoming'},
-      {k:'past',l:'Past'},
-      {k:'cancelled',l:'Cancelled'},
-      {k:'payments',l:'Payment History'}
-    ]">
-      <button class="nav-link fw-semibold" [class.active]="activeTab===tab.k"
-              style="color:#000 !important;" (click)="activeTab=tab.k">{{ tab.l }}</button>
-    </li>
-  </ul>
+  <!-- ── Tabs ──────────────────────────────────────────────────────────── -->
+  <div class="appt-tabs">
+    <button class="tab-btn" [class.active]="activeTab==='upcoming'" (click)="activeTab='upcoming'">Upcoming</button>
+    <button class="tab-btn" [class.active]="activeTab==='past'"     (click)="activeTab='past'">Past</button>
+    <button class="tab-btn" [class.active]="activeTab==='cancelled'" (click)="activeTab='cancelled'">Cancelled</button>
+    <button class="tab-btn" [class.active]="activeTab==='payments'" (click)="activeTab='payments'">Payment History</button>
+  </div>
 
-  <div *ngIf="loading" class="text-center py-4">
-    <div class="spinner-border" style="color:#334155;"></div>
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#2d4a6e;width:1.5rem;height:1.5rem;border-width:2px;"></div>
   </div>
 
   <div *ngIf="!loading">
     <ng-container [ngSwitch]="activeTab">
 
-      <!-- ── Upcoming ── -->
+      <!-- ══════════════ UPCOMING ══════════════ -->
       <div *ngSwitchCase="'upcoming'">
-        <div *ngFor="let a of upcoming" class="card border-0 shadow-sm mb-3 p-3">
-          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-            <div>
-              <h6 class="fw-bold mb-1">{{ a.serviceName }}</h6>
-              <div class="text-muted small">{{ a.professionalName || 'Awaiting assignment' }}</div>
-              <div class="text-muted small">{{ a.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}</div>
-              <div *ngIf="a.servicePrice" class="small fw-semibold mt-1">₹{{ a.servicePrice }}</div>
+        <div *ngFor="let a of upcoming" class="appt-card">
+          <div class="appt-card-body">
+            <div class="appt-info">
+              <p class="appt-service">{{ a.serviceName }}</p>
+              <div class="appt-meta">
+                <span>{{ a.professionalName || 'Awaiting assignment' }}</span>
+                <span>{{ a.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+              </div>
+              <div *ngIf="a.servicePrice" class="appt-price">₹{{ a.servicePrice }}</div>
             </div>
-            <div class="d-flex flex-column align-items-end gap-2">
-              <span [class]="statusBadge(a.status)">
+            <div class="appt-actions">
+              <span class="status-badge"
+                    [class.status-pending]="a.status==='PENDING'"
+                    [class.status-confirmed]="a.status==='CONFIRMED'">
                 {{ a.status === 'PENDING' ? 'Awaiting Assignment' : a.status }}
               </span>
-              <button *ngIf="a.status === 'CONFIRMED'"
-                      class="btn btn-sm text-white"
-                      style="background:#334155;"
+              <button *ngIf="a.status === 'CONFIRMED'" class="btn-pay"
                       [disabled]="!isPayButtonEnabled(a)"
                       [title]="payButtonTooltip(a)"
                       (click)="openPayGuarded(a)">
                 💳 Pay & Complete
               </button>
-              <button *ngIf="a.status === 'CONFIRMED'"
-                      class="btn btn-sm btn-outline-danger"
+              <button *ngIf="a.status === 'CONFIRMED'" class="btn-cancel-appt"
                       (click)="cancel(a.id)">
                 Cancel
               </button>
             </div>
           </div>
         </div>
-        <p *ngIf="upcoming.length === 0" class="text-center text-muted py-4">No upcoming appointments.</p>
+        <div *ngIf="upcoming.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div class="empty-title">No upcoming appointments</div>
+          <div class="empty-hint">Book a service to get started.</div>
+        </div>
       </div>
 
-      <!-- ── Past ── -->
+      <!-- ══════════════ PAST ══════════════ -->
       <div *ngSwitchCase="'past'">
-        <div *ngFor="let a of past" class="card border-0 shadow-sm mb-3 p-3">
-          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-            <div>
-              <h6 class="fw-bold mb-1">{{ a.serviceName }}</h6>
-              <div class="text-muted small">{{ a.professionalName }}</div>
-              <div class="text-muted small">{{ a.scheduledAt | date:'dd MMM yyyy' }}</div>
+        <div *ngFor="let a of past" class="appt-card">
+
+          <!-- Main row -->
+          <div class="appt-card-body">
+            <div class="appt-info">
+              <p class="appt-service">{{ a.serviceName }}</p>
+              <div class="appt-meta">
+                <span>{{ a.professionalName }}</span>
+                <span>{{ a.scheduledAt | date:'dd MMM yyyy' }}</span>
+              </div>
             </div>
-            <div class="d-flex flex-column align-items-end gap-2">
-              <span [class]="statusBadge(a.status)">{{ a.status }}</span>
+
+            <div class="appt-actions">
+              <span class="status-badge status-completed">COMPLETED</span>
 
               <!-- No review yet -->
-              <button *ngIf="!getReviewForAppt(a.id)"
-                      class="btn btn-sm btn-outline-warning"
-                      (click)="openReview(a)">
-                Rate & Review
+              <button *ngIf="!getReviewForAppt(a.id)" class="btn-rate" (click)="openReview(a)">
+                ★ Rate & Review
               </button>
 
-              <!-- Review exists — show summary + update button -->
+              <!-- Review exists -->
               <ng-container *ngIf="getReviewForAppt(a.id) as rev">
-                <div class="text-end">
-                  <!-- Overall rating -->
-                  <div class="small fw-semibold mb-1">
+                <div class="review-summary">
+                  <!-- Stars + overall -->
+                  <div class="review-stars-row">
                     <span *ngFor="let s of stars(5)"
-                          [style.color]="s <= rev.rating ? '#f5a623' : '#ccc'">★</span>
-                    <span class="text-muted ms-1">{{ rev.rating }}/5 overall</span>
-                    <span *ngIf="rev.status === 'UPDATED'" class="badge bg-secondary ms-1" style="font-size:.65rem;">Edited</span>
+                          [class.star-f]="s <= rev.rating"
+                          [class.star-e]="s > rev.rating">★</span>
+                    <span class="review-overall">{{ rev.rating }}/5 overall</span>
+                    <span *ngIf="rev.status === 'UPDATED'" class="edited-chip">Edited</span>
                   </div>
-                  <!-- Per-criteria breakdown -->
-                  <div class="small text-muted" style="font-size:.75rem;">
+                  <!-- Criteria -->
+                  <div class="review-criteria">
                     <span *ngIf="rev.qualityRating">✨ {{ rev.qualityRating }}/5</span>
-                    <span *ngIf="rev.timelinessRating" class="ms-1">⏱ {{ rev.timelinessRating }}/5</span>
-                    <span *ngIf="rev.professionalismRating" class="ms-1">🤝 {{ rev.professionalismRating }}/5</span>
+                    <span *ngIf="rev.timelinessRating">⏱ {{ rev.timelinessRating }}/5</span>
+                    <span *ngIf="rev.professionalismRating">🤝 {{ rev.professionalismRating }}/5</span>
                   </div>
-                  <div *ngIf="rev.comment" class="text-muted small mt-1" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                    {{ rev.comment }}
-                  </div>
-                  <!-- Existing photos thumbnails -->
-                  <div *ngIf="rev.photos?.length > 0" class="d-flex gap-1 mt-1 justify-content-end">
-                    <img *ngFor="let p of rev.photos.slice(0,3)" [src]="p"
-                         style="width:32px;height:32px;object-fit:cover;border-radius:3px;">
+                  <!-- Comment preview -->
+                  <div *ngIf="rev.comment" class="review-comment-preview">{{ rev.comment }}</div>
+                  <!-- Photo thumbs -->
+                  <div *ngIf="rev.photos?.length > 0" class="review-thumbs">
+                    <img *ngFor="let p of rev.photos.slice(0,3)" [src]="p" class="review-thumb">
                   </div>
                 </div>
-                <button class="btn btn-sm btn-outline-secondary"
-                        (click)="openUpdateReview(a, rev)">
+                <button class="btn-update-review" (click)="openUpdateReview(a, rev)">
                   Update Review
                 </button>
               </ng-container>
 
-              <!-- Add to Favorites (service) -->
-              <button class="btn btn-sm"
+              <!-- Favorites -->
+              <button class="btn-fav"
+                      [class.favorited]="favoritedServices[a.serviceId]"
                       [disabled]="togglingFav[a.serviceId]"
-                      style="background:#dc3545;color:#fff;border:none;"
                       (click)="toggleServiceFavorite(a)">
-                {{ togglingFav[a.serviceId] ? '…' : (favoritedServices[a.serviceId] ? '❤️ Added to Favorites' : '🤍 Add to Favorites') }}
+                {{ togglingFav[a.serviceId] ? '…' :
+                   (favoritedServices[a.serviceId] ? '❤️ Saved' : '🤍 Add to Favorites') }}
               </button>
-
             </div>
           </div>
+
+          <!-- Professional reply strip — shown when professional has replied -->
+          <div *ngIf="getReviewForAppt(a.id)?.professionalResponse" class="prof-reply-strip">
+            <div class="reply-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/>
+              </svg>
+            </div>
+            <div class="reply-content">
+              <div class="reply-label">{{ getReviewForAppt(a.id)?.professionalName || 'Professional' }} replied</div>
+              <p class="reply-text">{{ getReviewForAppt(a.id)?.professionalResponse }}</p>
+              <div class="reply-date">
+                {{ getReviewForAppt(a.id)?.professionalResponseAt | date:'dd MMM yyyy, hh:mm a' }}
+              </div>
+            </div>
+          </div>
+
         </div>
-        <p *ngIf="past.length === 0" class="text-center text-muted py-4">No completed appointments.</p>
+        <div *ngIf="past.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="empty-title">No completed appointments</div>
+          <div class="empty-hint">Completed appointments will appear here.</div>
+        </div>
       </div>
 
-      <!-- ── Cancelled ── -->
+      <!-- ══════════════ CANCELLED ══════════════ -->
       <div *ngSwitchCase="'cancelled'">
-        <div *ngFor="let a of cancelled" class="card border-0 shadow-sm mb-3 p-3">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h6 class="fw-bold mb-1">{{ a.serviceName }}</h6>
-              <div class="text-muted small">{{ a.scheduledAt | date:'dd MMM yyyy' }}</div>
+        <div *ngFor="let a of cancelled" class="appt-card">
+          <div class="appt-card-body">
+            <div class="appt-info">
+              <p class="appt-service">{{ a.serviceName }}</p>
+              <div class="appt-meta">
+                <span>{{ a.professionalName }}</span>
+                <span>{{ a.scheduledAt | date:'dd MMM yyyy' }}</span>
+              </div>
             </div>
-            <span class="badge bg-danger">Cancelled</span>
+            <span class="status-badge status-cancelled">Cancelled</span>
           </div>
         </div>
-        <p *ngIf="cancelled.length === 0" class="text-center text-muted py-4">No cancelled appointments.</p>
+        <div *ngIf="cancelled.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <div class="empty-title">No cancelled appointments</div>
+        </div>
       </div>
 
-      <!-- ── Payment History ── -->
+      <!-- ══════════════ PAYMENT HISTORY ══════════════ -->
       <div *ngSwitchCase="'payments'">
-        <div *ngIf="historyLoading" class="text-center py-4">
-          <div class="spinner-border" style="color:#334155;"></div>
+        <div *ngIf="historyLoading" class="text-center py-5">
+          <div class="spinner-border" style="color:#2d4a6e;width:1.5rem;height:1.5rem;border-width:2px;"></div>
         </div>
-        <div *ngIf="!historyLoading && paymentHistory.length === 0" class="text-center text-muted py-4">
-          No payment history yet.
+        <div *ngIf="!historyLoading && paymentHistory.length === 0" class="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+          </div>
+          <div class="empty-title">No payment history</div>
+          <div class="empty-hint">Completed payments will appear here.</div>
         </div>
-        <div *ngIf="!historyLoading && paymentHistory.length > 0" class="table-responsive">
-          <table class="table table-hover align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>Service</th>
-                <th>Professional</th>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let p of paymentHistory">
-                <td class="fw-semibold">{{ p.service }}</td>
-                <td>{{ p.professional }}</td>
-                <td class="text-muted small">{{ p.date | date:'dd MMM yyyy' }}</td>
-                <td class="fw-bold">₹{{ p.amount }}</td>
-                <td><span class="badge bg-success">{{ p.status }}</span></td>
-              </tr>
-            </tbody>
-          </table>
+        <div *ngIf="!historyLoading && paymentHistory.length > 0" class="pay-table-wrap">
+          <div style="overflow-x:auto;">
+            <table class="pay-table">
+              <thead>
+                <tr>
+                  <th>Service</th>
+                  <th>Professional</th>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of paymentHistory">
+                  <td style="font-weight:600;">{{ p.service }}</td>
+                  <td style="color:#555;">{{ p.professional }}</td>
+                  <td style="color:#8a90a0;font-size:.82rem;">{{ p.date | date:'dd MMM yyyy' }}</td>
+                  <td style="font-weight:700;color:#2d4a6e;">₹{{ p.amount }}</td>
+                  <td><span class="status-badge status-confirmed">{{ p.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -167,7 +225,9 @@
   </div>
 </div>
 
-<!-- ── Payment Modal ──────────────────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════════════
+     Payment Modal
+══════════════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop fade show" *ngIf="payingAppt" (click)="closePay()"></div>
 <div class="modal fade show d-block" tabindex="-1" *ngIf="payingAppt" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
@@ -177,11 +237,8 @@
         <button type="button" class="btn-close" (click)="closePay()"></button>
       </div>
       <div class="modal-body">
-
         <div *ngIf="paySuccess" class="alert alert-success py-2">{{ paySuccess }}</div>
-        <div *ngIf="payError" class="alert alert-danger py-2">{{ payError }}</div>
-
-        <!-- Summary -->
+        <div *ngIf="payError"   class="alert alert-danger  py-2">{{ payError }}</div>
         <div class="p-3 rounded mb-4" style="background:#f8f9fa;">
           <div class="d-flex justify-content-between">
             <span class="fw-semibold">{{ payingAppt.serviceName }}</span>
@@ -191,15 +248,13 @@
             {{ payingAppt.professionalName }} · {{ payingAppt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}
           </div>
         </div>
-
-        <!-- Payment method -->
         <div class="mb-3">
           <label class="form-label fw-semibold">Select Payment Method</label>
           <div class="d-flex gap-3">
             <div class="form-check">
               <input class="form-check-input" type="radio" id="cash" name="method"
                      [checked]="payMethod === 'CASH'" (change)="payMethod = 'CASH'">
-              <label class="form-check-label fw-semibold" for="cash">💵 Cash on Delivery</label>
+              <label class="form-check-label fw-semibold" for="cash">💵 Cash</label>
             </div>
             <div class="form-check">
               <input class="form-check-input" type="radio" id="card" name="method"
@@ -208,51 +263,43 @@
             </div>
           </div>
         </div>
-
-        <!-- Cash info -->
         <div *ngIf="payMethod === 'CASH'" class="alert alert-info py-2 small">
           Pay cash directly to the professional after the service.
         </div>
-
-        <!-- Card fields -->
         <div *ngIf="payMethod === 'CARD'">
           <div class="mb-3">
             <label class="form-label fw-semibold">Card Number <span class="text-muted small">(12 digits)</span></label>
             <input type="text" class="form-control" [value]="cardNumber"
-                   maxlength="12" placeholder="xxxx xxxx xxxx"
-                   (input)="onCardNumberInput($event)">
+                   maxlength="12" placeholder="xxxx xxxx xxxx" (input)="onCardNumberInput($event)">
           </div>
           <div class="row g-3">
             <div class="col-6">
-              <label class="form-label fw-semibold">Expiry <span class="text-muted small">(MM/YY)</span></label>
-              <input type="text" class="form-control" [(ngModel)]="cardExpiry"
-                     maxlength="5" placeholder="MM/YY">
+              <label class="form-label fw-semibold">Expiry</label>
+              <input type="text" class="form-control" [(ngModel)]="cardExpiry" maxlength="5" placeholder="MM/YY">
             </div>
             <div class="col-6">
-              <label class="form-label fw-semibold">CVV <span class="text-muted small">(3 digits)</span></label>
+              <label class="form-label fw-semibold">CVV</label>
               <input type="password" class="form-control" [value]="cardCvv"
-                     maxlength="3" placeholder="•••"
-                     (input)="onCvvInput($event)">
+                     maxlength="3" placeholder="•••" (input)="onCvvInput($event)">
             </div>
           </div>
         </div>
-
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline-secondary" (click)="closePay()">Cancel</button>
-        <button class="btn text-white"
-                style="background:#334155;"
-                (click)="confirmPay()"
-                [disabled]="payLoading || !cardValid">
+        <button class="btn text-white" style="background:#2d4a6e;"
+                (click)="confirmPay()" [disabled]="payLoading || !cardValid">
           <span *ngIf="payLoading" class="spinner-border spinner-border-sm me-2"></span>
-          {{ payLoading ? 'Processing...' : 'Confirm Payment & Mark Done' }}
+          {{ payLoading ? 'Processing...' : 'Confirm Payment' }}
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ── Review Modal ───────────────────────────────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════════════
+     Review Modal
+══════════════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop fade show" *ngIf="reviewingAppt" (click)="closeReview()"></div>
 <div class="modal fade show d-block" tabindex="-1" *ngIf="reviewingAppt" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
@@ -262,19 +309,13 @@
         <button type="button" class="btn-close" (click)="closeReview()"></button>
       </div>
       <div class="modal-body">
-
         <div *ngIf="reviewSuccess" class="alert alert-success py-2">{{ reviewSuccess }}</div>
-        <div *ngIf="reviewError" class="alert alert-danger py-2">{{ reviewError }}</div>
-
+        <div *ngIf="reviewError"   class="alert alert-danger  py-2">{{ reviewError }}</div>
         <div class="text-muted small mb-3">
           {{ reviewingAppt.serviceName }} with {{ reviewingAppt.professionalName }}
         </div>
-
-        <!-- Multi-criteria ratings -->
         <div class="mb-3">
           <label class="form-label fw-semibold mb-2">Rate Your Experience</label>
-
-          <!-- Quality -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="small fw-semibold" style="min-width:130px;">✨ Quality</span>
             <div class="d-flex gap-1" style="font-size:1.6rem;">
@@ -284,8 +325,6 @@
             </div>
             <small class="text-muted ms-2" style="min-width:30px;">{{ reviewQualityRating }}/5</small>
           </div>
-
-          <!-- Timeliness -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="small fw-semibold" style="min-width:130px;">⏱ Timeliness</span>
             <div class="d-flex gap-1" style="font-size:1.6rem;">
@@ -295,8 +334,6 @@
             </div>
             <small class="text-muted ms-2" style="min-width:30px;">{{ reviewTimelinessRating }}/5</small>
           </div>
-
-          <!-- Professionalism -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <span class="small fw-semibold" style="min-width:130px;">🤝 Professionalism</span>
             <div class="d-flex gap-1" style="font-size:1.6rem;">
@@ -306,8 +343,6 @@
             </div>
             <small class="text-muted ms-2" style="min-width:30px;">{{ reviewProfessionalismRating }}/5</small>
           </div>
-
-          <!-- Overall average preview -->
           <div class="mt-2 p-2 rounded text-center" style="background:#f8f9fa;">
             <small class="text-muted">Overall: </small>
             <span class="fw-bold" style="color:#f5a623;">
@@ -315,34 +350,28 @@
             </span>
           </div>
         </div>
-
         <div class="mb-3">
           <label class="form-label fw-semibold">Feedback (optional)</label>
           <textarea class="form-control" rows="3" [(ngModel)]="reviewComment"
-                    maxlength="1000"
-                    placeholder="Share your experience..."></textarea>
+                    maxlength="1000" placeholder="Share your experience..."></textarea>
           <small class="text-muted">{{ reviewComment.length }}/1000</small>
         </div>
-
-        <!-- Photo upload -->
         <div class="mb-3">
           <label class="form-label fw-semibold">Photos (optional)</label>
           <input type="file" class="form-control" accept="image/*" multiple
                  (change)="onPhotoSelected($event)">
           <small class="text-muted">Upload photos of your experience</small>
-          <!-- Preview -->
           <div *ngIf="reviewPhotoPreview.length > 0" class="d-flex flex-wrap gap-2 mt-2">
             <img *ngFor="let url of reviewPhotoPreview" [src]="url"
-                 style="width:60px;height:60px;object-fit:cover;border-radius:4px;">
+                 style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;">
           </div>
         </div>
-
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline-secondary" (click)="closeReview()">
           {{ reviewMode === 'update' ? 'Cancel' : 'Skip' }}
         </button>
-        <button class="btn text-white" style="background:#334155;"
+        <button class="btn text-white" style="background:#2d4a6e;"
                 (click)="submitReview()" [disabled]="reviewLoading">
           <span *ngIf="reviewLoading" class="spinner-border spinner-border-sm me-2"></span>
           {{ reviewLoading ? 'Saving...' : (reviewMode === 'update' ? 'Update Review' : 'Submit Review') }}

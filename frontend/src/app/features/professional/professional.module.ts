@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
@@ -8,8 +9,6 @@ import { ProfAppointmentsComponent } from './prof-appointments/prof-appointments
 import { ProfAvailabilityComponent } from './prof-availability/prof-availability.component';
 import { ProfConsultationsComponent } from './prof-consultations/prof-consultations.component';
 import { ProfDashboardComponent } from './prof-dashboard/prof-dashboard.component';
-import { ProfGroupBookingsComponent } from './prof-group-bookings/prof-group-bookings.component';
-import { ProfMessagesComponent } from './prof-messages/prof-messages.component';
 import { ProfNotificationsComponent } from './prof-notifications/prof-notifications.component';
 import { ProfPoliciesComponent } from './prof-policies/prof-policies.component';
 import { ProfPortfolioComponent } from './prof-portfolio/prof-portfolio.component';
@@ -31,12 +30,10 @@ const routes: Routes = [
       { path: 'availability', component: ProfAvailabilityComponent },
       { path: 'schedule', component: ProfScheduleComponent },
       { path: 'appointments', component: ProfAppointmentsComponent },
-      { path: 'communications', component: ProfMessagesComponent },
       { path: 'reviews', component: ProfReviewsComponent },
       { path: 'analytics', component: ProfAnalyticsComponent },
       { path: 'notifications', component: ProfNotificationsComponent },
       { path: 'consultations', component: ProfConsultationsComponent },
-      { path: 'group-bookings', component: ProfGroupBookingsComponent },
       { path: 'policies', component: ProfPoliciesComponent }
     ]
   }
@@ -52,16 +49,15 @@ const routes: Routes = [
     ProfAvailabilityComponent,
     ProfScheduleComponent,
     ProfAppointmentsComponent,
-    ProfMessagesComponent,
     ProfReviewsComponent,
     ProfAnalyticsComponent,
     ProfNotificationsComponent,
     ProfConsultationsComponent,
-    ProfGroupBookingsComponent,
     ProfPoliciesComponent
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
     SharedModule,

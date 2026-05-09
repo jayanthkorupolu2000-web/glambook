@@ -18,6 +18,7 @@ public class ServiceResponse {
     private String gender;
     private BigDecimal price;
     private Integer durationMins;
+    private BigDecimal discountPct;
     private Boolean isActive;
     private boolean favorited;
 }

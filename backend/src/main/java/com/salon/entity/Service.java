@@ -35,4 +35,8 @@ public class Service {
     @Column(name = "is_active", columnDefinition = "TINYINT(1) DEFAULT 1")
     @Builder.Default
     private Boolean isActive = true;
+
+    @Column(name = "discount_pct", columnDefinition = "DECIMAL(5,2) DEFAULT 0")
+    @Builder.Default
+    private BigDecimal discountPct = BigDecimal.ZERO;
 }

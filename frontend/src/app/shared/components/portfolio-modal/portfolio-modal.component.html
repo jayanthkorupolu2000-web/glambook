@@ -70,7 +70,7 @@
           <div class="portfolio-meta">
             <div class="d-flex flex-wrap gap-1 mb-1">
               <span *ngIf="item.serviceTag" class="badge bg-secondary">{{ item.serviceTag }}</span>
-              <span *ngIf="item.isFeatured" class="badge bg-warning text-dark">⭐ Featured</span>
+
             </div>
             <div *ngIf="item.tags" class="d-flex flex-wrap gap-1 mb-1">
               <span *ngFor="let t of item.tags.split(',')"
@@ -91,7 +91,7 @@
         <div *ngFor="let item of videoItems" class="portfolio-card">
           <video controls class="portfolio-video">
             <source [src]="primaryUrl(item)"
-                    [type]="(item.videoUrl || item.filePath || '')?.endsWith('.webm') ? 'video/webm' : 'video/mp4'">
+                    [type]="(item.videoUrl || item.filePath || '').endsWith('.webm') ? 'video/webm' : 'video/mp4'">
           </video>
           <div class="portfolio-meta">
             <span *ngIf="item.serviceTag" class="badge bg-secondary">{{ item.serviceTag }}</span>

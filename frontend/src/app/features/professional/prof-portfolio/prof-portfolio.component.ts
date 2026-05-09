@@ -1,7 +1,15 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { PortfolioItem, PortfolioService } from '../../../services/portfolio.service';
+import { ProfessionalService } from '../../../services/professional.service';
+
+interface Service {
+  id: number;
+  name: string;
+  category: string;
+}
 
 @Component({
   selector: 'app-prof-portfolio',
@@ -11,6 +19,7 @@ import { PortfolioItem, PortfolioService } from '../../../services/portfolio.ser
 export class ProfPortfolioComponent implements OnInit {
   items: PortfolioItem[] = [];
   filtered: PortfolioItem[] = [];
+  services: Service[] = [];
   activeTab = 'ALL';
   loading = false;
   showModal = false;
@@ -34,7 +43,9 @@ export class ProfPortfolioComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private auth: AuthService,
-    private portfolioService: PortfolioService
+    private portfolioService: PortfolioService,
+    private professionalService: ProfessionalService,
+    private http: HttpClient
   ) {
     this.form = this.fb.group({
       uploadMode:   ['single'],
@@ -52,11 +63,27 @@ export class ProfPortfolioComponent implements OnInit {
   ngOnInit(): void {
     this.profId = this.auth.getUserId() || 0;
     this.load();
+    this.loadServices();
 
     // Keep uploadMode in sync with the form control
     this.form.get('uploadMode')?.valueChanges.subscribe(mode => {
       this.uploadMode = mode;
       this.clearPreviews();
+    });
+  }
+
+  // ── Load services for dropdown ────────────────────────────────────────────
+  loadServices(): void {
+    // Use the services list endpoint instead
+    this.http.get<any[]>('http://localhost:8080/api/services/list').subscribe({
+      next: (data: any[]) => { 
+        console.log('Services loaded:', data);
+        this.services = Array.isArray(data) ? data : []; 
+      },
+      error: (err: any) => { 
+        console.error('Failed to load services:', err);
+        this.services = []; 
+      }
     });
   }
 
@@ -173,6 +200,8 @@ export class ProfPortfolioComponent implements OnInit {
     }
 
     const v = this.form.value;
+    console.log('Form values:', v);
+    console.log('Featured value:', v.featured);
 
     if (this.uploadMode === 'single' && !v.filePath) {
       this.error = 'Please select a file.';
@@ -188,10 +217,12 @@ export class ProfPortfolioComponent implements OnInit {
     const dto = this.uploadMode === 'pair'
       ? { beforeDataUrl: this.beforePreview ?? undefined, afterDataUrl: this.afterPreview ?? undefined,
           serviceTag: v.serviceTag, tags: v.tags, caption: v.caption,
-          testimonial: v.testimonial, featured: v.featured }
+          testimonial: v.testimonial, featured: v.featured || false }
       : { dataUrl: this.singlePreview ?? undefined,
           serviceTag: v.serviceTag, tags: v.tags, caption: v.caption,
-          testimonial: v.testimonial, featured: v.featured };
+          testimonial: v.testimonial, featured: v.featured || false };
+
+    console.log('Sending DTO:', dto);
 
     this.portfolioService.addPortfolioItem(this.profId, dto).subscribe({
       next: () => {

@@ -1,0 +1,144 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Professional Notifications — Component Styles
+═══════════════════════════════════════════════════════════════════ */
+
+:host {
+  --primary:    #2d4a6e;
+  --primary-lt: #3a5f8a;
+  --border:     #e4e8f0;
+  --bg-page:    #f2f5fa;
+  --bg-card:    #ffffff;
+  --text-main:  #1e2340;
+  --text-muted: #8a90a0;
+}
+
+.notif-page {
+  background: var(--bg-page);
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+}
+
+/* ── Header ───────────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+.header-left { display: flex; align-items: center; gap: .75rem; }
+.page-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0;
+}
+.unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 700;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  padding: 0 .4rem;
+}
+
+.btn-mark-all {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .38rem .9rem; border-radius: 8px;
+  border: 1.5px solid var(--border); background: var(--bg-card);
+  color: var(--primary); font-size: .8rem; font-weight: 600; cursor: pointer;
+  transition: all .2s;
+  svg { width: 13px; height: 13px; }
+  &:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+}
+
+/* ── Loading ──────────────────────────────────────────────────────── */
+.loading-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 4rem 1rem; gap: .75rem; color: var(--text-muted); font-size: .85rem;
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid #e4e8f0; border-top-color: var(--primary);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Empty state ──────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 4rem 1rem; color: var(--text-muted);
+}
+.empty-icon {
+  width: 60px; height: 60px; border-radius: 16px; background: #eef2f8;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto .75rem;
+  svg { width: 28px; height: 28px; color: #aab0c0; }
+}
+.empty-title { font-size: .95rem; font-weight: 600; color: var(--text-main); margin-bottom: .25rem; }
+.empty-hint  { font-size: .8rem; }
+
+/* ── Notification list ────────────────────────────────────────────── */
+.notif-list { display: flex; flex-direction: column; gap: .6rem; }
+
+.notif-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 8px rgba(45,74,110,.06);
+  padding: .9rem 1.2rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .9rem;
+  transition: box-shadow .2s, opacity .2s;
+  &:hover { box-shadow: 0 3px 14px rgba(45,74,110,.1); }
+}
+/* Unread — slightly highlighted */
+.notif-card.unread {
+  border-left: 3px solid var(--primary);
+  background: #fafbff;
+}
+/* Read — muted */
+.notif-card.read {
+  opacity: .72;
+}
+
+/* Type icon circle */
+.notif-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  svg { width: 18px; height: 18px; }
+}
+
+/* Content */
+.notif-content { flex: 1; min-width: 0; }
+.notif-message {
+  font-size: .88rem;
+  color: var(--text-main);
+  line-height: 1.5;
+  margin: 0 0 .2rem;
+}
+.notif-card.unread .notif-message { font-weight: 600; }
+.notif-time {
+  font-size: .72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  svg { width: 11px; height: 11px; }
+}
+
+/* Read indicator */
+.read-indicator {
+  display: inline-flex; align-items: center; gap: .25rem;
+  font-size: .7rem; color: #1a9e5c; font-weight: 600;
+  flex-shrink: 0;
+  svg { width: 13px; height: 13px; }
+}

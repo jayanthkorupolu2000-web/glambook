@@ -46,10 +46,6 @@ public class Appointment {
     @Column(name = "reminder_sent_at")
     private LocalDateTime reminderSentAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "group_booking_id")
-    private GroupBooking groupBooking;
-
     @Column(name = "reminder_count")
     @Builder.Default
     private Integer reminderCount = 0;

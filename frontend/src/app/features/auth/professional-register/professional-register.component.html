@@ -71,7 +71,7 @@
           <option value="">Select your service</option>
           <optgroup *ngFor="let cat of getCategories()" [label]="cat">
             <option *ngFor="let s of getServicesByCategory(cat)" [value]="s.id">
-              {{ s.name }} — ₹{{ s.price }}
+              {{ s.name }} ({{ s.gender }}) — ₹{{ s.price }} · {{ s.durationMins }}min
             </option>
           </optgroup>
         </select>

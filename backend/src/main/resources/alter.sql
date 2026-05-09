@@ -233,3 +233,7 @@ CREATE TABLE IF NOT EXISTS product_orders (
   FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
   FOREIGN KEY (product_id)  REFERENCES products(id)  ON DELETE CASCADE
 );
+
+-- ================= PROFESSIONAL — widen certifications column =================
+-- Needed to store JSON array of multiple certificate metadata entries.
+ALTER TABLE professional MODIFY COLUMN certifications MEDIUMTEXT NULL;

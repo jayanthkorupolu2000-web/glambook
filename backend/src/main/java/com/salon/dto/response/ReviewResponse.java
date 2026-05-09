@@ -28,6 +28,7 @@ public class ReviewResponse {
     private String comment;
     private java.util.List<String> photos;
     private String professionalResponse;
+    private LocalDateTime professionalResponseAt;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -18,9 +18,26 @@ interface ServiceItem {
 const BASE = 'http://localhost:8080/api/v1/professionals';
 const SERVICES_API = 'http://localhost:8080/api/services/list';
 
+// All possible service names grouped by category
+const SERVICE_NAMES_BY_CATEGORY: Record<string, string[]> = {
+  Hair:     ['Haircut', 'Hair Trim', 'Blow Dry', 'Straightening', 'Keratin Treatment',
+             'Hair Spa', 'Hair Coloring', 'Highlights', 'Balayage', 'Ombre', 'Root Touch-Up'],
+  Beard:    ['Beard Trim', 'Clean Shave', 'Beard Styling', 'Mustache Trim', 'Beard Color'],
+  Skin:     ['Acne Treatment', 'Anti-Aging', 'Brightening', 'Hydration Therapy', 'Skin Polishing'],
+  Nails:    ['Manicure', 'Pedicure', 'Gel Nails', 'Acrylic Nails', 'Nail Art', 'Nail Extensions'],
+  Makeup:   ['Party Makeup', 'Engagement Makeup', 'Photoshoot Makeup', 'Natural Makeup', 'Bridal Makeup'],
+  Body:     ['Swedish Massage', 'Deep Tissue Massage', 'Aromatherapy', 'Hot Stone Massage', 'Body Scrub'],
+  Grooming: ['Full Grooming Package', 'Eyebrow Shaping', 'Ear Cleaning', 'Nose Wax'],
+  Packages: ['Bridal Package', 'Party Package', 'Grooming Package', 'Spa Package'],
+  Special:  ['Hair Loss Treatment', 'Dandruff Treatment', 'Scalp Treatment', 'Chemical Peel',
+             'D-Tan Treatment', 'Waxing', 'Threading'],
+  Facial:   ['Basic Facial', 'Gold Facial', 'Fruit Facial', 'D-Tan Facial', 'Cleanup', 'Bleach'],
+};
+
 @Component({
   selector: 'app-prof-services',
-  templateUrl: './prof-services.component.html'
+  templateUrl: './prof-services.component.html',
+  styleUrls: ['./prof-services.component.css']
 })
 export class ProfServicesComponent implements OnInit {
   services: ServiceItem[] = [];
@@ -32,8 +49,13 @@ export class ProfServicesComponent implements OnInit {
   profId = 0;
   error = '';
   success = '';
+  successType: 'success' | 'warning' | 'danger' = 'success';
   categories: string[] = [];
   durations = [15, 30, 45, 60, 90, 120];
+
+  // Service name dropdown options based on selected category
+  serviceNameOptions: string[] = [];
+  allCategories = Object.keys(SERVICE_NAMES_BY_CATEGORY);
 
   constructor(private fb: FormBuilder, private auth: AuthService, private http: HttpClient) {
     this.form = this.fb.group({
@@ -44,6 +66,16 @@ export class ProfServicesComponent implements OnInit {
       price: [null, [Validators.required, Validators.min(1)]],
       durationMins: [30, Validators.required],
       discountPct: [0, [Validators.min(0), Validators.max(100)]]
+    });
+
+    // Update service name options when category changes
+    this.form.get('category')!.valueChanges.subscribe(cat => {
+      this.serviceNameOptions = SERVICE_NAMES_BY_CATEGORY[cat] ?? [];
+      // Reset name if it's not in the new list
+      const currentName = this.form.get('name')!.value;
+      if (currentName && !this.serviceNameOptions.includes(currentName)) {
+        this.form.patchValue({ name: '' }, { emitEvent: false });
+      }
     });
   }
 
@@ -68,9 +100,11 @@ export class ProfServicesComponent implements OnInit {
     this.http.get<any[]>(SERVICES_API).subscribe({
       next: data => {
         this.ownerServices = Array.isArray(data) ? data : [];
-        this.categories = [...new Set(this.ownerServices.map((s: any) => s.category as string))];
+        // Merge owner categories with our predefined ones
+        const ownerCats = [...new Set(this.ownerServices.map((s: any) => s.category as string))];
+        this.categories = [...new Set([...this.allCategories, ...ownerCats])];
       },
-      error: () => {}
+      error: () => { this.categories = this.allCategories; }
     });
   }
 
@@ -92,6 +126,15 @@ export class ProfServicesComponent implements OnInit {
     return this.ownerServices.filter(s => s.category === cat);
   }
 
+  // ── Discount clamp ───────────────────────────────────────────────────────
+  clampDiscount(): void {
+    const ctrl = this.form.get('discountPct')!;
+    let val = Number(ctrl.value);
+    if (isNaN(val) || val < 0) val = 0;
+    if (val > 100) val = 100;
+    ctrl.setValue(val, { emitEvent: false });
+  }
+
   submit(): void {
     if (this.form.invalid) return;
     this.submitting = true;
@@ -107,8 +150,9 @@ export class ProfServicesComponent implements OnInit {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('auth_token')}` },
       body: JSON.stringify(body)
     }).then(() => {
-      this.success = 'Service added!';
+      this.showAlert('Service added successfully!', 'success');
       this.form.reset({ targetGroup: 'WOMEN', durationMins: 30, discountPct: 0 });
+      this.serviceNameOptions = [];
       this.showForm = false;
       this.load();
       this.submitting = false;
@@ -120,30 +164,44 @@ export class ProfServicesComponent implements OnInit {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
     }).then(() => {
-      this.success = `Service ${currentlyActive ? 'deactivated' : 'activated'}!`;
+      // Deactivation → warning orange; activation → success green
+      if (currentlyActive) {
+        this.showAlert('Service deactivated.', 'warning');
+      } else {
+        this.showAlert('Service activated!', 'success');
+      }
       this.load();
-      setTimeout(() => this.success = '', 3000);
     }).catch(() => { this.error = 'Failed to toggle service.'; });
   }
 
   onStatusChange(service: any, event: Event): void {
     const val = (event.target as HTMLSelectElement).value;
     const wantActive = val === 'active';
-    const currentlyActive = service.isActive !== false; // null or true = active
+    const currentlyActive = service.isActive !== false;
     if (wantActive === currentlyActive) return;
     this.toggle(service.id, currentlyActive);
   }
 
   deleteService(serviceId: number): void {
-    if (!window.confirm('Delete this service?')) return;
-    fetch(`http://localhost:8080/api/services/${serviceId}`, {
+    if (!window.confirm('Delete this service? This cannot be undone.')) return;
+    // Use the professional-scoped delete endpoint
+    fetch(`${BASE}/${this.profId}/services/${serviceId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${localStorage.getItem('auth_token')}` }
-    }).then(() => {
-      this.success = 'Service deleted.';
-      this.load();
-      setTimeout(() => this.success = '', 3000);
+    }).then(res => {
+      if (res.ok || res.status === 204) {
+        this.showAlert('Service deleted.', 'danger');
+        this.load();
+      } else {
+        this.error = `Failed to delete service (${res.status}).`;
+      }
     }).catch(() => { this.error = 'Failed to delete service.'; });
+  }
+
+  private showAlert(msg: string, type: 'success' | 'warning' | 'danger'): void {
+    this.success = msg;
+    this.successType = type;
+    setTimeout(() => this.success = '', 3500);
   }
 
   effectivePrice(price: number, discount: number): number {
@@ -155,8 +213,13 @@ export class ProfServicesComponent implements OnInit {
     return m[tg] || tg || '—';
   }
 
-  targetGroupBadge(tg: string): string {
-    const m: Record<string, string> = { MEN: 'primary', WOMEN: 'danger', KIDS: 'success' };
-    return `badge bg-${m[tg] ?? 'secondary'}`;
+  targetGroupColor(tg: string): string {
+    const m: Record<string, string> = { MEN: '#1565c0', WOMEN: '#ad1457', KIDS: '#2e7d32' };
+    return m[tg] ?? '#555';
+  }
+
+  targetGroupBg(tg: string): string {
+    const m: Record<string, string> = { MEN: '#e3f2fd', WOMEN: '#fce4ec', KIDS: '#e8f5e9' };
+    return m[tg] ?? '#f0f0f0';
   }
 }

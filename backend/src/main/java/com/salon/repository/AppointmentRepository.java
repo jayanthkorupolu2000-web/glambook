@@ -3,6 +3,7 @@ package com.salon.repository;
 import com.salon.entity.Appointment;
 import com.salon.entity.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -42,4 +43,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
            "AND a.dateTime < :now " +
            "AND NOT EXISTS (SELECT p FROM Payment p WHERE p.appointment = a AND p.status = com.salon.entity.PaymentStatus.PAID)")
     List<Appointment> findOverdueUnpaid(@Param("now") LocalDateTime now);
+
+    /** Null out the service reference on all appointments for a service being deleted.
+     *  Preserves appointment history while removing the FK dependency. */
+    @Modifying
+    @Query("UPDATE Appointment a SET a.service = null WHERE a.service.id = :serviceId")
+    void detachService(@Param("serviceId") Long serviceId);
 }

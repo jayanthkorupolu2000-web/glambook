@@ -64,18 +64,6 @@ export interface AvailabilityResponse {
   isBooked: boolean;
 }
 
-export interface CommunicationResponse {
-  id: number;
-  professionalId: number;
-  customerId: number;
-  customerName: string;
-  appointmentId: number;
-  message: string;
-  type: string;
-  isRead: boolean;
-  createdAt: string;
-}
-
 export interface ProfessionalNotificationResponse {
   id: number;
   type: string;

@@ -11,4 +11,5 @@ public interface FavoriteServiceRepository extends JpaRepository<FavoriteService
     Optional<FavoriteService> findByCustomerIdAndServiceId(Long customerId, Long serviceId);
     boolean existsByCustomerIdAndServiceId(Long customerId, Long serviceId);
     void deleteByCustomerIdAndServiceId(Long customerId, Long serviceId);
+    void deleteByServiceId(Long serviceId);
 }

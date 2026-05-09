@@ -17,7 +17,6 @@ import { CustomerNotificationsComponent } from './customer-notifications/custome
 import { CustomerOrdersComponent } from './customer-orders/customer-orders.component';
 import { CustomerProductsComponent } from './customer-products/customer-products.component';
 import { CustomerProfileComponent } from './customer-profile/customer-profile.component';
-import { GroupBookingsComponent } from './group-bookings/group-bookings.component';
 import { ProfessionalBrowseComponent } from './professional-browse/professional-browse.component';
 import { ServiceSearchComponent } from './service-search/service-search.component';
 
@@ -40,7 +39,6 @@ const routes: Routes = [
       { path: 'products', component: CustomerProductsComponent },
       { path: 'orders', component: CustomerOrdersComponent },
       { path: 'loyalty', component: CustomerLoyaltyComponent },
-      { path: 'group-bookings', component: GroupBookingsComponent },
       { path: 'favorites', component: CustomerFavoritesComponent }
     ]
   }
@@ -62,7 +60,6 @@ const routes: Routes = [
     CustomerProductsComponent,
     CustomerOrdersComponent,
     CustomerLoyaltyComponent,
-    GroupBookingsComponent,
     CustomerFavoritesComponent
   ],
   imports: [

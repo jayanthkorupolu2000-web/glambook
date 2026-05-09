@@ -9,6 +9,7 @@ import com.salon.entity.Professional;
 import com.salon.entity.Service;
 import com.salon.entity.UserStatus;
 import com.salon.repository.AppointmentRepository;
+import com.salon.repository.FavoriteServiceRepository;
 import com.salon.repository.ProfessionalRepository;
 import com.salon.repository.ServiceRepository;
 import com.salon.security.JwtUtil;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +40,7 @@ public class ProfessionalProfileController {
     private final ServiceRepository serviceRepository;
     private final ProfessionalRepository professionalRepository;
     private final AppointmentRepository appointmentRepository;
+    private final FavoriteServiceRepository favoriteServiceRepository;
     private final JwtUtil jwtUtil;
 
     @PutMapping("/{id}/profile")
@@ -126,10 +129,34 @@ public class ProfessionalProfileController {
                 .id(s.getId()).name(s.getName()).category(s.getCategory())
                 .gender(s.getGender() != null ? s.getGender().name() : null)
                 .price(s.getPrice()).durationMins(s.getDurationMins())
+                .discountPct(s.getDiscountPct() != null ? s.getDiscountPct() : BigDecimal.ZERO)
                 .isActive(Boolean.TRUE.equals(s.getIsActive()))
                 .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
+    }
+
+    @DeleteMapping("/{id}/services/{serviceId}")
+    @PreAuthorize("hasRole('PROFESSIONAL')")
+    @Transactional
+    @Operation(summary = "Delete a service owned by a professional")
+    public ResponseEntity<Void> deleteService(
+            @PathVariable Long id,
+            @PathVariable Long serviceId) {
+        Service s = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new com.salon.exception.ResourceNotFoundException("Service not found"));
+        // Ensure the service belongs to this professional
+        if (s.getProfessionalId() == null || !s.getProfessionalId().equals(id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        // Remove any customer favorites referencing this service first,
+        // otherwise the FK on favorite_services will block the delete.
+        favoriteServiceRepository.deleteByServiceId(serviceId);
+        // Null out service_id on appointments to preserve booking history
+        // while removing the FK dependency on the appointments table.
+        appointmentRepository.detachService(serviceId);
+        serviceRepository.deleteById(serviceId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/services/{serviceId}/toggle")
@@ -146,6 +173,7 @@ public class ProfessionalProfileController {
                 .id(saved.getId()).name(saved.getName()).category(saved.getCategory())
                 .gender(saved.getGender() != null ? saved.getGender().name() : null)
                 .price(saved.getPrice()).durationMins(saved.getDurationMins())
+                .discountPct(saved.getDiscountPct() != null ? saved.getDiscountPct() : BigDecimal.ZERO)
                 .isActive(Boolean.TRUE.equals(saved.getIsActive()))
                 .build());
     }
@@ -166,6 +194,11 @@ public class ProfessionalProfileController {
         s.setCategory((String) body.get("category"));
         if (body.get("price") != null) s.setPrice(new BigDecimal(body.get("price").toString()));
         if (body.get("durationMins") != null) s.setDurationMins(Integer.parseInt(body.get("durationMins").toString()));
+        if (body.get("discountPct") != null) {
+            s.setDiscountPct(new BigDecimal(body.get("discountPct").toString()));
+        } else {
+            s.setDiscountPct(BigDecimal.ZERO);
+        }
         s.setIsActive(true);
 
         // Map targetGroup → Gender enum
@@ -177,7 +210,10 @@ public class ProfessionalProfileController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ServiceResponse.builder()
                 .id(saved.getId()).name(saved.getName()).category(saved.getCategory())
                 .gender(saved.getGender() != null ? saved.getGender().name() : null)
-                .price(saved.getPrice()).durationMins(saved.getDurationMins()).build());
+                .price(saved.getPrice()).durationMins(saved.getDurationMins())
+                .discountPct(saved.getDiscountPct() != null ? saved.getDiscountPct() : BigDecimal.ZERO)
+                .isActive(Boolean.TRUE.equals(saved.getIsActive()))
+                .build());
     }
 
     @GetMapping("/{id}/appointments")
