@@ -2,7 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../services/auth.service';
 
-const API = 'http://localhost:8080/api/v1/customers';
+const API    = 'http://localhost:8080/api/v1/customers';
+const WALLET = 'http://localhost:8080/api/wallet';
 
 interface LoyaltySummary {
   points: number;
@@ -11,12 +12,23 @@ interface LoyaltySummary {
   totalRedeemed: number;
   tierBenefits: string[];
   earlyAccessServices: string[];
+  walletBalance: number;
+  lastCreditedAmount?: number;
 }
 
 interface LoyaltyTransaction {
   id: number;
   type: 'EARN' | 'REDEEM';
   points: number;
+  description: string;
+  createdAt: string;
+}
+
+interface WalletTransaction {
+  id: number;
+  type: 'credit' | 'debit';
+  amount: number;
+  source: string;
   description: string;
   createdAt: string;
 }
@@ -28,6 +40,8 @@ interface LoyaltyTransaction {
 export class CustomerLoyaltyComponent implements OnInit {
   summary: LoyaltySummary | null = null;
   transactions: LoyaltyTransaction[] = [];
+  walletTransactions: WalletTransaction[] = [];
+  walletBalance = 0;
   loading = false;
   redeeming = false;
   redeemPoints = 100;
@@ -53,12 +67,14 @@ export class CustomerLoyaltyComponent implements OnInit {
     this.http.get<LoyaltySummary>(`${API}/${id}/loyalty`).subscribe({
       next: data => {
         this.summary = data;
+        this.walletBalance = data.walletBalance ?? 0;
         this.loading = false;
         this.loadTransactions(id);
+        this.loadWalletTransactions();
       },
       error: () => {
-        // No loyalty record yet — show empty state
-        this.summary = { points: 0, tier: 'BRONZE', totalEarned: 0, totalRedeemed: 0, tierBenefits: [], earlyAccessServices: [] };
+        this.summary = { points: 0, tier: 'BRONZE', totalEarned: 0, totalRedeemed: 0,
+                         tierBenefits: [], earlyAccessServices: [], walletBalance: 0 };
         this.loading = false;
       }
     });
@@ -68,6 +84,20 @@ export class CustomerLoyaltyComponent implements OnInit {
     this.http.get<LoyaltyTransaction[]>(`${API}/${id}/loyalty/transactions`).subscribe({
       next: data => { this.transactions = Array.isArray(data) ? data : []; },
       error: () => { this.transactions = []; }
+    });
+  }
+
+  loadWalletTransactions(): void {
+    this.http.get<WalletTransaction[]>(`${WALLET}/transactions`).subscribe({
+      next: data => { this.walletTransactions = Array.isArray(data) ? data : []; },
+      error: () => { this.walletTransactions = []; }
+    });
+  }
+
+  refreshWalletBalance(): void {
+    this.http.get<{ balance: number; currency: string }>(`${WALLET}/balance`).subscribe({
+      next: data => { this.walletBalance = data.balance; },
+      error: () => {}
     });
   }
 
@@ -84,7 +114,6 @@ export class CustomerLoyaltyComponent implements OnInit {
     const t = this.currentTier;
     if (!this.summary) return 0;
     if (t.max === Infinity) return 100;
-    // Progress based on totalEarned (lifetime), not current spendable balance
     const earned = this.summary.totalEarned;
     return Math.min(100, Math.round(((earned - t.min) / (t.max - t.min)) * 100));
   }
@@ -103,12 +132,13 @@ export class CustomerLoyaltyComponent implements OnInit {
 
   setTab(tab: string): void {
     this.activeTab = tab as any;
+    if (tab === 'history') this.loadWalletTransactions();
   }
 
   redeem(): void {
     this.redeemError = '';
     this.redeemSuccess = '';
-    if (!this.redeemPoints || this.redeemPoints <= 0) { this.redeemError = 'Enter valid points.'; return; }
+    if (!this.redeemPoints || this.redeemPoints < 100) { this.redeemError = 'Minimum 100 points required.'; return; }
     if (this.redeemPoints % 100 !== 0) { this.redeemError = 'Points must be in multiples of 100.'; return; }
     if (this.summary && this.redeemPoints > this.summary.points) { this.redeemError = 'Not enough points.'; return; }
     const id = this.auth.getUserId();
@@ -116,11 +146,14 @@ export class CustomerLoyaltyComponent implements OnInit {
     this.redeeming = true;
     this.http.post<LoyaltySummary>(`${API}/${id}/loyalty/redeem`, { points: this.redeemPoints }).subscribe({
       next: updated => {
+        const credited = updated.lastCreditedAmount ?? this.discountValue;
         this.summary = updated;
-        this.redeemSuccess = `✅ ${this.redeemPoints} points redeemed for ₹${this.discountValue} discount!`;
+        this.walletBalance = updated.walletBalance ?? this.walletBalance;
+        this.redeemSuccess = `✅ ₹${credited} added to your wallet!`;
         this.redeemPoints = 100;
         this.redeeming = false;
         this.loadTransactions(id);
+        this.loadWalletTransactions();
       },
       error: (e) => { this.redeemError = e?.error?.message || 'Redemption failed.'; this.redeeming = false; }
     });

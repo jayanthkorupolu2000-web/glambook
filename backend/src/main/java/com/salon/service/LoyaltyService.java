@@ -21,4 +21,11 @@ public interface LoyaltyService {
 
     /** Full earn/redeem transaction history */
     List<LoyaltyTransactionResponse> getTransactions(Long customerId);
+
+    /**
+     * Award loyalty points for a product purchase.
+     * Rule: every ₹100 spent = 10 points.
+     * Points are credited to the customer's loyalty record (owner-agnostic).
+     */
+    void awardPointsForProductPurchase(Long customerId, java.math.BigDecimal amountSpent);
 }

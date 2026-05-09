@@ -79,8 +79,8 @@ ALTER TABLE loyalty ADD COLUMN total_redeemed INT DEFAULT 0;
 
 -- ================= CONSULTATIONS =================
 ALTER TABLE consultations
-  MODIFY COLUMN type ENUM('VIRTUAL','IN_PERSON','GENERAL') NOT NULL DEFAULT 'GENERAL',
-  MODIFY COLUMN status ENUM('PENDING','RESPONDED','CLOSED') NOT NULL DEFAULT 'PENDING';
+MODIFY COLUMN type ENUM('VIRTUAL','IN_PERSON','GENERAL') NOT NULL DEFAULT 'GENERAL',
+MODIFY COLUMN status ENUM('PENDING','RESPONDED','CLOSED') NOT NULL DEFAULT 'PENDING';
 ALTER TABLE consultations ADD COLUMN topic ENUM('HAIR','SKIN','MAKEUP','GENERAL') NOT NULL DEFAULT 'GENERAL';
 ALTER TABLE consultations ADD COLUMN question TEXT NULL;
 ALTER TABLE consultations ADD COLUMN notes TEXT NULL;
@@ -89,98 +89,147 @@ ALTER TABLE consultations ADD COLUMN photo_url VARCHAR(500) NULL;
 
 -- ================= PROFESSIONAL AVAILABILITY =================
 CREATE TABLE IF NOT EXISTS professional_availability (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    professional_id BIGINT NOT NULL,
-    avail_date      DATE NOT NULL,
-    start_time      TIME NOT NULL,
-    end_time        TIME NOT NULL,
-    is_booked       TINYINT(1) NOT NULL DEFAULT 0,
-    slot_type       VARCHAR(20) NOT NULL DEFAULT 'WORKING',
-    slot_status     VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE',
-    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (professional_id) REFERENCES professional(id)
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+professional_id BIGINT NOT NULL,
+avail_date DATE NOT NULL,
+start_time TIME NOT NULL,
+end_time TIME NOT NULL,
+is_booked TINYINT(1) NOT NULL DEFAULT 0,
+slot_type VARCHAR(20) NOT NULL DEFAULT 'WORKING',
+slot_status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE',
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (professional_id) REFERENCES professional(id)
 );
 ALTER TABLE professional_availability ADD COLUMN slot_type VARCHAR(20) NOT NULL DEFAULT 'WORKING';
 ALTER TABLE professional_availability ADD COLUMN slot_status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE';
 
 -- ================= GROUP BOOKINGS =================
 CREATE TABLE IF NOT EXISTS group_bookings (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    customer_id    BIGINT NOT NULL,
-    salon_owner_id BIGINT NULL,
-    scheduled_at   DATETIME NOT NULL,
-    discount_pct   DECIMAL(5,2) NOT NULL DEFAULT 0,
-    status         ENUM('PENDING','CONFIRMED','COMPLETED','CANCELLED') NOT NULL DEFAULT 'PENDING',
-    notes          TEXT NULL,
-    created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at     DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id)    REFERENCES customer(id),
-    FOREIGN KEY (salon_owner_id) REFERENCES salon_owner(id)
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+customer_id BIGINT NOT NULL,
+salon_owner_id BIGINT NULL,
+scheduled_at DATETIME NOT NULL,
+discount_pct DECIMAL(5,2) NOT NULL DEFAULT 0,
+status ENUM('PENDING','CONFIRMED','COMPLETED','CANCELLED') NOT NULL DEFAULT 'PENDING',
+notes TEXT NULL,
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+FOREIGN KEY (customer_id) REFERENCES customer(id),
+FOREIGN KEY (salon_owner_id) REFERENCES salon_owner(id)
 );
 
 -- ================= ADMIN NOTIFICATIONS =================
 CREATE TABLE IF NOT EXISTS admin_notifications (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    message      TEXT NOT NULL,
-    reference_id BIGINT NULL,
-    is_read      BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+message TEXT NOT NULL,
+reference_id BIGINT NULL,
+is_read BOOLEAN NOT NULL DEFAULT FALSE,
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ================= LOYALTY TRANSACTIONS =================
 CREATE TABLE IF NOT EXISTS loyalty_transactions (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    customer_id    BIGINT NOT NULL,
-    type           VARCHAR(10) NOT NULL,
-    points         INT NOT NULL,
-    description    TEXT NULL,
-    appointment_id BIGINT NULL,
-    created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id)    REFERENCES customer(id) ON DELETE CASCADE,
-    FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+customer_id BIGINT NOT NULL,
+type VARCHAR(10) NOT NULL,
+points INT NOT NULL,
+description TEXT NULL,
+appointment_id BIGINT NULL,
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL
 );
 
 -- ================= FAVORITES =================
 CREATE TABLE IF NOT EXISTS favorite_products (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    customer_id BIGINT NOT NULL,
-    product_id  BIGINT NOT NULL,
-    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_fav_product (customer_id, product_id),
-    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id)  REFERENCES products(id) ON DELETE CASCADE
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+customer_id BIGINT NOT NULL,
+product_id BIGINT NOT NULL,
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+UNIQUE KEY uq_fav_product (customer_id, product_id),
+FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS favorite_services (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    customer_id BIGINT NOT NULL,
-    service_id  BIGINT NOT NULL,
-    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_fav_service (customer_id, service_id),
-    FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
-    FOREIGN KEY (service_id)  REFERENCES services(id) ON DELETE CASCADE
+id BIGINT AUTO_INCREMENT PRIMARY KEY,
+customer_id BIGINT NOT NULL,
+service_id BIGINT NOT NULL,
+created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+UNIQUE KEY uq_fav_service (customer_id, service_id),
+FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
 
 -- ================= PORTFOLIO — metadata columns =================
 ALTER TABLE portfolio ADD COLUMN file_path VARCHAR(500) NULL;
 ALTER TABLE portfolio ADD COLUMN tags VARCHAR(255) NULL;
-
 -- ================= CUSTOMER NOTIFICATIONS — enum fix =================
 ALTER TABLE customer_notifications
-  MODIFY COLUMN type ENUM(
-    'BOOKING_CONFIRMED','BOOKING_CANCELLED',
-    'PAYMENT_SUCCESS','PAYMENT_REFUNDED',
-    'REVIEW_RESPONSE','COMMUNICATION_RECEIVED',
-    'LOYALTY_POINTS_EARNED','POLICY_UPDATED',
-    'PROMOTION_AVAILABLE','CONSULTATION_CONFIRMED',
-    'PAYMENT_REMINDER'
-  ) NOT NULL;
+MODIFY COLUMN type ENUM(
+'BOOKING_CONFIRMED','BOOKING_CANCELLED',
+'PAYMENT_SUCCESS','PAYMENT_REFUNDED',
+'REVIEW_RESPONSE','COMMUNICATION_RECEIVED',
+'LOYALTY_POINTS_EARNED','POLICY_UPDATED',
+'PROMOTION_AVAILABLE','CONSULTATION_CONFIRMED',
+'PAYMENT_REMINDER'
+) NOT NULL;
 
 -- ================= LOYALTY TIER — add PLATINUM =================
 ALTER TABLE loyalty
-  MODIFY COLUMN tier ENUM('BRONZE','SILVER','GOLD','PLATINUM') NOT NULL DEFAULT 'BRONZE';
+MODIFY COLUMN tier ENUM('BRONZE','SILVER','GOLD','PLATINUM') NOT NULL DEFAULT 'BRONZE';
 
 -- ================= DATA FIXES =================
 UPDATE services SET is_active = 1 WHERE is_active IS NULL;
 UPDATE services SET gender = 'WOMEN' WHERE gender IS NULL;
 UPDATE appointments SET reminder_count = 0 WHERE reminder_count IS NULL;
+
+
+-- ================= WALLET =================
+CREATE TABLE IF NOT EXISTS wallet (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  customer_id BIGINT NOT NULL UNIQUE,
+  balance     DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  updated_at  DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_wallet_customer FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  customer_id BIGINT NOT NULL,
+  type        VARCHAR(10)  NOT NULL COMMENT 'credit or debit',
+  amount      DECIMAL(10,2) NOT NULL,
+  source      VARCHAR(30)  NOT NULL COMMENT 'points_redemption or manual',
+  description TEXT NULL,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_wallet_txn_customer FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE
+);
+
+-- ================= PRODUCT REVIEWS =================
+CREATE TABLE IF NOT EXISTS product_reviews (
+  id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+  product_id  BIGINT NOT NULL,
+  customer_id BIGINT NOT NULL,
+  rating      INT NOT NULL,
+  review_text TEXT NULL,
+  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_product_review (customer_id, product_id),
+  FOREIGN KEY (product_id)  REFERENCES products(id)  ON DELETE CASCADE,
+  FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE
+);
+
+-- ================= PRODUCT ORDERS =================
+CREATE TABLE IF NOT EXISTS product_orders (
+  id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+  customer_id      BIGINT NOT NULL,
+  product_id       BIGINT NOT NULL,
+  quantity         INT NOT NULL DEFAULT 1,
+  unit_price       DECIMAL(10,2) NOT NULL,
+  total_price      DECIMAL(10,2) NOT NULL,
+  status           VARCHAR(20) NOT NULL DEFAULT 'PLACED',
+  tracking_number  VARCHAR(100) NULL,
+  order_date       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  delivery_date    DATE NULL,
+  FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id)  REFERENCES products(id)  ON DELETE CASCADE
+);

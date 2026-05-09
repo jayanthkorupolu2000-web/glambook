@@ -32,7 +32,20 @@ public class Review {
     @JoinColumn(name = "appointment_id")
     private Appointment appointment;
 
+    /** Overall rating (auto-computed as average of the three criteria) */
     private Integer rating;
+
+    /** Quality of the service (1–5) */
+    @Column(name = "quality_rating")
+    private Integer qualityRating;
+
+    /** Timeliness / punctuality (1–5) */
+    @Column(name = "timeliness_rating")
+    private Integer timelinessRating;
+
+    /** Professionalism of the professional (1–5) */
+    @Column(name = "professionalism_rating")
+    private Integer professionalismRating;
 
     @Column(columnDefinition = "TEXT")
     private String comment;

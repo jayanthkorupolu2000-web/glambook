@@ -24,10 +24,20 @@ public class ReviewRequest {
     @NotNull(message = "Please provide a valid appointmentId")
     private Long appointmentId;
 
-    @NotNull(message = "Please provide a valid rating")
-    @Min(value = 1, message = "Please provide a valid rating")
-    @Max(value = 5, message = "Please provide a valid rating")
-    private Integer rating;
+    @NotNull(message = "Please provide a quality rating")
+    @Min(value = 1, message = "Quality rating must be between 1 and 5")
+    @Max(value = 5, message = "Quality rating must be between 1 and 5")
+    private Integer qualityRating;
+
+    @NotNull(message = "Please provide a timeliness rating")
+    @Min(value = 1, message = "Timeliness rating must be between 1 and 5")
+    @Max(value = 5, message = "Timeliness rating must be between 1 and 5")
+    private Integer timelinessRating;
+
+    @NotNull(message = "Please provide a professionalism rating")
+    @Min(value = 1, message = "Professionalism rating must be between 1 and 5")
+    @Max(value = 5, message = "Professionalism rating must be between 1 and 5")
+    private Integer professionalismRating;
 
     @Size(max = 1000, message = "Comment must not exceed 1000 characters")
     private String comment;

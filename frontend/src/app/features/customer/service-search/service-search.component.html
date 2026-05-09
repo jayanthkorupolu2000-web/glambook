@@ -14,6 +14,7 @@
           <div class="mb-3">
             <label class="form-label fw-semibold small">City</label>
             <select class="form-select form-select-sm" formControlName="city" (change)="search()">
+              <option value="">-- Select City --</option>
               <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
             </select>
           </div>
@@ -23,7 +24,7 @@
             <label class="form-label fw-semibold small">Service Type</label>
             <div class="d-flex gap-2">
               <div class="form-check">
-                <input class="form-check-input" type="radio" formControlName="serviceType" value="" id="all" (change)="search()">
+                <input class="form-check-input" type="radio" formControlName="serviceType" [value]="null" id="all" (change)="search()">
                 <label class="form-check-label small" for="all">All</label>
               </div>
               <div class="form-check">
@@ -68,9 +69,17 @@
           <div class="mb-3">
             <label class="form-label fw-semibold small">Price Range (₹)</label>
             <div class="d-flex gap-2">
-              <input type="number" class="form-control form-control-sm" formControlName="minPrice" placeholder="Min" (change)="search()">
-              <input type="number" class="form-control form-control-sm" formControlName="maxPrice" placeholder="Max" (change)="search()">
+              <input type="number" class="form-control form-control-sm" formControlName="minPrice"
+                     placeholder="Min" min="0"
+                     (change)="onMinPriceChange()" (input)="onMinPriceChange()">
+              <input type="number" class="form-control form-control-sm" formControlName="maxPrice"
+                     placeholder="Max" [min]="minPriceValue"
+                     (change)="onMaxPriceChange()" (input)="onMaxPriceChange()">
             </div>
+            <small *ngIf="form.value.maxPrice !== '' && +form.value.maxPrice < minPriceValue"
+                   class="text-danger" style="font-size:.72rem;">
+              Max must be ≥ Min
+            </small>
           </div>
 
           <!-- Min Rating -->

@@ -6,22 +6,30 @@
   <div *ngIf="!loading">
     <div *ngFor="let o of orders" class="card border-0 shadow-sm mb-3">
       <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold">Order #{{ o.id }}</span>
-          <span [class]="statusBadge(o.deliveryStatus)">{{ o.deliveryStatus }}</span>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <div style="font-size:2rem;">🧴</div>
+            <div>
+              <div class="fw-bold">{{ o.productName }}</div>
+              <div class="text-muted small">Qty: {{ o.quantity }} · ₹{{ o.unitPrice }} / unit</div>
+            </div>
+          </div>
+          <span [class]="statusBadge(o.status)">{{ o.status }}</span>
         </div>
-        <div *ngFor="let item of o.items" class="d-flex justify-content-between small py-1 border-bottom">
-          <span>{{ item.productName }} × {{ item.quantity }}</span>
-          <span class="fw-semibold">₹{{ item.price }}</span>
-        </div>
-        <div class="d-flex justify-content-between mt-2">
-          <span class="text-muted small">{{ o.createdAt | date:'dd MMM yyyy' }}</span>
-          <span class="fw-bold" style="color:#244AFD;">Total: ₹{{ o.totalAmount }}</span>
+
+        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+          <div class="text-muted small">
+            <span>📅 {{ o.orderDate | date:'dd MMM yyyy, hh:mm a' }}</span>
+            <span *ngIf="o.trackingNumber" class="ms-3">🚚 {{ o.trackingNumber }}</span>
+          </div>
+          <span class="fw-bold" style="color:#244AFD;">₹{{ o.totalPrice }}</span>
         </div>
       </div>
     </div>
+
     <div *ngIf="orders.length === 0" class="text-center text-muted py-5">
-      No orders yet. Browse our products!
+      <div style="font-size:3rem;">📦</div>
+      <p class="mt-2">No orders yet. Browse our products!</p>
     </div>
   </div>
 </div>

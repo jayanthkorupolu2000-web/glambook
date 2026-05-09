@@ -1,35 +1,37 @@
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\service\ScheduleServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\CustomerRoundTripTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\security\JwtPropertyTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\service\SalonOwnerEditServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\exception\GlobalExceptionHandlerPropertyTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\appointment\AppointmentIntegrationTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\InvalidCityProfessionalRegistrationTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\controller\PortfolioControllerTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\review\ReviewServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\service\SalonOwnerManagementServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\ProfessionalCityAssignmentTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\DuplicateEmailRegistrationTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\controller\ServiceControllerTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\payment\PaymentControllerTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\admin\AdminServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\AuthServiceUnitTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\service\ProfessionalSearchServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\controller\SalonOwnerEditControllerTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\professional\ProfessionalControllerTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\integration\ServiceEndpointPublicAccessTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\AuthServicePropertyTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\payment\PaymentServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\appointment\AppointmentControllerTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\service\SalonPolicyServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\controller\SalonOwnerManagementControllerTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\controller\ScheduleControllerTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\AdminLoginTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\service\BeautyProfileServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\InvalidCredentialsTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\appointment\AppointmentServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\controller\ServiceControllerUnauthenticatedTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\owner\SalonOwnerServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\controller\ServiceControllerUnitTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\service\ServiceServiceTest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\test\java\com\salon\auth\AuthControllerExampleTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\appointment\AppointmentControllerTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\security\JwtPropertyTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\LoyaltyProductPurchaseTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\DuplicateEmailRegistrationTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\SalonOwnerManagementServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\CustomerRoundTripTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\controller\ServiceControllerUnauthenticatedTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\ProfessionalSearchServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\ScheduleServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\exception\GlobalExceptionHandlerPropertyTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\InvalidCityProfessionalRegistrationTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\appointment\AppointmentServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\controller\ServiceControllerTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\integration\ServiceEndpointPublicAccessTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\appointment\AppointmentIntegrationTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\ServiceServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\ProfessionalCityAssignmentTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\controller\ServiceControllerUnitTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\owner\SalonOwnerServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\payment\PaymentServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\BeautyProfileServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\SalonOwnerEditServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\SalonPolicyServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\payment\PaymentControllerTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\controller\PortfolioControllerTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\controller\SalonOwnerManagementControllerTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\AdminLoginTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\AuthServiceUnitTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\AuthServicePropertyTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\controller\ScheduleControllerTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\controller\SalonOwnerEditControllerTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\professional\ProfessionalControllerTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\service\ProductServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\admin\AdminServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\review\ReviewServiceTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\InvalidCredentialsTest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\test\java\com\salon\auth\AuthControllerExampleTest.java

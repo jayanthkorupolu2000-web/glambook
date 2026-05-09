@@ -1,61 +1,431 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../services/auth.service';
 
-const API = 'http://localhost:8080/api';
-const API_V1 = 'http://localhost:8080/api/v1';
+const BASE = 'http://localhost:8080';
 
 @Component({
   selector: 'app-customer-products',
   templateUrl: './customer-products.component.html'
 })
 export class CustomerProductsComponent implements OnInit {
+
+  // ── State ──────────────────────────────────────────────────────────────────
   products: any[] = [];
+  recommended: any[] = [];
   loading = false;
-  addingToCart: Record<number, boolean> = {};
+  loadingRec = false;
+
+  // Filters
+  searchKeyword = '';
+  selectedCategory = '';
+  selectedBrand = '';
+  minPrice: number | null = null;
+  maxPrice: number | null = null;
+  priceError = '';
+  categories = ['HAIRCARE', 'SKINCARE', 'MAKEUP', 'NAILCARE', 'FRAGRANCE', 'TOOLS'];
+  brands = [
+    'Ajmal', 'CND SolarOil', 'Chanel', 'Essie', 'Forest Essentials',
+    'Herbivore Botanicals', 'Himalaya', 'L\'Oreal Paris', 'Lakme Sun Expert',
+    'MAC Cosmetics', 'Mamaearth', 'Maybelline New York', 'Minimalist',
+    'Mount Lai', 'Neutrogena', 'OPI', 'Olay Regenerist', 'Revlon',
+    'Sigma Beauty', 'TRESemmé', 'Urban Decay', 'Wella Professionals'
+  ];
+
+  // Pagination
+  currentPage = 0;
+  pageSize = 12;
+  totalPages = 0;
+  totalElements = 0;
+
+  // Favorites
   togglingFav: Record<number, boolean> = {};
-  success = '';
+
+  // Order modal
+  orderingProduct: any = null;
+  orderQuantity = 1;
+  orderLoading = false;
+  orderError = '';
+  orderSuccess: any = null;
+  orderModalTab: 'order' | 'ingredients' | 'reviews' = 'order';
+
+  // Payment modal (shown after order is placed)
+  payingOrder: any = null;          // the placed order response
+  payMethod: 'CASH' | 'CARD' = 'CASH';
+  cardNumber = '';
+  cardExpiry = '';
+  cardCvv = '';
+  payLoading = false;
+  payError = '';
+  paySuccess = '';
+
+  // Reviews inside order modal
+  orderModalReviews: any[] = [];
+  orderModalReviewsLoading = false;
+  orderModalReviewRating = 5;
+  orderModalReviewText = '';
+  orderModalReviewSubmitting = false;
+  orderModalReviewError = '';
+  orderModalReviewSuccess = '';
+  orderModalHasOrdered = false;
+  orderModalAlreadyReviewed = false;
+
+  // Detail modal
+  detailProduct: any = null;
+  detailReviews: any[] = [];
+  detailReviewsLoading = false;
+  reviewText = '';
+  reviewRating = 5;
+  reviewSubmitting = false;
+  reviewError = '';
+  reviewSuccess = '';
+  hasOrdered = false;
+  alreadyReviewed = false;
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
-  ngOnInit(): void { this.load(); }
+  ngOnInit(): void {
+    this.load();
+    if (this.auth.getUserId()) this.loadRecommended();
+  }
 
-  load(): void {
-    const id = this.auth.getUserId();
+  // ── Load products ──────────────────────────────────────────────────────────
+
+  load(page = 0): void {
     this.loading = true;
-    const url = id ? `${API_V1}/products?customerId=${id}` : `${API_V1}/products`;
-    this.http.get<any[]>(url).subscribe({
+    this.currentPage = page;
+
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', this.pageSize.toString());
+
+    if (this.selectedCategory) params = params.set('category', this.selectedCategory);
+    if (this.selectedBrand)    params = params.set('brand', this.selectedBrand);
+    // Only send valid price values — min >= 0, max >= min
+    if (this.minPrice !== null && this.minPrice >= 0)
+      params = params.set('minPrice', this.minPrice.toString());
+    if (this.maxPrice !== null && this.maxPrice > 0)
+      params = params.set('maxPrice', this.maxPrice.toString());
+
+    this.http.get<any>(`${BASE}/api/products`, { params }).subscribe({
+      next: data => {
+        this.products = data.content || [];
+        this.totalPages = data.totalPages || 0;
+        this.totalElements = data.totalElements || 0;
+        this.loading = false;
+      },
+      error: () => { this.products = []; this.loading = false; }
+    });
+  }
+
+  /** Clamp min to >= 0; auto-correct max if it falls below min */
+  onMinPriceChange(): void {
+    if (this.minPrice !== null) {
+      this.minPrice = Math.max(0, this.minPrice);
+      if (this.maxPrice !== null && this.maxPrice < this.minPrice) {
+        this.maxPrice = this.minPrice;
+      }
+    }
+    this.validatePriceRange();
+  }
+
+  /** Ensure max >= min */
+  onMaxPriceChange(): void {
+    if (this.maxPrice !== null && this.minPrice !== null && this.maxPrice < this.minPrice) {
+      this.maxPrice = this.minPrice;
+    }
+    this.validatePriceRange();
+  }
+
+  private validatePriceRange(): void {
+    if (this.minPrice !== null && this.minPrice < 0) {
+      this.priceError = 'Min price must be ≥ 0';
+    } else if (this.maxPrice !== null && this.minPrice !== null && this.maxPrice < this.minPrice) {
+      this.priceError = 'Max must be ≥ Min';
+    } else {
+      this.priceError = '';
+    }
+  }
+
+  applyPriceFilter(): void {
+    this.validatePriceRange();
+    if (!this.priceError) this.load(0);
+  }
+
+  search(): void {
+    if (!this.searchKeyword.trim()) { this.load(); return; }
+    this.loading = true;
+    this.http.get<any[]>(`${BASE}/api/products/search?q=${encodeURIComponent(this.searchKeyword)}`).subscribe({
       next: data => { this.products = Array.isArray(data) ? data : []; this.loading = false; },
       error: () => { this.products = []; this.loading = false; }
     });
   }
 
-  toggleFavorite(product: any): void {
-    const id = this.auth.getUserId();
-    if (!id) return;
-    this.togglingFav[product.id] = true;
-    this.http.post<any>(`${API_V1}/customers/${id}/favorites/products/${product.id}`, {}).subscribe({
-      next: (res) => {
-        product.favorited = res.favorited;
-        this.togglingFav[product.id] = false;
-      },
-      error: () => { this.togglingFav[product.id] = false; }
+  clearFilters(): void {
+    this.searchKeyword = '';
+    this.selectedCategory = '';
+    this.selectedBrand = '';
+    this.minPrice = null;
+    this.maxPrice = null;
+    this.priceError = '';
+    this.load(0);
+  }
+
+  loadRecommended(): void {
+    this.loadingRec = true;
+    this.http.get<any[]>(`${BASE}/api/products/recommended`).subscribe({
+      next: data => { this.recommended = Array.isArray(data) ? data.slice(0, 4) : []; this.loadingRec = false; },
+      error: () => { this.recommended = []; this.loadingRec = false; }
     });
   }
 
-  order(product: any): void {
+  // ── Favorites ──────────────────────────────────────────────────────────────
+
+  toggleFavorite(product: any, event: Event): void {
+    event.stopPropagation();
     const id = this.auth.getUserId();
     if (!id) return;
-    this.addingToCart[product.id] = true;
-    this.http.post(`${API}/customers/${id}/orders`, {
-      items: [{ productId: product.id, quantity: 1 }]
-    }).subscribe({
-      next: () => {
-        this.success = `${product.name} ordered successfully!`;
-        this.addingToCart[product.id] = false;
-        setTimeout(() => this.success = '', 3000);
-      },
-      error: () => { this.addingToCart[product.id] = false; }
+    this.togglingFav[product.id] = true;
+
+    if (product.favorited) {
+      this.http.delete(`${BASE}/api/products/${product.id}/favorites`).subscribe({
+        next: () => { product.favorited = false; this.togglingFav[product.id] = false; },
+        error: () => { this.togglingFav[product.id] = false; }
+      });
+    } else {
+      this.http.post<any>(`${BASE}/api/products/${product.id}/favorites`, {}).subscribe({
+        next: () => { product.favorited = true; this.togglingFav[product.id] = false; },
+        error: () => { this.togglingFav[product.id] = false; }
+      });
+    }
+  }
+
+  // ── Order modal ────────────────────────────────────────────────────────────
+
+  openOrder(product: any, event?: Event): void {
+    if (event) event.stopPropagation();
+    this.orderingProduct = product;
+    this.orderQuantity = 1;
+    this.orderError = '';
+    this.orderSuccess = null;
+    this.orderLoading = false;
+    this.orderModalTab = 'order';
+    // Load reviews and eligibility for the order modal
+    this.loadOrderModalReviews(product.id);
+    if (this.isLoggedIn()) this.checkOrderModalCanReview(product.id);
+  }
+
+  closeOrder(): void {
+    this.orderingProduct = null;
+    this.orderSuccess = null;
+    this.orderModalReviews = [];
+    this.orderModalReviewText = '';
+    this.orderModalReviewError = '';
+    this.orderModalReviewSuccess = '';
+  }
+
+  loadOrderModalReviews(productId: number): void {
+    this.orderModalReviewsLoading = true;
+    this.http.get<any[]>(`${BASE}/api/products/${productId}/reviews`).subscribe({
+      next: data => { this.orderModalReviews = Array.isArray(data) ? data : []; this.orderModalReviewsLoading = false; },
+      error: () => { this.orderModalReviews = []; this.orderModalReviewsLoading = false; }
     });
   }
+
+  checkOrderModalCanReview(productId: number): void {
+    this.http.get<any>(`${BASE}/api/products/${productId}/can-review`).subscribe({
+      next: res => {
+        this.orderModalHasOrdered = res.hasDeliveredOrder;
+        this.orderModalAlreadyReviewed = res.alreadyReviewed;
+      },
+      error: () => { this.orderModalHasOrdered = false; this.orderModalAlreadyReviewed = false; }
+    });
+  }
+
+  submitOrderModalReview(): void {
+    if (!this.orderingProduct) return;
+    this.orderModalReviewSubmitting = true;
+    this.orderModalReviewError = '';
+    this.http.post<any>(`${BASE}/api/products/${this.orderingProduct.id}/reviews`, {
+      rating: this.orderModalReviewRating,
+      reviewText: this.orderModalReviewText
+    }).subscribe({
+      next: () => {
+        this.orderModalReviewSuccess = 'Review submitted!';
+        this.orderModalReviewSubmitting = false;
+        this.orderModalAlreadyReviewed = true;
+        this.loadOrderModalReviews(this.orderingProduct.id);
+        // Refresh product list to update avg rating
+        this.load(this.currentPage);
+      },
+      error: (e: any) => {
+        this.orderModalReviewError = e?.error?.message || 'Failed to submit review.';
+        this.orderModalReviewSubmitting = false;
+      }
+    });
+  }
+
+  confirmOrder(): void {
+    if (!this.orderingProduct) return;
+    this.orderLoading = true;
+    this.orderError = '';
+    this.http.post<any>(`${BASE}/api/products/orders`, {
+      productId: this.orderingProduct.id,
+      quantity: this.orderQuantity
+    }).subscribe({
+      next: res => {
+        this.orderLoading = false;
+        // Order placed — now open payment modal
+        this.openPayment(res);
+      },
+      error: (e) => {
+        this.orderError = e?.error?.message || 'Order failed. Please try again.';
+        this.orderLoading = false;
+      }
+    });
+  }
+
+  // ── Payment modal ──────────────────────────────────────────────────────────
+
+  openPayment(order: any): void {
+    this.orderingProduct = null;   // hide the order modal — payment takes over
+    this.payingOrder = order;
+    this.payMethod = 'CASH';
+    this.cardNumber = '';
+    this.cardExpiry = '';
+    this.cardCvv = '';
+    this.payError = '';
+    this.paySuccess = '';
+  }
+
+  closePayment(): void {
+    this.payingOrder = null;
+    this.orderSuccess = null;
+  }
+
+  onCardNumberInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.cardNumber = val.replace(/[^0-9]/g, '').slice(0, 12);
+    (event.target as HTMLInputElement).value = this.cardNumber;
+  }
+
+  onCvvInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.cardCvv = val.replace(/[^0-9]/g, '').slice(0, 3);
+    (event.target as HTMLInputElement).value = this.cardCvv;
+  }
+
+  get cardValid(): boolean {
+    if (this.payMethod !== 'CARD') return true;
+    return this.cardNumber.length === 12 && this.cardExpiry.length === 5 && this.cardCvv.length === 3;
+  }
+
+  confirmPayment(): void {
+    if (!this.payingOrder) return;
+    this.payLoading = true;
+    this.payError = '';
+
+    this.http.post<any>(`${BASE}/api/products/orders/${this.payingOrder.orderId}/pay`, {
+      method: this.payMethod
+    }).subscribe({
+      next: (paid) => {
+        this.payLoading = false;
+        this.payingOrder = null;    // hide payment modal
+        this.orderSuccess = paid;   // show confirmation modal
+        this.load(this.currentPage);
+      },
+      error: (e: any) => {
+        this.payError = e?.error?.message || 'Payment failed. Please try again.';
+        this.payLoading = false;
+      }
+    });
+  }
+
+  get orderTotal(): number {
+    return this.orderingProduct ? this.orderingProduct.price * this.orderQuantity : 0;
+  }
+
+  get loyaltyPreview(): number {
+    return Math.floor(this.orderTotal / 100) * 10;
+  }
+
+  // ── Product detail modal ───────────────────────────────────────────────────
+
+  openDetail(product: any): void {
+    this.detailProduct = product;
+    this.detailReviews = [];
+    this.reviewText = '';
+    this.reviewRating = 5;
+    this.reviewError = '';
+    this.reviewSuccess = '';
+    this.hasOrdered = false;
+    this.alreadyReviewed = false;
+    this.loadReviews(product.id);
+    if (this.isLoggedIn()) this.checkCanReview(product.id);
+  }
+
+  closeDetail(): void { this.detailProduct = null; }
+
+  loadReviews(productId: number): void {
+    this.detailReviewsLoading = true;
+    this.http.get<any[]>(`${BASE}/api/products/${productId}/reviews`).subscribe({
+      next: data => { this.detailReviews = Array.isArray(data) ? data : []; this.detailReviewsLoading = false; },
+      error: () => { this.detailReviews = []; this.detailReviewsLoading = false; }
+    });
+  }
+
+  checkCanReview(productId: number): void {
+    this.http.get<any>(`${BASE}/api/products/${productId}/can-review`).subscribe({
+      next: res => {
+        this.hasOrdered = res.hasDeliveredOrder;
+        this.alreadyReviewed = res.alreadyReviewed;
+      },
+      error: () => { this.hasOrdered = false; this.alreadyReviewed = false; }
+    });
+  }
+
+  // kept for backward compat — no longer used directly
+  checkOrdered(_productId: number): void {}
+
+  submitReview(): void {
+    if (!this.detailProduct) return;
+    this.reviewSubmitting = true;
+    this.reviewError = '';
+    this.http.post<any>(`${BASE}/api/products/${this.detailProduct.id}/reviews`, {
+      rating: this.reviewRating,
+      reviewText: this.reviewText
+    }).subscribe({
+      next: () => {
+        this.reviewSuccess = 'Review submitted!';
+        this.reviewSubmitting = false;
+        this.loadReviews(this.detailProduct.id);
+      },
+      error: (e) => {
+        this.reviewError = e?.error?.message || 'Failed to submit review.';
+        this.reviewSubmitting = false;
+      }
+    });
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  stars(n: number): number[] { return [1, 2, 3, 4, 5]; }
+
+  stockBadge(stock: number): string {
+    if (stock === 0) return 'danger';
+    if (stock <= 10) return 'warning';
+    return 'success';
+  }
+
+  stockLabel(stock: number): string {
+    if (stock === 0) return 'Out of Stock';
+    if (stock <= 10) return `Only ${stock} left`;
+    return 'In Stock';
+  }
+
+  pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i);
+  }
+
+  isLoggedIn(): boolean { return !!this.auth.getUserId(); }
 }

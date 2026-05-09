@@ -75,11 +75,18 @@
               <!-- Review exists — show summary + update button -->
               <ng-container *ngIf="getReviewForAppt(a.id) as rev">
                 <div class="text-end">
-                  <div class="small">
+                  <!-- Overall rating -->
+                  <div class="small fw-semibold mb-1">
                     <span *ngFor="let s of stars(5)"
                           [style.color]="s <= rev.rating ? '#f5a623' : '#ccc'">★</span>
-                    <span class="text-muted ms-1">{{ rev.rating }}/5</span>
+                    <span class="text-muted ms-1">{{ rev.rating }}/5 overall</span>
                     <span *ngIf="rev.status === 'UPDATED'" class="badge bg-secondary ms-1" style="font-size:.65rem;">Edited</span>
+                  </div>
+                  <!-- Per-criteria breakdown -->
+                  <div class="small text-muted" style="font-size:.75rem;">
+                    <span *ngIf="rev.qualityRating">✨ {{ rev.qualityRating }}/5</span>
+                    <span *ngIf="rev.timelinessRating" class="ms-1">⏱ {{ rev.timelinessRating }}/5</span>
+                    <span *ngIf="rev.professionalismRating" class="ms-1">🤝 {{ rev.professionalismRating }}/5</span>
                   </div>
                   <div *ngIf="rev.comment" class="text-muted small mt-1" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                     {{ rev.comment }}
@@ -263,14 +270,50 @@
           {{ reviewingAppt.serviceName }} with {{ reviewingAppt.professionalName }}
         </div>
 
-        <div class="mb-3" *ngIf="reviewMode === 'create'">
-          <label class="form-label fw-semibold">Rating</label>
-          <div class="d-flex gap-1" style="font-size:2rem;">
-            <span *ngFor="let s of stars(5)" style="cursor:pointer;"
-                  [style.color]="s <= reviewRating ? '#f5a623' : '#ccc'"
-                  (click)="setRating(s)">★</span>
+        <!-- Multi-criteria ratings -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold mb-2">Rate Your Experience</label>
+
+          <!-- Quality -->
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="small fw-semibold" style="min-width:130px;">✨ Quality</span>
+            <div class="d-flex gap-1" style="font-size:1.6rem;">
+              <span *ngFor="let s of stars(5)" style="cursor:pointer;"
+                    [style.color]="s <= reviewQualityRating ? '#f5a623' : '#ccc'"
+                    (click)="setQualityRating(s)">★</span>
+            </div>
+            <small class="text-muted ms-2" style="min-width:30px;">{{ reviewQualityRating }}/5</small>
           </div>
-          <small class="text-muted">{{ reviewRating }} / 5</small>
+
+          <!-- Timeliness -->
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="small fw-semibold" style="min-width:130px;">⏱ Timeliness</span>
+            <div class="d-flex gap-1" style="font-size:1.6rem;">
+              <span *ngFor="let s of stars(5)" style="cursor:pointer;"
+                    [style.color]="s <= reviewTimelinessRating ? '#f5a623' : '#ccc'"
+                    (click)="setTimelinessRating(s)">★</span>
+            </div>
+            <small class="text-muted ms-2" style="min-width:30px;">{{ reviewTimelinessRating }}/5</small>
+          </div>
+
+          <!-- Professionalism -->
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="small fw-semibold" style="min-width:130px;">🤝 Professionalism</span>
+            <div class="d-flex gap-1" style="font-size:1.6rem;">
+              <span *ngFor="let s of stars(5)" style="cursor:pointer;"
+                    [style.color]="s <= reviewProfessionalismRating ? '#f5a623' : '#ccc'"
+                    (click)="setProfessionalismRating(s)">★</span>
+            </div>
+            <small class="text-muted ms-2" style="min-width:30px;">{{ reviewProfessionalismRating }}/5</small>
+          </div>
+
+          <!-- Overall average preview -->
+          <div class="mt-2 p-2 rounded text-center" style="background:#f8f9fa;">
+            <small class="text-muted">Overall: </small>
+            <span class="fw-bold" style="color:#f5a623;">
+              {{ ((reviewQualityRating + reviewTimelinessRating + reviewProfessionalismRating) / 3).toFixed(1) }} / 5
+            </span>
+          </div>
         </div>
 
         <div class="mb-3">

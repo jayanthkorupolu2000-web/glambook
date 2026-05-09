@@ -36,7 +36,8 @@ public class ReviewService {
     private final AppointmentRepository appointmentRepository;
     private final ProfessionalNotificationRepository professionalNotificationRepository;
 
-    private static final String UPLOAD_DIR = "uploads/reviews/";
+    private static final String UPLOAD_DIR = "frontend/src/assets/review-photos/";
+    private static final String PHOTO_URL_PREFIX = "assets/review-photos/";
 
     // ── Create ────────────────────────────────────────────────────────────────
 
@@ -66,11 +67,19 @@ public class ReviewService {
 
         List<String> photoPaths = savePhotos(photoFiles);
 
+        // Compute overall rating as average of the three criteria
+        int overall = Math.round(
+            (request.getQualityRating() + request.getTimelinessRating() + request.getProfessionalismRating()) / 3.0f
+        );
+
         Review review = Review.builder()
                 .customer(customer)
                 .professional(professional)
                 .appointment(appointment)
-                .rating(request.getRating())
+                .qualityRating(request.getQualityRating())
+                .timelinessRating(request.getTimelinessRating())
+                .professionalismRating(request.getProfessionalismRating())
+                .rating(overall)
                 .comment(request.getComment())
                 .photos(photoPaths)
                 .status(ReviewStatus.ACTIVE)
@@ -82,7 +91,10 @@ public class ReviewService {
         // Notify professional
         String comment = request.getComment() != null ? request.getComment() : "";
         String snippet = comment.length() > 100 ? comment.substring(0, 100) : comment;
-        String message = customer.getName() + " rated you " + request.getRating() + "/5"
+        String message = customer.getName() + " rated you " + overall + "/5"
+                + " (Quality: " + request.getQualityRating()
+                + ", Timeliness: " + request.getTimelinessRating()
+                + ", Professionalism: " + request.getProfessionalismRating() + ")"
                 + (snippet.isEmpty() ? "" : ": " + snippet);
 
         professionalNotificationRepository.save(ProfessionalNotification.builder()
@@ -110,6 +122,27 @@ public class ReviewService {
 
         if (dto.getComment() != null && !dto.getComment().isBlank()) {
             review.setComment(dto.getComment());
+        }
+
+        // Update individual criteria ratings if provided, then recompute overall
+        boolean ratingsChanged = false;
+        if (dto.getQualityRating() != null) {
+            review.setQualityRating(dto.getQualityRating());
+            ratingsChanged = true;
+        }
+        if (dto.getTimelinessRating() != null) {
+            review.setTimelinessRating(dto.getTimelinessRating());
+            ratingsChanged = true;
+        }
+        if (dto.getProfessionalismRating() != null) {
+            review.setProfessionalismRating(dto.getProfessionalismRating());
+            ratingsChanged = true;
+        }
+        if (ratingsChanged) {
+            int q = review.getQualityRating() != null ? review.getQualityRating() : 5;
+            int t = review.getTimelinessRating() != null ? review.getTimelinessRating() : 5;
+            int p = review.getProfessionalismRating() != null ? review.getProfessionalismRating() : 5;
+            review.setRating(Math.round((q + t + p) / 3.0f));
         }
 
         // Append new photos to existing list
@@ -142,10 +175,19 @@ public class ReviewService {
             throw new ResourceNotFoundException("Professional not found");
         }
         List<Review> reviews = reviewRepository.findByProfessionalId(professionalId);
-        double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
+        double avg = reviews.stream().mapToInt(r -> r.getRating() != null ? r.getRating() : 0).average().orElse(0.0);
+        double avgQuality = reviews.stream().filter(r -> r.getQualityRating() != null)
+                .mapToInt(Review::getQualityRating).average().orElse(0.0);
+        double avgTimeliness = reviews.stream().filter(r -> r.getTimelinessRating() != null)
+                .mapToInt(Review::getTimelinessRating).average().orElse(0.0);
+        double avgProfessionalism = reviews.stream().filter(r -> r.getProfessionalismRating() != null)
+                .mapToInt(Review::getProfessionalismRating).average().orElse(0.0);
         return Map.of(
                 "reviews", reviews.stream().map(this::toResponse).collect(Collectors.toList()),
-                "averageRating", avg
+                "averageRating", avg,
+                "averageQualityRating", avgQuality,
+                "averageTimelinessRating", avgTimeliness,
+                "averageProfessionalismRating", avgProfessionalism
         );
     }
 
@@ -163,8 +205,8 @@ public class ReviewService {
                 String filename = UUID.randomUUID() + ext;
                 Path dest = dir.resolve(filename);
                 file.transferTo(dest.toFile());
-                // Store as API path so frontend can fetch via FileController
-                paths.add("/api/v1/files/reviews/" + filename);
+                // Store as Angular asset path — served directly by the frontend
+                paths.add(PHOTO_URL_PREFIX + filename);
             }
         } catch (IOException e) {
             log.error("Failed to save review photos: {}", e.getMessage());
@@ -185,6 +227,9 @@ public class ReviewService {
                 .professionalId(review.getProfessional().getId())
                 .appointmentId(review.getAppointment() != null ? review.getAppointment().getId() : null)
                 .rating(review.getRating())
+                .qualityRating(review.getQualityRating())
+                .timelinessRating(review.getTimelinessRating())
+                .professionalismRating(review.getProfessionalismRating())
                 .comment(review.getComment())
                 .photos(review.getPhotos())
                 .professionalResponse(review.getProfessionalResponse())

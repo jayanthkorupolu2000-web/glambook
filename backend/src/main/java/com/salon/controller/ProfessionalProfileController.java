@@ -97,6 +97,18 @@ public class ProfessionalProfileController {
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
             @RequestParam(required = false) Double minRating) {
+
+        // Validate price range
+        if (minPrice != null && minPrice < 0)
+            throw new com.salon.exception.ValidationException(
+                    "Please provide a valid minPrice — must be greater than or equal to 0");
+        if (maxPrice != null && maxPrice < 0)
+            throw new com.salon.exception.ValidationException(
+                    "Please provide a valid maxPrice — must be greater than or equal to 0");
+        if (minPrice != null && maxPrice != null && maxPrice < minPrice)
+            throw new com.salon.exception.ValidationException(
+                    "maxPrice must be greater than or equal to minPrice");
+
         return ResponseEntity.ok(profileService.searchProfessionalsWithPrice(
                 city, targetGroup, category, homeAvailable, keyword, minPrice, maxPrice, minRating));
     }

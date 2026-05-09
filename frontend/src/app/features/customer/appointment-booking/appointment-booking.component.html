@@ -118,5 +118,96 @@
       </button>
 
     </form>
+
+    <!-- ── Professional Reviews ─────────────────────────────────────────── -->
+    <div class="mt-5" *ngIf="professional">
+      <h5 class="fw-bold mb-3" style="color:#334155;">⭐ Customer Reviews</h5>
+
+      <div *ngIf="reviewsLoading" class="text-center py-3">
+        <div class="spinner-border spinner-border-sm" style="color:#334155;"></div>
+      </div>
+
+      <ng-container *ngIf="!reviewsLoading">
+
+        <!-- Rating summary -->
+        <div *ngIf="professionalReviews.length > 0" class="card border-0 shadow-sm p-3 mb-4">
+          <div class="row g-3 text-center">
+            <div class="col-6 col-md-3">
+              <div class="fs-3 fw-bold" style="color:#f5a623;">{{ averageRating | number:'1.1-1' }}</div>
+              <div class="small text-muted">Overall</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="fs-3 fw-bold" style="color:#f5a623;">{{ averageQuality | number:'1.1-1' }}</div>
+              <div class="small text-muted">✨ Quality</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="fs-3 fw-bold" style="color:#f5a623;">{{ averageTimeliness | number:'1.1-1' }}</div>
+              <div class="small text-muted">⏱ Timeliness</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="fs-3 fw-bold" style="color:#f5a623;">{{ averageProfessionalism | number:'1.1-1' }}</div>
+              <div class="small text-muted">🤝 Professionalism</div>
+            </div>
+          </div>
+          <div class="text-center text-muted small mt-2">Based on {{ professionalReviews.length }} review{{ professionalReviews.length !== 1 ? 's' : '' }}</div>
+        </div>
+
+        <!-- Individual reviews -->
+        <div *ngFor="let rev of professionalReviews" class="card border-0 shadow-sm mb-3 p-3">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:36px;height:36px;background:#334155;color:#fff;font-weight:700;font-size:.9rem;flex-shrink:0;">
+              {{ rev.customerName?.charAt(0) || '?' }}
+            </div>
+            <div class="flex-fill">
+              <div class="fw-semibold small">{{ rev.customerName }}</div>
+              <div class="text-muted" style="font-size:.72rem;">{{ rev.createdAt | date:'dd MMM yyyy' }}</div>
+            </div>
+            <!-- Overall stars -->
+            <div>
+              <span *ngFor="let s of stars(5)"
+                    [style.color]="s <= rev.rating ? '#f5a623' : '#ccc'"
+                    style="font-size:1rem;">★</span>
+            </div>
+          </div>
+
+          <!-- Per-criteria breakdown -->
+          <div class="d-flex gap-3 mb-2 flex-wrap" style="font-size:.75rem;color:#666;">
+            <span *ngIf="rev.qualityRating">✨ Quality: {{ rev.qualityRating }}/5</span>
+            <span *ngIf="rev.timelinessRating">⏱ Timeliness: {{ rev.timelinessRating }}/5</span>
+            <span *ngIf="rev.professionalismRating">🤝 Professionalism: {{ rev.professionalismRating }}/5</span>
+          </div>
+
+          <p *ngIf="rev.comment" class="small mb-2" style="color:#333;">{{ rev.comment }}</p>
+
+          <!-- Review photos -->
+          <div *ngIf="rev.photos?.length > 0" class="d-flex flex-wrap gap-2 mb-2">
+            <img *ngFor="let photo of rev.photos"
+                 [src]="photo"
+                 alt="Review photo"
+                 style="width:72px;height:72px;object-fit:cover;border-radius:6px;cursor:pointer;border:1px solid #eee;"
+                 (click)="openPhotoPreview(photo)">
+          </div>
+
+          <!-- Professional response -->
+          <div *ngIf="rev.professionalResponse" class="mt-2 p-2 rounded" style="background:#f0f4ff;font-size:.8rem;">
+            <span class="fw-semibold" style="color:#334155;">💬 Professional replied:</span>
+            <span class="ms-1 text-muted">{{ rev.professionalResponse }}</span>
+          </div>
+        </div>
+
+        <p *ngIf="professionalReviews.length === 0" class="text-muted small text-center py-3">
+          No reviews yet for this professional.
+        </p>
+      </ng-container>
+    </div>
+
   </ng-container>
+</div>
+
+<!-- Full-size photo preview overlay -->
+<div *ngIf="previewPhoto" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+     style="background:rgba(0,0,0,.8);z-index:9999;cursor:pointer;"
+     (click)="previewPhoto = null">
+  <img [src]="previewPhoto" style="max-width:90vw;max-height:90vh;border-radius:8px;" alt="Preview">
 </div>

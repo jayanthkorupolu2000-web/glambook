@@ -1,280 +1,300 @@
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\LoginRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ReviewStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\LoyaltyRedemptionRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\PolicyController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\ConflictException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\SalonOwnerManagementController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\PortfolioController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\scheduler\ReminderScheduler.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\CustomerNotificationController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\config\SecurityConfig.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ScheduleController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ProfessionalProfileController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\LoyaltyResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ComplaintStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\CustomerDashboardService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ProfessionalNotificationController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\AdminNotificationRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\CustomerLoyaltyController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\PaymentRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\SalonOwner.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\AdminAnalyticsController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\LoyaltyUpdateRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\SalonOwnerController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Product.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ConsultationService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Customer.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\LoyaltyTransactionResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\NotificationController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\CustomerResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ProfessionalRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ResourceRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\PolicyNotFoundException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ComplaintRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ProfessionalNotification.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\OwnerReportController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ResourceRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\PortfolioMediaType.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ProfessionalService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Professional.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\AppointmentStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\OrderDeliveryStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ScheduleService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\SalonPolicyRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ResourceAvailabilityRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ConsultationType.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\PortfolioResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\LoyaltyRedemption.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\PortfolioRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\UnauthorizedException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\CustomerNotificationRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\AdminNotificationController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\security\JwtUtil.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\AvailabilityResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\SalonPolicyResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ServiceBeforeAfter.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ProfessionalNotificationRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\SalonOwnerEditRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\AppointmentController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ProfessionalController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\GroupBookingParticipantRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ServiceService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\PromotionController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\SalonOwnerManagementResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\OwnerReportServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\OwnerReportService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\AdminService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\FileStorageService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\CustomerProductServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\OwnerNotificationResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ComplaintResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ReviewResponseController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\SalonOwnerResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\LoyaltyRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ComplaintService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ScheduleSlotResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\PromotionRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ResourceAvailability.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\BookingAssignmentRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\NotificationType.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\LoyaltyService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\LoyaltyController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ResourceAvailabilityRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Policy.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\AuthController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ComplaintController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\PolicyResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\PaymentMethod.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Loyalty.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\SalonPolicy.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ConsultationController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ConsultationRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\PromotionService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\UserStatusRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\config\AppConfig.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ConsultationTopic.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\SalonOwnerNotFoundException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\SuspensionServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\SalonPolicyServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\AppointmentRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Admin.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\AdminRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\CustomerDashboardServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ResourceController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ComplaintFeedback.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\PaymentResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\CustomerNotificationType.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\ResourceServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ProductRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\OrderItemResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Appointment.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\PaymentStatsResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Gender.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\CommunicationResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\ResourceNotFoundException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ProfessionalAvailabilityRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\SuspensionService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\AdminController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\CustomerNotificationService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ProfessionalProfileResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\SalonOwnerManagementService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ProfessionalAnalyticsController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\MediationActionRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\PortfolioItemRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\OwnerNotificationService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ProfessionalNotificationType.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\PromotionRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ConsultationStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\FavoriteProduct.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\ComplaintNotFoundException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\FileController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ResourceResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ServiceBeforeAfterResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ResourceType.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\MediationRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Payment.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\FavoritesController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\validation\ValidCity.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\SalonPolicyController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\FavoriteProductRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\CustomerController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\PromotionResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ProfessionalNotificationService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Promotion.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\LoyaltyTransactionRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\SalonOwnerManagementEditRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\OwnerComplaintController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\CustomerRegisterRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Complaint.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ReviewRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\AppointmentRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\AdminNotification.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\OrderResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\FavoritesService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ResourceAvailabilityResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Review.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ProductResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\BeautyProfileController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\AuthResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ProfessionalAnalyticsResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\SlotType.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\AdminNotificationService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ReviewService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\config\DatabaseMigrationRunner.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ConsultationRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\ProfessionalAnalyticsServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ConsultationReplyRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\PolicyService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\SalonOwnerManagementServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\DuplicateReviewException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\CustomerNotificationServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Service.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\StringListConverter.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Order.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\BeautyProfileRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\CustomerDashboardResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Communication.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\CommunicationRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\ComplaintServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\OwnerReportResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ReviewResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ReviewUpdateRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\OrderItem.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\PortfolioMetadataRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\ProfessionalProfileServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ServiceResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\CommunicationRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\AuthService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\CustomerDashboardController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ReviewRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\LoyaltyTransaction.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\ReviewResponseServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\GroupBookingController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\AppointmentService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Portfolio.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\CustomerProductController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\BeautyProfileService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\OrderRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\CustomerNotificationResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\PaymentRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\FavoriteServiceRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\GroupBookingRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ProfessionalProfileService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\PaymentController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\PolicyRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ComplaintRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\AdminLoginRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Consultation.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\ValidationException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\GroupBookingService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ServiceRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\CustomerRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\ComplaintIntegrationServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ConsultationResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ReviewResponseRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\SalonOwnerEditServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\ProfessionalAvailability.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\PromotionServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\GroupBooking.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\PaymentService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\aspect\LoggingAspect.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\CustomerProductService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\GlobalExceptionHandler.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ReviewResponseService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ProfessionalAvailabilityController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\OwnerNotificationRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\UpdateAppointmentStatusRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\SalonManagementApplication.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\CustomerNotification.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\AppointmentResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ServiceController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\ServiceBeforeAfterRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\OwnerNotificationServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\UserStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ComplaintIntegrationService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ProfessionalRegisterRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\LoyaltyServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ErrorResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\Resource.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\SalonOwnerService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\ProfessionalNotificationServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\ProfessionalProfileUpdateRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ServicePopularityResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\GroupBookingRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\exception\InvalidOperationException.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\BeautyProfileResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\security\JwtAuthenticationFilter.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\GroupBookingParticipant.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ReviewWithResponseDTO.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\SalonOwnerEditService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\GroupBookingStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\CommunicationController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\CommunicationType.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ProfessionalResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\SalonOwnerEditResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\PolicyRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\CancellationStatsResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ResourceService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\config\OpenApiConfig.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\PaymentStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\FavoriteService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\ReviewController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\SlotStatus.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\SalonPolicyRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\PolicyServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\UserStatusResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\OwnerNotification.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\SalonOwnerRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\impl\AdminNotificationServiceImpl.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\ProfessionalNotificationResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\AvailabilityRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\request\UpdateProfileRequest.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\LoyaltyTier.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\repository\BeautyProfileRepository.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\controller\UserManagementController.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\GroupBookingResponse.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\validation\CityValidator.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\entity\BeautyProfile.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\SalonPolicyService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\service\ProfessionalAnalyticsService.java
-C:\Users\JAYANTH\Desktop\Glambook\backend\src\main\java\com\salon\dto\response\AdminNotificationResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\SalonOwnerService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ReviewWithResponseDTO.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\PaymentStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\PromotionRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\AdminService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\LoyaltyTier.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\OwnerComplaintController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\BeautyProfileResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ReviewResponseService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\PaymentRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Loyalty.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ProfessionalAnalyticsResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ProductResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ServiceBeforeAfterRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\PromotionRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ComplaintFeedback.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\SlotStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\GlobalExceptionHandler.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\AdminNotificationController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\UserStatusRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\PromotionServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\GroupBookingRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Professional.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\OwnerReportServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\OrderDeliveryStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\OrderItemResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ConsultationResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\ReviewResponseServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\AvailabilityResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\CommunicationResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\AdminNotification.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\scheduler\ReminderScheduler.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ReviewController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ProfessionalController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ConsultationStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ProfessionalResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\SalonPolicy.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\CustomerNotificationResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\LoyaltyRedemption.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\SlotType.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\ValidationException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\PortfolioResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\PromotionController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ProfessionalNotificationService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ResourceRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\SalonOwnerManagementEditRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\CommunicationRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\OwnerReportResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\SalonOwnerEditResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\OwnerNotificationServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ScheduleSlotResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\PortfolioRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\aspect\LoggingAspect.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\CustomerNotification.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\PortfolioMediaType.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\OrderResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\MediationRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\OrderItem.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\CustomerController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\AppointmentStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ResourceType.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\DuplicateReviewException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\UserStatusResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\CustomerRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\CancellationStatsResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Order.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\BeautyProfile.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ProfessionalService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\UserStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Portfolio.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ServiceRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\CustomerLoyaltyController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\SalonOwnerEditRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ServiceBeforeAfter.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ProfessionalAvailabilityController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\WalletTransaction.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ComplaintResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\AdminLoginRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ResourceAvailabilityResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ProfessionalProfileController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\FavoriteService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\CommunicationRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\ProfessionalProfileServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\NotificationController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\CustomerResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Review.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\FavoritesController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\FavoriteResponseDTO.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ProductReview.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\AuthResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\AppointmentRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ProfessionalProfileService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\CustomerNotificationType.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\PromotionResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ProfessionalRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Product.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ServiceController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\SalonPolicyServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ServiceService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ProfessionalNotificationType.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ProfessionalAvailabilityRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ServiceBeforeAfterResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\PaymentRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ProfessionalProfileUpdateRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\CustomerNotificationService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ComplaintStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\OwnerReportController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ProfessionalNotificationResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ServicePopularityResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\LoyaltyTransaction.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\PaymentMethod.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\NotificationType.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ProductReviewRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\config\DatabaseMigrationRunner.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\CommunicationController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\CustomerNotificationServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ResourceController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\AdminRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\CustomerProductController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\AppointmentService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\LoginRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\AdminAnalyticsController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ResourceAvailability.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ProfessionalProfileResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\security\JwtAuthenticationFilter.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ResourceAvailabilityRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\PolicyNotFoundException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\OwnerNotificationRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\OwnerNotificationService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\GroupBookingResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\config\SecurityConfig.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\OwnerNotificationResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\PaymentService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ProductReviewResponseDTO.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Policy.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\CustomerDashboardResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\ProductServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\SalonOwnerEditServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\CustomerDashboardServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\OrderRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\BeautyProfileController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\SalonOwnerManagementController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Gender.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ReviewUpdateRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Admin.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ProfessionalNotificationController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ResourceResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\UpdateProfileRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\SalonPolicyRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ProductOrderResponseDTO.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\SalonOwnerResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\AdminNotificationResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\SalonOwnerManagementResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ResourceAvailabilityRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\CustomerProductServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\LoyaltyResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ComplaintController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\SalonPolicyService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ReviewStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ConsultationService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\AppointmentRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Resource.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\CustomerNotificationRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\GroupBookingRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\CustomerProductService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\FileStorageService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ReviewResponseRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\WalletService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\PaymentStatsResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ProductReviewRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\SalonOwnerEditService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\MediationActionRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\security\JwtUtil.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ProfessionalAnalyticsService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\PortfolioMetadataRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\CustomerRegisterRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\ComplaintNotFoundException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\StringListConverter.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\PolicyRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\SalonOwnerManagementServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\config\AppConfig.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\SalonOwnerController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\CommunicationType.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\FileController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ComplaintRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ResourceRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\UpdateAppointmentStatusRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ConsultationController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\AppointmentResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ProductController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\ConflictException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\PromotionService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\ResourceServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\SalonOwnerManagementService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ProductOrder.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\AdminController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\LoyaltyService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ScheduleService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\SalonOwnerNotFoundException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ConsultationRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\WalletRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\AppointmentController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Customer.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\BeautyProfileRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ConsultationTopic.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\FavoriteServiceRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ConsultationReplyRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ReviewRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\FavoritesService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\SuspensionServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\validation\ValidCity.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\ComplaintIntegrationServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\LoyaltyTransactionResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ComplaintRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\SalonOwnerRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\SalonPolicyResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\ResourceNotFoundException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ConsultationRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ResourceService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\ComplaintServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\UserManagementController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\config\OpenApiConfig.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\PolicyResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\GroupBookingService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\SuspensionService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\LoyaltyServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\AdminNotificationService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\GroupBooking.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\FavoriteProduct.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\CustomerDashboardService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\CustomerDashboardController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\PortfolioController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ReviewResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\GroupBookingParticipantRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ProductService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ProductRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\OwnerReportService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\AvailabilityRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Promotion.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\LoyaltyController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\WalletController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\SalonOwner.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\FavoriteProductRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\validation\CityValidator.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\LoyaltyUpdateRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Service.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\SalonPolicyController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\SalonPolicyRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ErrorResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ProfessionalAvailability.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\PaymentResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ComplaintIntegrationService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ScheduleController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ReviewRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ProductOrderRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ConsultationType.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\GroupBookingController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ProfessionalAnalyticsController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\BeautyProfileRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\InvalidOperationException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\OwnerNotification.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\PolicyRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ProductResponseDTO.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ProfessionalNotificationRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Appointment.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\AuthController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ProductOrderStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Complaint.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Payment.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\BookingAssignmentRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\AdminNotificationServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\exception\UnauthorizedException.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\PolicyController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\PortfolioItemRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\CustomerNotificationController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\BeautyProfileService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ComplaintService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\AdminNotificationRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\PolicyService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Communication.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\GroupBookingParticipant.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Wallet.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\response\ServiceResponse.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\ProfessionalNotification.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\LoyaltyTransactionRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\SalonManagementApplication.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\PolicyServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\ProfessionalAnalyticsServiceImpl.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\AuthService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\ReviewResponseController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\GroupBookingStatus.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\dto\request\ProfessionalRegisterRequest.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\WalletTransactionRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\ProductOrderRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\ReviewService.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\controller\PaymentController.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\entity\Consultation.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\LoyaltyRedemptionRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\repository\LoyaltyRepository.java
+C:\Users\ASUS\OneDrive\Desktop\InfyProject\backend (1)\backend\src\main\java\com\salon\service\impl\ProfessionalNotificationServiceImpl.java

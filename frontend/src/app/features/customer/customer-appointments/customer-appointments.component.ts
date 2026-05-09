@@ -3,7 +3,6 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { AppointmentResponse } from '../../../models/customer.model';
 import { AuthService } from '../../../services/auth.service';
 import { CustomerAppointmentService } from '../../../services/customer-appointment.service';
-import { ReviewPhotoStoreService } from '../../../services/review-photo-store.service';
 
 const BASE = 'http://localhost:8080';
 
@@ -37,6 +36,9 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   // Review modal
   reviewingAppt: AppointmentResponse | null = null;
   reviewRating = 5;
+  reviewQualityRating = 5;
+  reviewTimelinessRating = 5;
+  reviewProfessionalismRating = 5;
   reviewComment = '';
   reviewLoading = false;
   reviewError = '';
@@ -58,8 +60,7 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     private apptService: CustomerAppointmentService,
     private http: HttpClient,
     private auth: AuthService,
-    private cdr: ChangeDetectorRef,
-    private photoStore: ReviewPhotoStoreService
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -96,9 +97,7 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     this.http.get<any[]>(`${BASE}/api/reviews/my`).subscribe({
       next: reviews => {
         this.myReviews.clear();
-        // Merge locally-stored photos into each review
-        const merged = this.photoStore.mergeIntoReviews(reviews);
-        merged.forEach((r: any) => {
+        reviews.forEach((r: any) => {
           if (r.appointmentId) this.myReviews.set(r.appointmentId, r);
         });
       },
@@ -251,6 +250,9 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   openReview(appt: AppointmentResponse): void {
     this.reviewingAppt = appt;
     this.reviewRating = 5;
+    this.reviewQualityRating = 5;
+    this.reviewTimelinessRating = 5;
+    this.reviewProfessionalismRating = 5;
     this.reviewComment = '';
     this.reviewPhotos = [];
     this.reviewPhotoPreview = [];
@@ -262,6 +264,9 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   openUpdateReview(appt: AppointmentResponse, rev: any): void {
     this.reviewingAppt = appt;
     this.reviewRating = rev.rating || 5;
+    this.reviewQualityRating = rev.qualityRating || 5;
+    this.reviewTimelinessRating = rev.timelinessRating || 5;
+    this.reviewProfessionalismRating = rev.professionalismRating || 5;
     this.reviewComment = rev.comment || '';
     this.reviewPhotos = [];
     this.reviewPhotoPreview = [];
@@ -280,6 +285,10 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   }
 
   setRating(r: number): void { this.reviewRating = r; }
+
+  setQualityRating(r: number): void { this.reviewQualityRating = r; }
+  setTimelinessRating(r: number): void { this.reviewTimelinessRating = r; }
+  setProfessionalismRating(r: number): void { this.reviewProfessionalismRating = r; }
 
   onPhotoSelected(event: Event): void {
     const files = (event.target as HTMLInputElement).files;
@@ -311,29 +320,48 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   private doCreateReview(): void {
     if (!this.reviewingAppt) return;
 
-    const body = {
-      professionalId: this.reviewingAppt.professionalId,
-      appointmentId: this.reviewingAppt.id,
-      rating: this.reviewRating,
-      comment: this.reviewComment
-    };
-
     // Capture photos before async call (they may be cleared)
     const photosToStore = [...this.reviewPhotoPreview];
 
-    this.http.post<any>(`${BASE}/api/reviews`, body).subscribe({
-      next: (created) => {
-        // Store photos locally keyed by the returned review ID
-        if (photosToStore.length > 0 && created?.id) {
-          this.photoStore.savePhotos(created.id, photosToStore);
+    if (this.reviewPhotos.length > 0) {
+      // Send as multipart so backend saves the actual files
+      const formData = new FormData();
+      const data = {
+        professionalId: this.reviewingAppt.professionalId,
+        appointmentId: this.reviewingAppt.id,
+        qualityRating: this.reviewQualityRating,
+        timelinessRating: this.reviewTimelinessRating,
+        professionalismRating: this.reviewProfessionalismRating,
+        comment: this.reviewComment
+      };
+      formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+      this.reviewPhotos.forEach(f => formData.append('photos', f, f.name));
+
+      this.http.post<any>(`${BASE}/api/reviews`, formData).subscribe({
+        next: () => { this.onReviewSuccess('Review submitted!'); },
+        error: (err: any) => {
+          this.reviewError = err?.error?.message || 'Failed to submit review.';
+          this.reviewLoading = false;
         }
-        this.onReviewSuccess('Review submitted!');
-      },
-      error: (err: any) => {
-        this.reviewError = err?.error?.message || 'Failed to submit review.';
-        this.reviewLoading = false;
-      }
-    });
+      });
+    } else {
+      // No photos — plain JSON is fine
+      const body = {
+        professionalId: this.reviewingAppt.professionalId,
+        appointmentId: this.reviewingAppt.id,
+        qualityRating: this.reviewQualityRating,
+        timelinessRating: this.reviewTimelinessRating,
+        professionalismRating: this.reviewProfessionalismRating,
+        comment: this.reviewComment
+      };
+      this.http.post<any>(`${BASE}/api/reviews`, body).subscribe({
+        next: () => { this.onReviewSuccess('Review submitted!'); },
+        error: (err: any) => {
+          this.reviewError = err?.error?.message || 'Failed to submit review.';
+          this.reviewLoading = false;
+        }
+      });
+    }
   }
 
   private doUpdateReview(): void {
@@ -342,26 +370,45 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     if (!existingReview) return;
     const reviewId = existingReview.id;
 
-    // Capture photos before async call
-    const photosToAppend = [...this.reviewPhotoPreview];
+    if (this.reviewPhotos.length > 0) {
+      // Send as multipart so backend saves the actual files
+      const formData = new FormData();
+      const data = {
+        comment: this.reviewComment,
+        qualityRating: this.reviewQualityRating,
+        timelinessRating: this.reviewTimelinessRating,
+        professionalismRating: this.reviewProfessionalismRating
+      };
+      formData.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+      this.reviewPhotos.forEach(f => formData.append('photos', f, f.name));
 
-    this.http.patch<any>(`${BASE}/api/reviews/${reviewId}`, { comment: this.reviewComment }).subscribe({
-      next: (updated: any) => {
-        // Append new photos to localStorage
-        if (photosToAppend.length > 0) {
-          this.photoStore.appendPhotos(reviewId, photosToAppend);
+      this.http.patch<any>(`${BASE}/api/reviews/${reviewId}`, formData).subscribe({
+        next: (updated: any) => {
+          this.myReviews.set(this.reviewingAppt!.id, updated);
+          this.onReviewSuccess('Review updated!');
+        },
+        error: (err: any) => {
+          this.reviewError = err?.error?.message || 'Failed to update review.';
+          this.reviewLoading = false;
         }
-        // Merge stored photos back into the updated review object
-        const storedPhotos = this.photoStore.getPhotos(reviewId);
-        updated.photos = storedPhotos;
-        this.myReviews.set(this.reviewingAppt!.id, updated);
-        this.onReviewSuccess('Review updated!');
-      },
-      error: (err: any) => {
-        this.reviewError = err?.error?.message || 'Failed to update review.';
-        this.reviewLoading = false;
-      }
-    });
+      });
+    } else {
+      this.http.patch<any>(`${BASE}/api/reviews/${reviewId}`, {
+        comment: this.reviewComment,
+        qualityRating: this.reviewQualityRating,
+        timelinessRating: this.reviewTimelinessRating,
+        professionalismRating: this.reviewProfessionalismRating
+      }).subscribe({
+        next: (updated: any) => {
+          this.myReviews.set(this.reviewingAppt!.id, updated);
+          this.onReviewSuccess('Review updated!');
+        },
+        error: (err: any) => {
+          this.reviewError = err?.error?.message || 'Failed to update review.';
+          this.reviewLoading = false;
+        }
+      });
+    }
   }
 
   private onReviewSuccess(msg: string): void {

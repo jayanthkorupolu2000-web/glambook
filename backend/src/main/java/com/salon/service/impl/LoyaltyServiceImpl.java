@@ -7,9 +7,11 @@ import com.salon.exception.InvalidOperationException;
 import com.salon.exception.ResourceNotFoundException;
 import com.salon.repository.*;
 import com.salon.service.LoyaltyService;
+import com.salon.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -27,10 +29,11 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     private final CustomerRepository customerRepository;
     private final SalonOwnerRepository salonOwnerRepository;
     private final AppointmentRepository appointmentRepository;
+    private final WalletService walletService;
 
-    /** 1 point per ₹10 spent */
-    private static final int POINTS_PER_RUPEE_UNIT = 1;
-    private static final int RUPEES_PER_POINT_UNIT = 10;
+    private static final int MIN_REDEEM_POINTS  = 100;
+    private static final int REDEEM_MULTIPLE    = 100;
+    private static final int POINTS_PER_RUPEE   = 10;   // 100 pts = ₹10  →  10 pts per ₹1
 
     // ── Tier thresholds ───────────────────────────────────────────────────────
     @Override
@@ -39,6 +42,37 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         if (points >= 1500) return LoyaltyTier.GOLD;
         if (points >= 500)  return LoyaltyTier.SILVER;
         return LoyaltyTier.BRONZE;
+    }
+
+    // ── Award points for product purchase ─────────────────────────────────────
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void awardPointsForProductPurchase(Long customerId, java.math.BigDecimal amountSpent) {
+        int points = amountSpent.divide(java.math.BigDecimal.valueOf(100), 0,
+                java.math.RoundingMode.DOWN).multiply(java.math.BigDecimal.TEN).intValue();
+        if (points <= 0) return;
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+
+        // Use the first loyalty record (or create a standalone one with no owner)
+        List<Loyalty> records = loyaltyRepository.findByCustomerId(customerId);
+        if (!records.isEmpty()) {
+            Loyalty loyalty = records.get(0);
+            loyalty.setPoints(loyalty.getPoints() + points);
+            loyalty.setUpdatedAt(java.time.LocalDateTime.now());
+            loyaltyRepository.save(loyalty);
+        }
+        // Always record the transaction regardless of existing loyalty record
+        transactionRepository.save(LoyaltyTransaction.builder()
+                .customer(customer)
+                .type("EARN")
+                .points(points)
+                .description("Earned " + points + " pts for product purchase (₹" + amountSpent + ")")
+                .build());
+
+        log.info("Awarded {} loyalty points to customer {} for product purchase of ₹{}",
+                points, customerId, amountSpent);
     }
 
     // ── Award points when payment is completed ────────────────────────────────
@@ -55,7 +89,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         int earned = 5;
         if (appt.getService() != null && appt.getService().getPrice() != null) {
             BigDecimal price = appt.getService().getPrice();
-            earned = Math.max(5, price.intValue() / RUPEES_PER_POINT_UNIT);
+            earned = Math.max(5, price.intValue() / 10);   // 1 pt per ₹10
         }
 
         Customer customer = appt.getCustomer();
@@ -92,8 +126,10 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Override
     @Transactional
     public LoyaltyResponse redeemPoints(Long customerId, int pointsToRedeem) {
-        if (pointsToRedeem <= 0) throw new InvalidOperationException("Points must be greater than 0");
-        if (pointsToRedeem % 100 != 0) throw new InvalidOperationException("Points must be redeemed in multiples of 100");
+        if (pointsToRedeem < MIN_REDEEM_POINTS)
+            throw new InvalidOperationException("Minimum redemption is " + MIN_REDEEM_POINTS + " points");
+        if (pointsToRedeem % REDEEM_MULTIPLE != 0)
+            throw new InvalidOperationException("Points must be redeemed in multiples of " + REDEEM_MULTIPLE);
 
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
@@ -101,30 +137,46 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         List<Loyalty> records = loyaltyRepository.findByCustomerId(customerId);
         int total = records.stream().mapToInt(Loyalty::getPoints).sum();
 
-        if (pointsToRedeem > total) throw new InvalidOperationException("Insufficient points");
+        if (pointsToRedeem > total)
+            throw new InvalidOperationException("Insufficient points. You have " + total + " pts.");
 
-        // Deduct from the first record that has enough, or spread across records
+        // Deduct points across loyalty records (spread if needed)
         int remaining = pointsToRedeem;
         for (Loyalty l : records) {
             if (remaining <= 0) break;
             int deduct = Math.min(l.getPoints(), remaining);
             l.setPoints(l.getPoints() - deduct);
-            // Tier stays based on lifetime earned — do NOT recalculate on redeem
             l.setUpdatedAt(LocalDateTime.now());
             loyaltyRepository.save(l);
             remaining -= deduct;
         }
 
-        BigDecimal discount = BigDecimal.valueOf(pointsToRedeem / 100 * 10);
+        // Calculate rupee amount: 100 pts = ₹10
+        BigDecimal creditAmount = BigDecimal.valueOf((long) pointsToRedeem / REDEEM_MULTIPLE * 10);
+
+        // Record loyalty transaction
         transactionRepository.save(LoyaltyTransaction.builder()
                 .customer(customer)
                 .type("REDEEM")
                 .points(pointsToRedeem)
-                .description("Redeemed " + pointsToRedeem + " pts → ₹" + discount + " discount")
+                .description("Redeemed " + pointsToRedeem + " pts → ₹" + creditAmount + " added to wallet")
                 .build());
 
-        log.info("Customer {} redeemed {} points for ₹{} discount", customerId, pointsToRedeem, discount);
-        return getSummary(customerId);
+        // Credit wallet and record wallet transaction
+        Wallet wallet = walletService.credit(
+                customer,
+                creditAmount,
+                "points_redemption",
+                "Points redemption: " + pointsToRedeem + " pts → ₹" + creditAmount
+        );
+
+        log.info("Customer {} redeemed {} points → ₹{} credited to wallet (new balance: ₹{})",
+                customerId, pointsToRedeem, creditAmount, wallet.getBalance());
+
+        LoyaltyResponse response = getSummary(customerId);
+        response.setLastCreditedAmount(creditAmount);
+        response.setWalletBalance(wallet.getBalance());
+        return response;
     }
 
     // ── Customer summary (all owners combined) ────────────────────────────────
@@ -146,6 +198,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         res.setTotalRedeemed(totalRedeemed);
         res.setTierBenefits(tierBenefits(calculateTier(totalEarned)));
         res.setEarlyAccessServices(earlyAccessServices(calculateTier(totalEarned)));
+        res.setWalletBalance(walletService.getBalance(customerId));
         return res;
     }
 

@@ -1,51 +1,202 @@
--- Seed Admin (only if not exists)
-INSERT INTO admin (username, password)
-SELECT 'admin', 'admin123'
-WHERE NOT EXISTS (SELECT 1 FROM admin WHERE username = 'admin');
+-- ============================================================
+-- GlamBook — Product Seed Data
+-- Auto-executed by Spring Boot on startup (spring.sql.init.mode=always)
+-- Uses INSERT IGNORE so it's safe to re-run — won't duplicate rows.
+-- Column names match the Hibernate-generated schema from Product.java:
+--   name, brand, category, description, ingredients, usage_tips,
+--   price, stock, image_url, recommended_for, is_active
+-- ============================================================
 
--- Seed Salon Owners (only if not exists)
-INSERT INTO salon_owner (name, salon_name, city, email, password, phone)
-SELECT 'Ravi Kumar', 'Ravi Salon', 'Visakhapatnam', 'ravi@salon.com', 'owner123', '9000000001'
-WHERE NOT EXISTS (SELECT 1 FROM salon_owner WHERE email = 'ravi@salon.com');
+INSERT IGNORE INTO products
+  (name, brand, category, description, ingredients, usage_tips, price, stock, image_url, recommended_for, is_active)
+VALUES
 
-INSERT INTO salon_owner (name, salon_name, city, email, password, phone)
-SELECT 'Priya Reddy', 'Priya Salon', 'Vijayawada', 'priya@salon.com', 'owner123', '9000000002'
-WHERE NOT EXISTS (SELECT 1 FROM salon_owner WHERE email = 'priya@salon.com');
+-- ── HAIRCARE (5 products) ─────────────────────────────────────────────────────
+('Argan Oil Shampoo',
+ 'L''Oreal Paris',
+ 'HAIRCARE',
+ 'Nourishing shampoo infused with pure Moroccan argan oil. Leaves hair silky, smooth and frizz-free with every wash.',
+ 'Aqua, Sodium Laureth Sulfate, Cocamidopropyl Betaine, Argan Oil, Keratin Protein, Vitamin E, Panthenol',
+ 'Wet hair thoroughly. Apply a generous amount, lather well and massage into scalp. Rinse and repeat if needed. Use 3 times a week for best results.',
+ 450.00, 150, NULL, 'HAIR', 1),
 
-INSERT INTO salon_owner (name, salon_name, city, email, password, phone)
-SELECT 'Suresh Rao', 'Suresh Salon', 'Hyderabad', 'suresh@salon.com', 'owner123', '9000000003'
-WHERE NOT EXISTS (SELECT 1 FROM salon_owner WHERE email = 'suresh@salon.com');
+('Keratin Repair Conditioner',
+ 'TRESemmé',
+ 'HAIRCARE',
+ 'Deep conditioning treatment that repairs damage, strengthens hair fibres and adds long-lasting shine.',
+ 'Aqua, Cetearyl Alcohol, Behentrimonium Chloride, Keratin Protein, Panthenol, Silk Amino Acids, Argan Oil',
+ 'After shampooing, apply evenly from mid-lengths to ends. Leave for 3–5 minutes then rinse thoroughly. Use after every shampoo.',
+ 380.00, 120, NULL, 'HAIR', 1),
 
-INSERT INTO salon_owner (name, salon_name, city, email, password, phone)
-SELECT 'Anita Sharma', 'Anita Salon', 'Ananthapur', 'anita@salon.com', 'owner123', '9000000004'
-WHERE NOT EXISTS (SELECT 1 FROM salon_owner WHERE email = 'anita@salon.com');
+('Hair Growth Serum',
+ 'Mamaearth',
+ 'HAIRCARE',
+ 'Clinically tested serum with Redensyl and Procapil that visibly reduces hair fall and promotes new growth in 4 weeks.',
+ 'Redensyl 3%, Procapil 3%, Biotin, Bhringraj Extract, Castor Oil, Rosemary Oil',
+ 'Part hair into sections. Apply 10–15 drops directly to scalp. Massage gently for 2 minutes. Do not rinse. Use daily for best results.',
+ 620.00, 80, NULL, 'HAIR', 1),
 
-INSERT INTO salon_owner (name, salon_name, city, email, password, phone)
-SELECT 'Kiran Babu', 'Kiran Salon', 'Khammam', 'kiran@salon.com', 'owner123', '9000000005'
-WHERE NOT EXISTS (SELECT 1 FROM salon_owner WHERE email = 'kiran@salon.com');
+('Protein Hair Mask',
+ 'Wella Professionals',
+ 'HAIRCARE',
+ 'Intensive protein-rich hair mask that restores elasticity, repairs split ends and deeply nourishes dry, damaged hair.',
+ 'Aqua, Cetearyl Alcohol, Hydrolyzed Wheat Protein, Shea Butter, Coconut Oil, Vitamin B5, Keratin',
+ 'Apply generously to clean, damp hair. Leave for 10–15 minutes. Rinse thoroughly. Use once a week as a deep treatment.',
+ 850.00, 60, NULL, 'HAIR', 1),
 
--- Seed Services (only if table is empty)
-INSERT INTO services (name, category, gender, price, duration_mins)
-SELECT * FROM (
-  SELECT 'Haircut' AS name, 'Hair' AS category, 'MEN' AS gender, 150.00 AS price, 30 AS duration_mins
-  UNION ALL SELECT 'Hair Color', 'Hair', 'MEN', 500.00, 60
-  UNION ALL SELECT 'Beard Trim', 'Beard', 'MEN', 100.00, 20
-  UNION ALL SELECT 'Beard Style', 'Beard', 'MEN', 200.00, 30
-  UNION ALL SELECT 'Face Cleanup', 'Skin', 'MEN', 300.00, 45
-  UNION ALL SELECT 'Men Package', 'Packages', 'MEN', 700.00, 90
-  UNION ALL SELECT 'Haircut', 'Hair', 'WOMEN', 250.00, 45
-  UNION ALL SELECT 'Hair Color', 'Hair', 'WOMEN', 800.00, 90
-  UNION ALL SELECT 'Facial', 'Skin', 'WOMEN', 500.00, 60
-  UNION ALL SELECT 'Manicure', 'Nails', 'WOMEN', 300.00, 45
-  UNION ALL SELECT 'Pedicure', 'Nails', 'WOMEN', 350.00, 45
-  UNION ALL SELECT 'Bridal Makeup', 'Makeup', 'WOMEN', 3000.00, 120
-  UNION ALL SELECT 'Body Massage', 'Body', 'WOMEN', 1000.00, 60
-  UNION ALL SELECT 'Kids Haircut', 'Hair', 'KIDS', 100.00, 20
-  UNION ALL SELECT 'Kids Grooming', 'Grooming', 'KIDS', 150.00, 30
-  UNION ALL SELECT 'Special Styling', 'Special', 'KIDS', 200.00, 30
-) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM services LIMIT 1);
+('Anti-Dandruff Scalp Oil',
+ 'Himalaya',
+ 'HAIRCARE',
+ 'Medicated scalp oil with tea tree and neem that controls dandruff, soothes itchy scalp and prevents recurrence.',
+ 'Tea Tree Oil, Neem Extract, Salicylic Acid, Coconut Oil, Camphor, Menthol',
+ 'Apply directly to scalp sections. Massage for 5 minutes. Leave overnight or for at least 1 hour before washing. Use twice a week.',
+ 320.00, 200, NULL, 'HAIR', 1),
 
--- Auto-fix: ensure all services have is_active set (runs on every startup)
-UPDATE services SET is_active = 1 WHERE is_active IS NULL;
-UPDATE services SET gender = 'WOMEN' WHERE gender IS NULL;
+-- ── SKINCARE (5 products) ─────────────────────────────────────────────────────
+('Vitamin C Brightening Serum',
+ 'Minimalist',
+ 'SKINCARE',
+ '10% stabilised Vitamin C serum that visibly brightens skin tone, fades dark spots and provides antioxidant protection.',
+ 'Ascorbic Acid 10%, Hyaluronic Acid, Niacinamide 5%, Ferulic Acid, Vitamin E, Propanediol',
+ 'Apply 3–4 drops to cleansed face and neck. Gently pat until absorbed. Follow with moisturiser and SPF in the morning. Use morning and night.',
+ 890.00, 90, NULL, 'SKIN', 1),
+
+('Hyaluronic Acid Moisturiser',
+ 'Neutrogena',
+ 'SKINCARE',
+ 'Lightweight gel-cream moisturiser with triple hyaluronic acid complex that provides 24-hour deep hydration without greasiness.',
+ 'Hyaluronic Acid (3 molecular weights), Glycerin, Ceramides, Aloe Vera, Vitamin B5, Niacinamide',
+ 'Apply a pea-sized amount to damp skin morning and evening. Gently massage in upward circular motions until fully absorbed.',
+ 750.00, 110, NULL, 'SKIN', 1),
+
+('SPF 50 PA+++ Sunscreen',
+ 'Lakme Sun Expert',
+ 'SKINCARE',
+ 'Broad-spectrum SPF 50 PA+++ sunscreen with a matte finish. Protects against UVA/UVB rays and blue light. Non-comedogenic.',
+ 'Zinc Oxide, Titanium Dioxide, Niacinamide, Vitamin C, Aloe Vera, Silica',
+ 'Apply generously to face and exposed skin 15 minutes before sun exposure. Reapply every 2 hours or after swimming/sweating.',
+ 520.00, 200, NULL, 'SKIN', 1),
+
+('Retinol Night Cream',
+ 'Olay Regenerist',
+ 'SKINCARE',
+ 'Advanced anti-aging night cream with 0.3% retinol that reduces fine lines, firms skin and improves texture overnight.',
+ 'Retinol 0.3%, Peptides, Hyaluronic Acid, Niacinamide, Shea Butter, Vitamin E',
+ 'Apply a small amount to cleansed face and neck at night. Avoid eye area. Start with 2–3 times a week, gradually increase. Always use SPF in the morning.',
+ 1100.00, 70, NULL, 'SKIN', 1),
+
+('Niacinamide 10% Toner',
+ 'Minimalist',
+ 'SKINCARE',
+ 'Alcohol-free toner with 10% Niacinamide and 1% Zinc that minimises pores, controls oil and evens skin tone.',
+ 'Niacinamide 10%, Zinc PCA 1%, Hyaluronic Acid, Glycerin, Panthenol, Allantoin',
+ 'After cleansing, apply to face with a cotton pad or pat directly with hands. Use morning and night before heavier products.',
+ 599.00, 130, NULL, 'SKIN', 1),
+
+-- ── MAKEUP (4 products) ───────────────────────────────────────────────────────
+('HD Matte Foundation',
+ 'MAC Cosmetics',
+ 'MAKEUP',
+ 'Full-coverage HD foundation with a natural matte finish. Buildable formula that lasts up to 16 hours. Available in 40 shades.',
+ 'Dimethicone, Cyclopentasiloxane, Titanium Dioxide, Iron Oxides, Silica, Vitamin E',
+ 'Apply with a foundation brush or damp beauty sponge. Start from the centre of the face and blend outward. Build coverage as needed.',
+ 1200.00, 60, NULL, 'MAKEUP', 1),
+
+('Matte Lipstick Collection',
+ 'Maybelline New York',
+ 'MAKEUP',
+ 'Set of 5 long-lasting matte lipsticks in trending shades — nude, berry, red, coral and mauve. 8-hour wear formula.',
+ 'Isododecane, Trimethylsiloxysilicate, Dimethicone, Wax, Vitamin E, Pigments',
+ 'Apply directly from bullet or with a lip brush for precision. Blot with tissue for longer wear. Reapply as needed.',
+ 680.00, 75, NULL, 'MAKEUP', 1),
+
+('Waterproof Volume Mascara',
+ 'Revlon',
+ 'MAKEUP',
+ 'Volumising waterproof mascara that adds dramatic length and thickness. Smudge-proof formula lasts all day.',
+ 'Beeswax, Carnauba Wax, Iron Oxides, Vitamin E, Panthenol, Hydroxyethylcellulose',
+ 'Apply from root to tip with a zigzag motion for maximum volume. Layer for more drama. Remove with an oil-based makeup remover.',
+ 450.00, 100, NULL, 'MAKEUP', 1),
+
+('Eyeshadow Palette — Nude Glam',
+ 'Urban Decay',
+ 'MAKEUP',
+ '12-shade eyeshadow palette with a mix of matte, shimmer and glitter finishes in warm nude and rose-gold tones.',
+ 'Mica, Talc, Magnesium Stearate, Silica, Iron Oxides, Carmine, Ultramarines',
+ 'Use a flat brush for shimmer shades and a fluffy brush for matte shades. Blend edges for a seamless look. Set with a setting spray.',
+ 1850.00, 45, NULL, 'MAKEUP', 1),
+
+-- ── NAILCARE (3 products) ─────────────────────────────────────────────────────
+('Gel Nail Polish Starter Kit',
+ 'OPI',
+ 'NAILCARE',
+ 'Professional gel nail polish kit with 6 trending shades, base coat, top coat and nail prep. Lasts up to 3 weeks.',
+ 'Butyl Acetate, Ethyl Acetate, Nitrocellulose, Adipic Acid/Neopentyl Glycol/Trimellitic Anhydride Copolymer, Isopropyl Alcohol',
+ 'Prep nails with nail file and dehydrator. Apply thin base coat and cure under UV/LED lamp for 30 seconds. Apply 2 thin coats of colour, curing each. Finish with top coat.',
+ 950.00, 50, NULL, 'NAIL', 1),
+
+('Nourishing Cuticle Oil',
+ 'CND SolarOil',
+ 'NAILCARE',
+ 'Penetrating cuticle oil with jojoba, sweet almond oil and vitamin E that softens cuticles and strengthens nails.',
+ 'Jojoba Oil, Sweet Almond Oil, Vitamin E (Tocopheryl Acetate), Lavender Essential Oil, Rice Bran Oil',
+ 'Apply 1–2 drops around each cuticle and massage gently into nail bed. Use daily, especially before bed. Works over nail polish.',
+ 280.00, 180, NULL, 'NAIL', 1),
+
+('Nail Strengthener & Growth Treatment',
+ 'Essie',
+ 'NAILCARE',
+ 'Fortifying nail treatment with calcium and hydrolysed wheat protein that prevents breakage and promotes healthy nail growth.',
+ 'Butyl Acetate, Ethyl Acetate, Nitrocellulose, Calcium Pantothenate, Hydrolyzed Wheat Protein, Biotin',
+ 'Apply 2 coats on clean, bare nails. Reapply every 2 days. After 1 week, remove with acetone-free remover and repeat cycle.',
+ 320.00, 140, NULL, 'NAIL', 1),
+
+-- ── FRAGRANCE (3 products) ────────────────────────────────────────────────────
+('Rose & Oud Body Mist',
+ 'Forest Essentials',
+ 'FRAGRANCE',
+ 'Luxurious rose and oud body mist with natural rose water and precious oud extract. Light, long-lasting fragrance.',
+ 'Aqua, Rosa Damascena Flower Water, Oud Extract, Glycerin, Aloe Vera, Alcohol Denat.',
+ 'Spritz generously on body and hair after bathing. Hold 15–20 cm away. Reapply throughout the day for a fresh fragrance.',
+ 580.00, 90, NULL, NULL, 1),
+
+('Jasmine Eau de Parfum',
+ 'Chanel',
+ 'FRAGRANCE',
+ 'Timeless jasmine-based eau de parfum with top notes of bergamot, heart of jasmine absolute and base of sandalwood and musk.',
+ 'Alcohol Denat., Aqua, Parfum (Fragrance), Jasmine Absolute, Bergamot Oil, Sandalwood, White Musk',
+ 'Spray on pulse points — wrists, neck, behind ears and inner elbows. Do not rub. Apply to moisturised skin for longer lasting fragrance.',
+ 1450.00, 40, NULL, NULL, 1),
+
+('Oud & Amber Perfume Oil',
+ 'Ajmal',
+ 'FRAGRANCE',
+ 'Concentrated perfume oil with rich oud, warm amber and spicy saffron. Long-lasting oriental fragrance without alcohol.',
+ 'Mineral Oil, Oud Wood Extract, Amber Resin, Saffron Extract, Rose Absolute, Sandalwood Oil',
+ 'Apply a small amount to pulse points using the rollerball. A little goes a long way. Reapply as desired. Alcohol-free, suitable for sensitive skin.',
+ 780.00, 65, NULL, NULL, 1),
+
+-- ── TOOLS (3 products) ────────────────────────────────────────────────────────
+('Jade Facial Roller',
+ 'Herbivore Botanicals',
+ 'TOOLS',
+ 'Authentic jade stone facial roller for lymphatic drainage, de-puffing and improved product absorption. Dual-ended design.',
+ '100% Natural Jade Stone, Stainless Steel Handle, Velvet Pouch included',
+ 'Use on cleansed face with a serum or facial oil. Roll upward and outward in gentle strokes. Start from neck, move to jawline, cheeks, forehead. Use morning for de-puffing.',
+ 750.00, 70, NULL, NULL, 1),
+
+('Gua Sha Facial Sculpting Tool',
+ 'Mount Lai',
+ 'TOOLS',
+ 'Rose quartz gua sha tool for facial sculpting, tension relief and improved circulation. Traditional Chinese beauty ritual.',
+ '100% Natural Rose Quartz Stone',
+ 'Apply facial oil generously. Hold gua sha at 15-degree angle to skin. Use gentle upward strokes on neck, jawline, cheeks and forehead. Use 3–5 times a week.',
+ 650.00, 55, NULL, NULL, 1),
+
+('Professional Makeup Brush Set',
+ 'Sigma Beauty',
+ 'TOOLS',
+ '12-piece professional makeup brush set with synthetic bristles. Includes foundation, contour, blush, eyeshadow and blending brushes.',
+ 'Synthetic Taklon Bristles, Aluminium Ferrule, Wooden Handle',
+ 'Use each brush for its designated purpose. Clean weekly with brush cleanser. Reshape bristles and lay flat to dry. Store in the included roll-up pouch.',
+ 1350.00, 40, NULL, NULL, 1);

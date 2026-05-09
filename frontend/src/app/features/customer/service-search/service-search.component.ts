@@ -33,8 +33,8 @@ export class ServiceSearchComponent implements OnInit {
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router, private http: HttpClient) {
     this.form = this.fb.group({
-      city: ['Hyderabad'],
-      serviceType: [''],
+      city: [''],
+      serviceType: [null],
       targetGroup: [''],
       category: [''],
       minPrice: [''],
@@ -88,15 +88,18 @@ export class ServiceSearchComponent implements OnInit {
     this.loading = true;
     const v = this.form.value;
 
+    // Clamp: min can't be negative, max must be >= min
+    const minP = v.minPrice !== '' && v.minPrice !== null ? Math.max(0, +v.minPrice) : null;
+    const maxP = v.maxPrice !== '' && v.maxPrice !== null ? +v.maxPrice : null;
+
     const params: Record<string, string> = {};
     if (v.city)        params['city'] = v.city;
     if (v.targetGroup) params['targetGroup'] = v.targetGroup;
     if (v.category)    params['category'] = v.category;
     if (v.serviceType === 'HOME') params['homeAvailable'] = 'true';
     if (v.keyword)     params['keyword'] = v.keyword;
-    // Send price and rating to backend for server-side filtering
-    if (v.minPrice && +v.minPrice > 0) params['minPrice'] = v.minPrice;
-    if (v.maxPrice && +v.maxPrice > 0) params['maxPrice'] = v.maxPrice;
+    if (minP !== null && minP >= 0) params['minPrice'] = minP.toString();
+    if (maxP !== null && maxP > 0)  params['maxPrice'] = maxP.toString();
     if (v.minRating && +v.minRating > 0) params['minRating'] = v.minRating;
 
     const query = new URLSearchParams(params).toString();
@@ -110,6 +113,32 @@ export class ServiceSearchComponent implements OnInit {
       this.loading = false;
     }).catch(() => { this.results = []; this.loading = false; });
   }
+
+  /** Called on Min input — clamp to 0, clear Max if it's now less than Min */
+  onMinPriceChange(): void {
+    const raw = +this.form.value.minPrice;
+    if (isNaN(raw)) return;
+    const clamped = Math.max(0, raw);
+    if (clamped !== raw) this.form.patchValue({ minPrice: clamped }, { emitEvent: false });
+
+    const maxVal = +this.form.value.maxPrice;
+    if (this.form.value.maxPrice !== '' && !isNaN(maxVal) && maxVal < clamped) {
+      this.form.patchValue({ maxPrice: clamped }, { emitEvent: false });
+    }
+    this.search();
+  }
+
+  /** Called on Max input — ensure max >= min */
+  onMaxPriceChange(): void {
+    const minVal = +this.form.value.minPrice || 0;
+    const raw    = +this.form.value.maxPrice;
+    if (!isNaN(raw) && raw < minVal) {
+      this.form.patchValue({ maxPrice: minVal }, { emitEvent: false });
+    }
+    this.search();
+  }
+
+  get minPriceValue(): number { return Math.max(0, +this.form.value.minPrice || 0); }
 
   viewProfile(profId: number): void {
     this.router.navigate(['/dashboard/customer/book', profId]);

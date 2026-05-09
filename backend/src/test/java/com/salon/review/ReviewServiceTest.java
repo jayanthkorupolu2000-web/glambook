@@ -96,7 +96,9 @@ class ReviewServiceTest {
     void rating_OutsideRange_ShouldFailBeanValidation(int invalidRating) {
         ReviewRequest request = ReviewRequest.builder()
                 .professionalId(2L)
-                .rating(invalidRating)
+                .qualityRating(invalidRating)
+                .timelinessRating(3)
+                .professionalismRating(3)
                 .build();
 
         Set<ConstraintViolation<ReviewRequest>> violations = validator.validate(request);
@@ -109,7 +111,10 @@ class ReviewServiceTest {
     void rating_WithinRange_ShouldPassBeanValidation(int validRating) {
         ReviewRequest request = ReviewRequest.builder()
                 .professionalId(2L)
-                .rating(validRating)
+                .appointmentId(5L)
+                .qualityRating(validRating)
+                .timelinessRating(validRating)
+                .professionalismRating(validRating)
                 .build();
 
         Set<ConstraintViolation<ReviewRequest>> violations = validator.validate(request);
@@ -121,7 +126,9 @@ class ReviewServiceTest {
     void rating_Null_ShouldFailBeanValidation() {
         ReviewRequest request = ReviewRequest.builder()
                 .professionalId(2L)
-                .rating(null)
+                .qualityRating(null)
+                .timelinessRating(null)
+                .professionalismRating(null)
                 .build();
 
         Set<ConstraintViolation<ReviewRequest>> violations = validator.validate(request);
@@ -136,7 +143,10 @@ class ReviewServiceTest {
         // Given
         ReviewRequest request = ReviewRequest.builder()
                 .professionalId(2L)
-                .rating(4)
+                .appointmentId(5L)
+                .qualityRating(4)
+                .timelinessRating(4)
+                .professionalismRating(4)
                 .comment("Great service!")
                 .build();
 
@@ -145,6 +155,9 @@ class ReviewServiceTest {
                 .customer(customer)
                 .professional(professional)
                 .rating(4)
+                .qualityRating(4)
+                .timelinessRating(4)
+                .professionalismRating(4)
                 .comment("Great service!")
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -172,7 +185,9 @@ class ReviewServiceTest {
         ReviewRequest request = ReviewRequest.builder()
                 .professionalId(2L)
                 .appointmentId(5L)
-                .rating(3)
+                .qualityRating(3)
+                .timelinessRating(3)
+                .professionalismRating(3)
                 .build();
 
         when(customerRepository.findById(99L)).thenReturn(Optional.empty());
@@ -188,7 +203,9 @@ class ReviewServiceTest {
         ReviewRequest request = ReviewRequest.builder()
                 .professionalId(99L)
                 .appointmentId(5L)
-                .rating(3)
+                .qualityRating(3)
+                .timelinessRating(3)
+                .professionalismRating(3)
                 .build();
 
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));

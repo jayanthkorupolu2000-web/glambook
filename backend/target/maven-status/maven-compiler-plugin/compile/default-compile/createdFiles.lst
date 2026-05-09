@@ -15,6 +15,7 @@ com\salon\service\OwnerReportService.class
 com\salon\service\impl\LoyaltyServiceImpl.class
 com\salon\controller\CustomerLoyaltyController.class
 com\salon\controller\ProfessionalController.class
+com\salon\dto\response\ProductOrderResponseDTO.class
 com\salon\repository\LoyaltyRedemptionRepository.class
 com\salon\dto\response\LoyaltyResponse.class
 com\salon\entity\PaymentStatus.class
@@ -32,6 +33,7 @@ com\salon\entity\Resource.class
 com\salon\repository\PortfolioRepository.class
 com\salon\entity\CustomerNotification.class
 com\salon\service\LoyaltyService.class
+com\salon\dto\response\ProductOrderResponseDTO$ProductOrderResponseDTOBuilder.class
 com\salon\dto\response\ProfessionalResponse.class
 com\salon\entity\CustomerNotificationType.class
 com\salon\dto\request\UserStatusRequest.class
@@ -52,6 +54,7 @@ com\salon\dto\request\ResourceRequest.class
 com\salon\repository\AdminNotificationRepository.class
 com\salon\repository\AppointmentRepository.class
 com\salon\entity\GroupBookingStatus.class
+com\salon\dto\response\ProductResponseDTO$ProductResponseDTOBuilder.class
 com\salon\scheduler\ReminderScheduler.class
 com\salon\dto\response\ServiceResponse$ServiceResponseBuilder.class
 com\salon\repository\ProductRepository.class
@@ -59,14 +62,18 @@ com\salon\service\impl\AdminNotificationServiceImpl.class
 com\salon\dto\response\CustomerResponse$CustomerResponseBuilder.class
 com\salon\controller\OwnerReportController.class
 com\salon\dto\request\ConsultationReplyRequest.class
+com\salon\dto\request\ProductOrderRequest$ProductOrderRequestBuilder.class
+com\salon\dto\response\ProductReviewResponseDTO$ProductReviewResponseDTOBuilder.class
 com\salon\dto\response\ServiceResponse.class
 com\salon\repository\BeautyProfileRepository.class
 com\salon\dto\response\ProfessionalProfileResponse.class
 com\salon\dto\response\ScheduleSlotResponse$ScheduleSlotResponseBuilder.class
+com\salon\entity\ProductOrder$ProductOrderBuilder.class
 com\salon\service\impl\CustomerNotificationServiceImpl.class
 com\salon\dto\response\OwnerNotificationResponse.class
 com\salon\service\impl\LoyaltyServiceImpl$1.class
 com\salon\entity\Consultation.class
+com\salon\entity\WalletTransaction$WalletTransactionBuilder.class
 com\salon\security\JwtUtil.class
 com\salon\dto\request\PaymentRequest$PaymentRequestBuilder.class
 com\salon\entity\Promotion.class
@@ -74,6 +81,7 @@ com\salon\dto\request\ConsultationRequest.class
 com\salon\entity\Admin.class
 com\salon\entity\ReviewStatus.class
 com\salon\controller\PortfolioController$1.class
+com\salon\controller\ProductController.class
 com\salon\controller\UserManagementController.class
 com\salon\repository\PromotionRepository.class
 com\salon\dto\response\SalonOwnerEditResponse$SalonOwnerEditResponseBuilder.class
@@ -81,6 +89,7 @@ com\salon\entity\Product$ProductBuilder.class
 com\salon\service\impl\SalonOwnerEditServiceImpl.class
 com\salon\entity\Review.class
 com\salon\entity\Policy$PolicyBuilder.class
+com\salon\entity\Wallet.class
 com\salon\dto\request\UpdateAppointmentStatusRequest$UpdateAppointmentStatusRequestBuilder.class
 com\salon\service\FavoritesService.class
 com\salon\exception\PolicyNotFoundException.class
@@ -88,6 +97,7 @@ com\salon\repository\ProfessionalRepository.class
 com\salon\controller\AppointmentController.class
 com\salon\entity\LoyaltyTier.class
 com\salon\entity\CustomerNotification$CustomerNotificationBuilder.class
+com\salon\repository\ProductOrderRepository.class
 com\salon\repository\PaymentRepository.class
 com\salon\dto\request\MediationActionRequest.class
 com\salon\entity\ComplaintFeedback.class
@@ -102,6 +112,7 @@ com\salon\dto\request\ReviewResponseRequest.class
 com\salon\dto\request\PortfolioMetadataRequest.class
 com\salon\dto\response\ComplaintResponse.class
 com\salon\dto\response\PaymentResponse$PaymentResponseBuilder.class
+com\salon\repository\ProductReviewRepository.class
 com\salon\entity\FavoriteService$FavoriteServiceBuilder.class
 com\salon\exception\ConflictException.class
 com\salon\entity\Order$OrderBuilder.class
@@ -121,6 +132,7 @@ com\salon\service\ConsultationService.class
 com\salon\dto\request\PromotionRequest.class
 com\salon\entity\Appointment$AppointmentBuilder.class
 com\salon\controller\FileController.class
+com\salon\repository\WalletTransactionRepository.class
 com\salon\exception\ComplaintNotFoundException.class
 com\salon\security\JwtAuthenticationFilter.class
 com\salon\entity\Complaint$ComplaintBuilder.class
@@ -146,8 +158,10 @@ com\salon\service\ComplaintIntegrationService.class
 com\salon\controller\BeautyProfileController.class
 com\salon\controller\ConsultationController.class
 com\salon\dto\response\AuthResponse.class
+com\salon\dto\request\ProductReviewRequest.class
 com\salon\service\ProfessionalProfileService.class
 com\salon\repository\ComplaintRepository.class
+com\salon\dto\response\ProductReviewResponseDTO.class
 com\salon\entity\Loyalty$LoyaltyBuilder.class
 com\salon\repository\OrderRepository.class
 com\salon\dto\response\SalonOwnerResponse$SalonOwnerResponseBuilder.class
@@ -181,6 +195,7 @@ com\salon\entity\ConsultationTopic.class
 com\salon\entity\ResourceAvailability$ResourceAvailabilityBuilder.class
 com\salon\service\AdminNotificationService.class
 com\salon\entity\Consultation$ConsultationBuilder.class
+com\salon\dto\response\ProductResponseDTO.class
 com\salon\entity\Admin$AdminBuilder.class
 com\salon\dto\response\ResourceAvailabilityResponse.class
 com\salon\controller\PortfolioController.class
@@ -194,6 +209,7 @@ com\salon\repository\ResourceRepository.class
 com\salon\dto\response\AdminNotificationResponse$AdminNotificationResponseBuilder.class
 com\salon\dto\response\ServiceBeforeAfterResponse.class
 com\salon\repository\ServiceBeforeAfterRepository.class
+com\salon\service\ProductService.class
 com\salon\dto\request\AppointmentRequest$AppointmentRequestBuilder.class
 com\salon\dto\response\SalonOwnerManagementResponse$SalonOwnerManagementResponseBuilder.class
 com\salon\controller\ServiceController.class
@@ -203,10 +219,12 @@ com\salon\dto\response\ReviewResponse$ReviewResponseBuilder.class
 com\salon\dto\request\UpdateProfileRequest$UpdateProfileRequestBuilder.class
 com\salon\dto\response\ProfessionalNotificationResponse.class
 com\salon\entity\Review$ReviewBuilder.class
+com\salon\dto\request\ProductOrderRequest.class
 com\salon\service\impl\ReviewResponseServiceImpl.class
 com\salon\dto\response\OrderItemResponse.class
 com\salon\service\OwnerNotificationService.class
 com\salon\entity\SalonOwner.class
+com\salon\dto\response\FavoriteResponseDTO.class
 com\salon\controller\SalonPolicyController.class
 com\salon\dto\response\ErrorResponse.class
 com\salon\entity\Portfolio$PortfolioBuilder.class
@@ -216,6 +234,9 @@ com\salon\exception\DuplicateReviewException.class
 com\salon\repository\SalonPolicyRepository.class
 com\salon\controller\ProfessionalNotificationController.class
 com\salon\dto\response\CustomerDashboardResponse.class
+com\salon\entity\WalletTransaction.class
+com\salon\controller\WalletController.class
+com\salon\entity\ProductReview$ProductReviewBuilder.class
 com\salon\dto\request\PolicyRequest.class
 com\salon\entity\StringListConverter$1.class
 com\salon\service\BeautyProfileService.class
@@ -259,13 +280,17 @@ com\salon\dto\request\AdminLoginRequest.class
 com\salon\config\AppConfig.class
 com\salon\repository\FavoriteServiceRepository.class
 com\salon\repository\OwnerNotificationRepository.class
+com\salon\repository\WalletRepository.class
 com\salon\dto\response\ProductResponse.class
 com\salon\entity\NotificationType.class
 com\salon\service\ScheduleService.class
+com\salon\service\WalletService.class
 com\salon\dto\request\ReviewRequest$ReviewRequestBuilder.class
+com\salon\entity\ProductOrder.class
 com\salon\entity\UserStatus.class
 com\salon\exception\GlobalExceptionHandler.class
 com\salon\controller\OwnerComplaintController.class
+com\salon\dto\request\ProductReviewRequest$ProductReviewRequestBuilder.class
 com\salon\service\SalonOwnerManagementService.class
 com\salon\entity\Complaint.class
 com\salon\dto\response\UserStatusResponse.class
@@ -290,6 +315,7 @@ com\salon\dto\response\ServicePopularityResponse.class
 com\salon\dto\response\PaymentStatsResponse.class
 com\salon\service\SalonOwnerEditService.class
 com\salon\dto\request\SalonOwnerManagementEditRequest.class
+com\salon\dto\response\FavoriteResponseDTO$FavoriteResponseDTOBuilder.class
 com\salon\service\impl\SalonPolicyServiceImpl.class
 com\salon\config\DatabaseMigrationRunner.class
 com\salon\entity\Communication$CommunicationBuilder.class
@@ -306,11 +332,13 @@ com\salon\exception\SalonOwnerNotFoundException.class
 com\salon\repository\ProfessionalNotificationRepository.class
 com\salon\dto\response\LoyaltyTransactionResponse.class
 com\salon\entity\CommunicationType.class
+com\salon\service\impl\ProductServiceImpl.class
 com\salon\dto\request\ComplaintRequest.class
 com\salon\service\impl\ProfessionalAnalyticsServiceImpl.class
 com\salon\entity\ConsultationType.class
 com\salon\entity\ProfessionalNotification$ProfessionalNotificationBuilder.class
 com\salon\entity\SlotType.class
+com\salon\entity\Wallet$WalletBuilder.class
 com\salon\dto\request\PortfolioItemRequest.class
 com\salon\entity\Loyalty.class
 com\salon\service\PolicyService.class
@@ -322,11 +350,13 @@ com\salon\repository\CustomerRepository.class
 com\salon\dto\request\AdminLoginRequest$AdminLoginRequestBuilder.class
 com\salon\dto\response\AdminNotificationResponse.class
 com\salon\service\impl\ProfessionalProfileServiceImpl.class
+com\salon\entity\ProductOrderStatus.class
 com\salon\dto\request\UpdateProfileRequest.class
 com\salon\service\impl\ComplaintServiceImpl.class
 com\salon\exception\UnauthorizedException.class
 com\salon\dto\request\SalonPolicyRequest.class
 com\salon\entity\Portfolio.class
+com\salon\entity\ProductReview.class
 com\salon\service\impl\CustomerProductServiceImpl.class
 com\salon\exception\ResourceNotFoundException.class
 com\salon\entity\OwnerNotification.class

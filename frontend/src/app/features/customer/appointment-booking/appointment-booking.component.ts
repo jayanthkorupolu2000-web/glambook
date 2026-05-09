@@ -43,6 +43,15 @@ export class AppointmentBookingComponent implements OnInit {
   // Portfolio modal
   showPortfolio = false;
 
+  // Professional reviews
+  professionalReviews: any[] = [];
+  reviewsLoading = false;
+  averageRating = 0;
+  averageQuality = 0;
+  averageTimeliness = 0;
+  averageProfessionalism = 0;
+  previewPhoto: string | null = null;
+
   get minDate(): string { return new Date().toISOString().split('T')[0]; }
 
   constructor(
@@ -78,10 +87,30 @@ export class AppointmentBookingComponent implements OnInit {
           });
         }
         this.loading = false;
+        this.loadProfessionalReviews(id);
       },
       error: () => { this.error = 'Failed to load professional details.'; this.loading = false; }
     });
   }
+
+  loadProfessionalReviews(professionalId: number): void {
+    this.reviewsLoading = true;
+    this.http.get<any>(`${BASE}/api/reviews?professionalId=${professionalId}`).subscribe({
+      next: data => {
+        this.professionalReviews = data.reviews || [];
+        this.averageRating = data.averageRating || 0;
+        this.averageQuality = data.averageQualityRating || 0;
+        this.averageTimeliness = data.averageTimelinessRating || 0;
+        this.averageProfessionalism = data.averageProfessionalismRating || 0;
+        this.reviewsLoading = false;
+      },
+      error: () => { this.reviewsLoading = false; }
+    });
+  }
+
+  stars(n: number): number[] { return [1, 2, 3, 4, 5]; }
+
+  openPhotoPreview(url: string): void { this.previewPhoto = url; }
 
   get f() { return this.form.controls; }
 

@@ -5,6 +5,7 @@ com\salon\service\SalonOwnerManagementServiceTest.class
 com\salon\auth\InvalidCredentialsTest.class
 com\salon\appointment\AppointmentControllerTest.class
 com\salon\auth\InvalidCityProfessionalRegistrationTest.class
+com\salon\service\LoyaltyProductPurchaseTest.class
 com\salon\review\ReviewServiceTest.class
 com\salon\security\JwtPropertyTest.class
 com\salon\service\ScheduleServiceTest.class
@@ -26,6 +27,7 @@ com\salon\appointment\AppointmentIntegrationTest.class
 com\salon\controller\PortfolioControllerTest.class
 com\salon\service\ProfessionalSearchServiceTest.class
 com\salon\integration\ServiceEndpointPublicAccessTest.class
+com\salon\service\ProductServiceTest.class
 com\salon\payment\PaymentControllerTest.class
 com\salon\professional\ProfessionalControllerTest.class
 com\salon\admin\AdminServiceTest.class

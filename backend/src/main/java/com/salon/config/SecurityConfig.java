@@ -88,6 +88,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/appointments/**").hasAnyRole("CUSTOMER", "SALON_OWNER", "PROFESSIONAL")
                 .requestMatchers("/api/payments/**").hasRole("CUSTOMER")
                 .requestMatchers("/api/reviews/**").hasRole("CUSTOMER")
+                // Products — public GET, auth required for orders/favorites/reviews
+                .requestMatchers(HttpMethod.GET, "/api/products").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/products/search").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/products/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/products/*/reviews").permitAll()
+                .requestMatchers("/api/products/**").hasRole("CUSTOMER")
                 // Salon owner role
                 .requestMatchers("/api/owners/**").hasRole("SALON_OWNER")
                 .requestMatchers("/api/v1/owners/**").hasRole("SALON_OWNER")

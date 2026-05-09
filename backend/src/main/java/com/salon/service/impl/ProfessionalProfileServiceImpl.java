@@ -96,12 +96,12 @@ public class ProfessionalProfileServiceImpl implements ProfessionalProfileServic
                 .map(this::toResponse)
                 // Price range: keep professional if ANY of their active services falls in range
                 .filter(res -> {
-                    if ((minPrice == null || minPrice <= 0) && (maxPrice == null || maxPrice <= 0)) return true;
+                    if (minPrice == null && (maxPrice == null || maxPrice <= 0)) return true;
                     if (res.getActiveServices() == null || res.getActiveServices().isEmpty()) return false;
                     return res.getActiveServices().stream().anyMatch(svc -> {
                         if (svc.getPrice() == null) return false;
                         double p = svc.getPrice().doubleValue();
-                        boolean aboveMin = (minPrice == null || minPrice <= 0) || p >= minPrice;
+                        boolean aboveMin = minPrice == null || p >= minPrice;   // minPrice=0 is valid
                         boolean belowMax = (maxPrice == null || maxPrice <= 0) || p <= maxPrice;
                         return aboveMin && belowMax;
                     });
