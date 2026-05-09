@@ -1,0 +1,19 @@
+.owner-nav-btn {
+  background: transparent;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #334155;
+  }
+}
+
+.owner-nav-active {
+  background: #334155 !important;
+  color: #fff !important;
+
+  span { color: #fff !important; }
+}

@@ -1,0 +1,12 @@
+.main-content {
+  min-height: calc(100vh - 56px);
+  padding-top: 0;
+}
+
+app-navbar {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  background-color: #334155;
+}

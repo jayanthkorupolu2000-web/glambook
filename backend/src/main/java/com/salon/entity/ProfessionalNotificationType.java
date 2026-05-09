@@ -1,0 +1,6 @@
+package com.salon.entity;
+
+public enum ProfessionalNotificationType {
+    APPOINTMENT_CONFIRMED, APPOINTMENT_CANCELLED, NEW_REVIEW,
+    COMPLAINT_RAISED, SUSPENSION_WARNING, POLICY_PUBLISHED
+}

@@ -1,0 +1,124 @@
+<div class="container py-4" style="max-width:600px;">
+  <h2 class="fw-bold mb-4" style="color:#244AFD;">My Profile</h2>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="d-flex justify-content-center py-5">
+    <div class="spinner-border" style="color:#244AFD;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+
+        <!-- Avatar -->
+        <div class="d-flex align-items-center mb-4 gap-3">
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:64px;height:64px;background:#244AFD;color:#fff;font-size:1.6rem;font-weight:700;">
+            {{ (profile?.name || 'U').charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <h4 class="mb-0 fw-bold">{{ profile?.name || '—' }}</h4>
+            <small class="text-muted">{{ profile?.email }}</small>
+          </div>
+        </div>
+
+        <form [formGroup]="form" novalidate>
+
+          <!-- Name -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Full Name <span *ngIf="editMode" class="text-danger">*</span></label>
+            <input type="text" class="form-control" formControlName="name"
+                   [class.is-invalid]="f['name'].touched && f['name'].invalid"
+                   [readonly]="!editMode" />
+            <div class="invalid-feedback">
+              <span *ngIf="f['name'].errors?.['required']">Name is required.</span>
+              <span *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters.</span>
+            </div>
+          </div>
+
+          <!-- Email (read-only) -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input type="email" class="form-control bg-light" formControlName="email" readonly />
+          </div>
+
+          <!-- Phone -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Phone</label>
+            <input type="tel" class="form-control" formControlName="phone"
+                   [class.is-invalid]="f['phone'].touched && f['phone'].invalid"
+                   [readonly]="!editMode"
+                   placeholder="10-digit phone number" />
+            <div class="invalid-feedback">Phone must be exactly 10 digits.</div>
+          </div>
+
+          <!-- City -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">City <span *ngIf="editMode" class="text-danger">*</span></label>
+            <select *ngIf="editMode" class="form-select" formControlName="city"
+                    [class.is-invalid]="f['city'].touched && f['city'].invalid">
+              <option value="" disabled>Select city</option>
+              <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+            </select>
+            <input *ngIf="!editMode" type="text" class="form-control" formControlName="city" readonly />
+            <div class="invalid-feedback">
+              <span *ngIf="f['city'].errors?.['required']">City is required.</span>
+              <span *ngIf="f['city'].errors?.['invalidCity']">Please select a valid city.</span>
+            </div>
+          </div>
+
+          <!-- Emergency & Medical Info -->
+          <hr class="my-3">
+          <h6 class="fw-bold mb-3" style="color:#244AFD;">🚨 Emergency &amp; Medical Information</h6>
+          <p class="text-muted small mb-3">This information helps professionals provide safe and personalised care.</p>
+
+          <!-- Emergency Contact -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Emergency Contact Number</label>
+            <input type="tel" class="form-control" formControlName="emergencyContact"
+                   [class.is-invalid]="f['emergencyContact'].touched && f['emergencyContact'].invalid"
+                   [readonly]="!editMode"
+                   placeholder="10-digit emergency contact number" />
+            <div class="invalid-feedback">Emergency contact must be exactly 10 digits.</div>
+            <small class="text-muted">Optional — shared only with your assigned professional during appointments.</small>
+          </div>
+
+          <!-- Medical Notes -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Medical Notes / Conditions</label>
+            <textarea class="form-control" formControlName="medicalNotes" rows="3"
+                      [readonly]="!editMode"
+                      placeholder="e.g. Allergic to certain dyes, skin conditions, medications that affect treatments..."></textarea>
+            <small class="text-muted">Optional — helps professionals avoid treatments that may be harmful to you.</small>
+          </div>
+
+          <!-- Actions -->
+          <div *ngIf="!editMode">
+            <button type="button" class="btn text-white fw-semibold w-100"
+                    style="background:#244AFD;" (click)="enableEdit()">
+              Edit Profile
+            </button>
+          </div>
+
+          <div *ngIf="editMode" class="d-flex gap-2">
+            <button type="button" class="btn text-white fw-semibold flex-fill"
+                    style="background:#244AFD;" (click)="save()" [disabled]="saving">
+              <span *ngIf="saving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+              {{ saving ? 'Saving...' : 'Save Changes' }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary flex-fill"
+                    (click)="cancelEdit()" [disabled]="saving">
+              Cancel
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </ng-container>
+</div>

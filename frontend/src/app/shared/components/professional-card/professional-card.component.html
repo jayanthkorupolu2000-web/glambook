@@ -1,0 +1,35 @@
+<div class="card professional-card h-100 shadow-sm" *ngIf="professional">
+  <div class="card-header professional-card__header">
+    <h5 class="card-title mb-0 text-white">{{ professional.name }}</h5>
+  </div>
+  <div class="card-body">
+    <p class="professional-card__specialization text-muted mb-1">
+      <i class="bi bi-scissors me-1"></i>{{ professional.specialization }}
+    </p>
+    <p class="professional-card__city text-muted mb-2">
+      <i class="bi bi-geo-alt me-1"></i>{{ professional.city }}
+    </p>
+
+    <div class="professional-card__rating mb-3" [attr.aria-label]="'Rating: ' + (professional.rating ?? 0) + ' out of 5 stars'">
+      <span *ngFor="let filled of stars" class="professional-card__star" [class.professional-card__star--filled]="filled">
+        &#9733;
+      </span>
+    </div>
+
+    <div *ngIf="professional.services?.length" class="professional-card__services">
+      <p class="fw-semibold mb-1 small">Services:</p>
+      <ul class="list-unstyled mb-0">
+        <li *ngFor="let service of professional.services" class="small text-muted">
+          <i class="bi bi-check2 me-1 text-success"></i>{{ service.name }}
+          <span class="text-secondary ms-1">(₹{{ service.price }})</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card-footer bg-transparent border-top-0 pt-0" *ngIf="bookNow.observed">
+    <button class="btn btn-primary w-100 professional-card__book-btn" (click)="onBookNow()">
+      Book Now
+    </button>
+  </div>
+</div>

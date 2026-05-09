@@ -1,0 +1,121 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">📅 Daily Schedule</h4>
+
+  <!-- ── Today's Summary Cards ── -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold text-success">{{ availableCount }}</div>
+        <div class="text-muted small">Available Slots Today</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold text-primary">{{ bookedCount }}</div>
+        <div class="text-muted small">Booked / Completed</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold" style="color:#244AFD;">{{ todaySlots.length }}</div>
+        <div class="text-muted small">Total Remaining Slots</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Today's Schedule ── -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold mb-0" style="color:#244AFD;">
+        📆 Today — {{ today | date:'EEEE, dd MMM yyyy' }}
+      </h6>
+      <button class="btn btn-sm btn-outline-primary" (click)="loadToday()">↻ Refresh</button>
+    </div>
+    <div class="card-body p-0">
+
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border" style="color:#244AFD;"></div>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger m-3">{{ error }}</div>
+
+      <div *ngIf="!loading && todaySlots.length === 0" class="text-center text-muted py-4">
+        No remaining slots for today.
+      </div>
+
+      <div *ngIf="!loading && todaySlots.length > 0">
+        <!-- Legend -->
+        <div class="d-flex gap-3 px-3 pt-3 pb-1 flex-wrap" style="font-size:.75rem;">
+          <span><span class="legend-dot available"></span> Available</span>
+          <span><span class="legend-dot past"></span> Past / Unavailable</span>
+          <span><span class="legend-dot booked"></span> Booked</span>
+          <span><span class="legend-dot completed"></span> Completed</span>
+        </div>
+
+        <div class="schedule-list">
+          <div *ngFor="let slot of todaySlots"
+               class="schedule-row d-flex align-items-center justify-content-between px-3 py-2 border-bottom"
+               [ngClass]="{
+                 'row-available':   slot.slotStatus === 'AVAILABLE',
+                 'row-past':        slot.slotStatus === 'UNAVAILABLE' && slot.past,
+                 'row-booked':      slot.slotStatus === 'UNAVAILABLE' && !slot.past,
+                 'row-completed':   slot.slotStatus === 'COMPLETED'
+               }">
+            <div class="d-flex align-items-center gap-3">
+              <div class="time-block fw-semibold" style="min-width:130px;">
+                <span [class.text-decoration-line-through]="slot.slotStatus !== 'AVAILABLE'">
+                  {{ formatTime(slot.startTime) }} – {{ formatTime(slot.endTime) }}
+                </span>
+              </div>
+              <div class="text-muted small">{{ slotTypeIcon(slot.slotType) }} {{ slotTypeLabel(slot.slotType) }}</div>
+            </div>
+            <span [class]="statusClass(slot)">{{ statusLabel(slot) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Browse Another Date ── -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white">
+      <h6 class="fw-bold mb-0" style="color:#244AFD;">🔍 Browse Another Date</h6>
+    </div>
+    <div class="card-body">
+      <div class="row g-3 align-items-end mb-3">
+        <div class="col-md-4">
+          <label class="form-label fw-semibold small">Select Date</label>
+          <input type="date" class="form-control" [(ngModel)]="selectedDate" (change)="onDateChange()">
+        </div>
+      </div>
+
+      <div *ngIf="dateLoading" class="text-center py-3">
+        <div class="spinner-border spinner-border-sm" style="color:#244AFD;"></div>
+      </div>
+
+      <div *ngIf="!dateLoading && selectedDate && selectedDateSlots.length === 0"
+           class="text-muted small">No slots found for this date.</div>
+
+      <div *ngIf="!dateLoading && selectedDateSlots.length > 0" class="schedule-list">
+        <div *ngFor="let slot of selectedDateSlots"
+             class="schedule-row d-flex align-items-center justify-content-between px-3 py-2 border-bottom"
+             [ngClass]="{
+               'row-available':   slot.slotStatus === 'AVAILABLE',
+               'row-past':        slot.slotStatus === 'UNAVAILABLE' && slot.past,
+               'row-booked':      slot.slotStatus === 'UNAVAILABLE' && !slot.past,
+               'row-completed':   slot.slotStatus === 'COMPLETED'
+             }">
+          <div class="d-flex align-items-center gap-3">
+            <div class="time-block fw-semibold" style="min-width:130px;">
+              <span [class.text-decoration-line-through]="slot.slotStatus !== 'AVAILABLE'">
+                {{ formatTime(slot.startTime) }} – {{ formatTime(slot.endTime) }}
+              </span>
+            </div>
+            <div class="text-muted small">{{ slotTypeIcon(slot.slotType) }} {{ slotTypeLabel(slot.slotType) }}</div>
+          </div>
+          <span [class]="statusClass(slot)">{{ statusLabel(slot) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

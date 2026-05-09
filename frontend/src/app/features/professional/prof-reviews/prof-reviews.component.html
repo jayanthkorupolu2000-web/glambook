@@ -1,0 +1,71 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color:#244AFD;">My Reviews</h4>
+    <div class="d-flex align-items-center gap-3">
+      <span class="fw-bold fs-5">
+        <span *ngFor="let s of stars(5)" [style.color]="s <= avgRating() ? '#f5a623' : '#ccc'">★</span>
+        {{ avgRating() | number:'1.1-1' }} ({{ reviews.length }})
+      </span>
+      <select class="form-select w-auto" [(ngModel)]="filter" (change)="applyFilter()">
+        <option value="ALL">All</option>
+        <option value="RESPONDED">Responded</option>
+        <option value="PENDING">Awaiting Response</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <div *ngFor="let r of filtered" class="card border-0 shadow-sm mb-3 p-3">
+    <div class="d-flex justify-content-between">
+      <div>
+        <strong>{{ r.customerName }}</strong>
+        <span class="ms-2 text-muted small">{{ r.createdAt | date:'dd MMM yyyy' }}</span>
+      </div>
+      <div>
+        <span *ngFor="let s of stars(5)" [style.color]="s <= r.rating ? '#f5a623' : '#ccc'">★</span>
+      </div>
+    </div>
+    <p class="mt-2 mb-2">{{ r.comment }}</p>
+
+    <!-- Review photos -->
+    <ng-container *ngIf="r.photos && r.photos.length > 0">
+      <div class="small fw-semibold text-muted mb-1">📷 Photos from customer</div>
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <a *ngFor="let photo of r.photos" [href]="photo" target="_blank">
+          <img [src]="photo"
+               style="width:80px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #dee2e6;cursor:pointer;"
+               alt="Review photo">
+        </a>
+      </div>
+    </ng-container>
+
+    <!-- Edited badge -->
+    <div *ngIf="r.status === 'UPDATED'" class="mb-2">
+      <span class="badge bg-secondary" style="font-size:.7rem;">Edited</span>
+    </div>
+
+    <!-- Existing response -->
+    <div *ngIf="r.professionalResponse" class="bg-light p-2 rounded border-start border-primary border-3 mt-2">
+      <small class="text-muted">Your response ({{ r.professionalResponseAt | date:'dd MMM yyyy' }}):</small>
+      <p class="mb-0 mt-1">{{ r.professionalResponse }}</p>
+    </div>
+
+    <!-- Respond form -->
+    <div *ngIf="!r.professionalResponse" class="mt-2">
+      <textarea class="form-control form-control-sm" rows="2"
+                [(ngModel)]="responseText[r.id]"
+                placeholder="Write your response..."></textarea>
+      <button class="btn btn-sm text-white mt-1" style="background:#244AFD;"
+              [disabled]="!responseText[r.id]?.trim() || submitting[r.id]"
+              (click)="respond(r)">
+        <span *ngIf="submitting[r.id]" class="spinner-border spinner-border-sm me-1"></span>
+        Respond
+      </button>
+    </div>
+  </div>
+
+  <p *ngIf="!loading && filtered.length === 0" class="text-center text-muted py-4">No reviews found.</p>
+</div>

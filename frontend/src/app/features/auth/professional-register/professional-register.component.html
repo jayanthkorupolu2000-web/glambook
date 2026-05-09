@@ -1,0 +1,104 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="card shadow-sm p-4" style="width: 100%; max-width: 480px;">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold" style="color: #244AFD;">Professional Registration</h2>
+      <p class="text-muted small">Join a salon team in your city</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      <!-- Name -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Full Name</label>
+        <input type="text" class="form-control"
+               [class.is-invalid]="f['name'].invalid && (f['name'].touched || f['name'].dirty)"
+               formControlName="name" placeholder="Enter your name">
+        <div class="invalid-feedback">
+          <span *ngIf="f['name'].errors?.['required']">Name is required.</span>
+          <span *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters.</span>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Email Address</label>
+        <input type="email" class="form-control"
+               [class.is-invalid]="f['email'].invalid && (f['email'].touched || f['email'].dirty)"
+               formControlName="email" placeholder="you@example.com">
+        <div class="invalid-feedback">
+          <span *ngIf="f['email'].errors?.['required']">Email is required.</span>
+          <span *ngIf="f['email'].errors?.['email']">Enter a valid email address.</span>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Password</label>
+        <input type="password" class="form-control"
+               [class.is-invalid]="f['password'].invalid && (f['password'].touched || f['password'].dirty)"
+               formControlName="password" placeholder="Min 8 chars, 1 uppercase, 1 number">
+        <div class="invalid-feedback">
+          <span *ngIf="f['password'].errors?.['required']">Password is required.</span>
+          <span *ngIf="f['password'].errors?.['minlength']">Password must be at least 8 characters.</span>
+          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noUppercase']">Must contain at least one uppercase letter.</span>
+          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noNumber']">Must contain at least one number.</span>
+        </div>
+      </div>
+
+      <!-- City -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">City</label>
+        <select class="form-select"
+                [class.is-invalid]="f['city'].invalid && (f['city'].touched || f['city'].dirty)"
+                formControlName="city">
+          <option value="">Select your city</option>
+          <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+        </select>
+        <div class="invalid-feedback">
+          <span *ngIf="f['city'].errors?.['required']">City is required.</span>
+          <span *ngIf="f['city'].errors?.['invalidCity']">Please select a valid city.</span>
+        </div>
+      </div>
+
+      <!-- Service / Specialization — fetched from DB -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Your Service / Specialization</label>
+        <div *ngIf="loadingServices" class="text-muted small mb-1">Loading services...</div>
+        <select class="form-select"
+                [class.is-invalid]="f['serviceId'].invalid && (f['serviceId'].touched || f['serviceId'].dirty)"
+                formControlName="serviceId"
+                (change)="onServiceChange($event)">
+          <option value="">Select your service</option>
+          <optgroup *ngFor="let cat of getCategories()" [label]="cat">
+            <option *ngFor="let s of getServicesByCategory(cat)" [value]="s.id">
+              {{ s.name }} — ₹{{ s.price }}
+            </option>
+          </optgroup>
+        </select>
+        <div class="invalid-feedback">Please select your service.</div>
+
+        <!-- Show selected service details -->
+        <div *ngIf="selectedService" class="mt-2 p-2 rounded" style="background:#f0f4ff;border:1px solid #244AFD;">
+          <small class="fw-semibold" style="color:#244AFD;">Selected: </small>
+          <small>{{ selectedService.name }} ({{ selectedService.category }}) — ₹{{ selectedService.price }} · {{ selectedService.durationMins }} mins</small>
+        </div>
+      </div>
+
+      <!-- Server error -->
+      <div *ngIf="errorMessage" class="alert alert-danger py-2 small">{{ errorMessage }}</div>
+
+      <button type="submit" class="btn w-100 text-white fw-semibold"
+              style="background-color: #244AFD;"
+              [disabled]="form.invalid || loading">
+        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+        {{ loading ? 'Registering...' : 'Register' }}
+      </button>
+    </form>
+
+    <div class="text-center mt-3">
+      <small class="text-muted">Already registered?
+        <a routerLink="/auth/professional/login" style="color:#244AFD;">Login here</a>
+      </small>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,82 @@
+<div class="container py-4">
+  <h2 class="fw-bold mb-4" style="color: #244AFD;">Browse Professionals</h2>
+
+  <!-- City Filter -->
+  <div class="mb-4">
+    <label class="form-label fw-semibold">Filter by City</label>
+    <select class="form-select w-auto" [value]="selectedCity" (change)="onCityChange($any($event.target).value)">
+      <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+    </select>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="d-flex justify-content-center py-5">
+    <div class="spinner-border" style="color: #244AFD;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Cards Grid -->
+  <div *ngIf="!loading && !error" class="row g-4">
+    <div *ngIf="professionals.length === 0" class="col-12">
+      <p class="text-muted">No professionals found in {{ selectedCity }}.</p>
+    </div>
+
+    <div *ngFor="let pro of professionals" class="col-12 col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm border-0">
+        <div class="card-body">
+          <div class="d-flex align-items-center mb-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                 style="width:48px;height:48px;background:#244AFD;color:#fff;font-size:1.2rem;font-weight:700;">
+              {{ pro.name.charAt(0).toUpperCase() }}
+            </div>
+            <div>
+              <h5 class="card-title mb-0 fw-bold">{{ pro.name }}</h5>
+              <small class="text-muted">{{ pro.specialization }}</small>
+            </div>
+          </div>
+
+          <p class="mb-1"><i class="bi bi-geo-alt-fill me-1" style="color:#244AFD;"></i>{{ pro.city }}</p>
+          <p class="mb-1"><i class="bi bi-shop me-1" style="color:#244AFD;"></i>{{ pro.salonOwner.salonName }}</p>
+
+          <div *ngIf="pro.rating" class="mb-2">
+            <span class="badge" style="background:#244AFD;">&#9733; {{ pro.rating | number:'1.1-1' }}</span>
+          </div>
+
+          <div *ngIf="pro.services?.length" class="mb-2">
+            <small class="text-muted">Services: </small>
+            <span *ngFor="let svc of pro.services.slice(0,3)" class="badge bg-light text-dark border me-1">{{ svc.name }}</span>
+            <span *ngIf="pro.services.length > 3" class="text-muted small">+{{ pro.services.length - 3 }} more</span>
+          </div>
+
+          <a [routerLink]="['/dashboard/customer/book', pro.id]" class="btn btn-sm mt-2 w-100 text-white fw-semibold"
+             style="background:#244AFD;">Book Appointment</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <nav *ngIf="!loading && totalPages > 1" class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [class.disabled]="page === 0">
+        <button class="page-link" (click)="prevPage()">Previous</button>
+      </li>
+      <li *ngFor="let p of pageNumbers" class="page-item" [class.active]="p === page">
+        <button class="page-link" (click)="goToPage(p)"
+                [style.background]="p === page ? '#244AFD' : ''"
+                [style.border-color]="p === page ? '#244AFD' : ''">{{ p + 1 }}</button>
+      </li>
+      <li class="page-item" [class.disabled]="page === totalPages - 1">
+        <button class="page-link" (click)="nextPage()">Next</button>
+      </li>
+    </ul>
+  </nav>
+
+  <p *ngIf="!loading && totalElements > 0" class="text-muted text-center small mt-2">
+    Showing page {{ page + 1 }} of {{ totalPages }} ({{ totalElements }} professionals)
+  </p>
+</div>

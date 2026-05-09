@@ -1,0 +1,75 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">Policy Management</h4>
+
+  <!-- Latest Policy Alert -->
+  <div *ngIf="latestPolicy" class="alert border-0 shadow-sm mb-4" style="background:#eef1ff;border-left:4px solid #244AFD !important;">
+    <div class="d-flex align-items-center mb-1">
+      <span class="fw-bold me-2" style="color:#244AFD;">📋 Latest Policy:</span>
+      <span class="fw-semibold">{{ latestPolicy.title }}</span>
+      <span class="ms-auto text-muted small">{{ latestPolicy.createdAt | date:'dd MMM yyyy' }}</span>
+    </div>
+    <p class="mb-0 text-muted small">{{ latestPolicy.content | slice:0:200 }}{{ latestPolicy.content.length > 200 ? '...' : '' }}</p>
+  </div>
+
+  <!-- Publish Form -->
+  <div class="card border-0 shadow-sm p-4 mb-4">
+    <h6 class="fw-bold mb-3">Publish New Policy</h6>
+
+    <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
+    <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="publish()">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Title</label>
+        <input type="text" class="form-control"
+               formControlName="title"
+               [class.is-invalid]="f['title'].invalid && f['title'].touched"
+               placeholder="e.g. Cancellation Policy 2026">
+        <div class="invalid-feedback">Title is required (max 255 chars).</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Content</label>
+        <textarea class="form-control" rows="6"
+                  formControlName="content"
+                  [class.is-invalid]="f['content'].invalid && f['content'].touched"
+                  placeholder="Write the full policy content here (minimum 50 characters)..."></textarea>
+        <div class="invalid-feedback">Content is required (min 50 characters).</div>
+        <div class="form-text text-muted">{{ f['content'].value?.length || 0 }} characters</div>
+      </div>
+
+      <button type="submit" class="btn text-white fw-semibold px-4"
+              style="background:#244AFD;"
+              [disabled]="form.invalid || submitting">
+        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+        Publish Policy
+      </button>
+    </form>
+  </div>
+
+  <!-- All Policies Table -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-light fw-bold">All Published Policies ({{ policies.length }})</div>
+    <div *ngIf="loading" class="text-center py-3">
+      <div class="spinner-border spinner-border-sm" style="color:#244AFD;"></div>
+    </div>
+    <div class="table-responsive" *ngIf="!loading">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>Title</th><th>Published By</th><th>Date</th><th>Preview</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of policies">
+            <td class="fw-semibold">{{ p.title }}</td>
+            <td>{{ p.publishedBy }}</td>
+            <td class="text-muted small">{{ p.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
+            <td class="text-muted small">{{ p.content | slice:0:80 }}...</td>
+          </tr>
+          <tr *ngIf="policies.length === 0">
+            <td colspan="4" class="text-center text-muted py-3">No policies published yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

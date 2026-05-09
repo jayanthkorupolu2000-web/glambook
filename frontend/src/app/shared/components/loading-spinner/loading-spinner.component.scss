@@ -1,0 +1,19 @@
+.spinner-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.spinner-primary {
+  color: var(--color-primary);
+  width: 3rem;
+  height: 3rem;
+}
+
+.spinner-message {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  text-align: center;
+}

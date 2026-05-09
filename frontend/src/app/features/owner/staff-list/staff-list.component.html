@@ -1,0 +1,72 @@
+<div class="container py-4">
+  <h4 class="mb-4 fw-bold" style="color:#334155;">Staff & Approvals</h4>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#334155;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="!loading && !error && staff.length === 0" class="text-muted text-center py-4">
+    No staff members found.
+  </div>
+
+  <div *ngIf="!loading && staff.length > 0" class="row g-3">
+    <div class="col-md-6 col-lg-4" *ngFor="let member of staff">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body p-3">
+
+          <!-- Header -->
+          <div class="d-flex align-items-center mb-3">
+            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                 style="width:44px;height:44px;background:#334155;color:#fff;font-weight:700;flex-shrink:0;">
+              {{ member.name.charAt(0) | uppercase }}
+            </div>
+            <div class="flex-fill">
+              <h6 class="mb-0 fw-bold">{{ member.name }}</h6>
+              <small class="text-muted">{{ member.city }}</small>
+            </div>
+            <span [class]="statusBadgeClass(member.status)">
+              {{ member.status || 'PENDING' }}
+            </span>
+          </div>
+
+          <p class="mb-1 small">
+            <span class="text-muted">Specialization:</span>
+            <span class="ms-1 fw-semibold">{{ member.specialization }}</span>
+          </p>
+          <p class="mb-2 small">
+            <span class="text-muted">Email:</span>
+            <span class="ms-1">{{ member.email }}</span>
+          </p>
+
+          <!-- Action buttons — always visible so owner can manage any professional -->
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-sm btn-success flex-fill"
+                    *ngIf="member.status !== 'ACTIVE'"
+                    (click)="approve(member.id)"
+                    [disabled]="actionLoading[member.id]">
+              <span *ngIf="actionLoading[member.id]" class="spinner-border spinner-border-sm me-1"></span>
+              ✓ Approve
+            </button>
+            <button class="btn btn-sm btn-outline-danger flex-fill"
+                    *ngIf="member.status !== 'SUSPENDED'"
+                    (click)="reject(member.id)"
+                    [disabled]="actionLoading[member.id]">
+              ✗ Suspend
+            </button>
+            <button class="btn btn-sm btn-outline-success flex-fill"
+                    *ngIf="member.status === 'SUSPENDED'"
+                    (click)="approve(member.id)"
+                    [disabled]="actionLoading[member.id]">
+              ↺ Reactivate
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

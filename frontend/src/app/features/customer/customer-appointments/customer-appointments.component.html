@@ -1,0 +1,310 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4">My Appointments</h4>
+
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item" *ngFor="let tab of [
+      {k:'upcoming',l:'Upcoming'},
+      {k:'past',l:'Past'},
+      {k:'cancelled',l:'Cancelled'},
+      {k:'payments',l:'Payment History'}
+    ]">
+      <button class="nav-link fw-semibold" [class.active]="activeTab===tab.k"
+              style="color:#000 !important;" (click)="activeTab=tab.k">{{ tab.l }}</button>
+    </li>
+  </ul>
+
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border" style="color:#334155;"></div>
+  </div>
+
+  <div *ngIf="!loading">
+    <ng-container [ngSwitch]="activeTab">
+
+      <!-- ── Upcoming ── -->
+      <div *ngSwitchCase="'upcoming'">
+        <div *ngFor="let a of upcoming" class="card border-0 shadow-sm mb-3 p-3">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <h6 class="fw-bold mb-1">{{ a.serviceName }}</h6>
+              <div class="text-muted small">{{ a.professionalName || 'Awaiting assignment' }}</div>
+              <div class="text-muted small">{{ a.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}</div>
+              <div *ngIf="a.servicePrice" class="small fw-semibold mt-1">₹{{ a.servicePrice }}</div>
+            </div>
+            <div class="d-flex flex-column align-items-end gap-2">
+              <span [class]="statusBadge(a.status)">
+                {{ a.status === 'PENDING' ? 'Awaiting Assignment' : a.status }}
+              </span>
+              <button *ngIf="a.status === 'CONFIRMED'"
+                      class="btn btn-sm text-white"
+                      style="background:#334155;"
+                      [disabled]="!isPayButtonEnabled(a)"
+                      [title]="payButtonTooltip(a)"
+                      (click)="openPayGuarded(a)">
+                💳 Pay & Complete
+              </button>
+              <button *ngIf="a.status === 'CONFIRMED'"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="cancel(a.id)">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+        <p *ngIf="upcoming.length === 0" class="text-center text-muted py-4">No upcoming appointments.</p>
+      </div>
+
+      <!-- ── Past ── -->
+      <div *ngSwitchCase="'past'">
+        <div *ngFor="let a of past" class="card border-0 shadow-sm mb-3 p-3">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <h6 class="fw-bold mb-1">{{ a.serviceName }}</h6>
+              <div class="text-muted small">{{ a.professionalName }}</div>
+              <div class="text-muted small">{{ a.scheduledAt | date:'dd MMM yyyy' }}</div>
+            </div>
+            <div class="d-flex flex-column align-items-end gap-2">
+              <span [class]="statusBadge(a.status)">{{ a.status }}</span>
+
+              <!-- No review yet -->
+              <button *ngIf="!getReviewForAppt(a.id)"
+                      class="btn btn-sm btn-outline-warning"
+                      (click)="openReview(a)">
+                Rate & Review
+              </button>
+
+              <!-- Review exists — show summary + update button -->
+              <ng-container *ngIf="getReviewForAppt(a.id) as rev">
+                <div class="text-end">
+                  <div class="small">
+                    <span *ngFor="let s of stars(5)"
+                          [style.color]="s <= rev.rating ? '#f5a623' : '#ccc'">★</span>
+                    <span class="text-muted ms-1">{{ rev.rating }}/5</span>
+                    <span *ngIf="rev.status === 'UPDATED'" class="badge bg-secondary ms-1" style="font-size:.65rem;">Edited</span>
+                  </div>
+                  <div *ngIf="rev.comment" class="text-muted small mt-1" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                    {{ rev.comment }}
+                  </div>
+                  <!-- Existing photos thumbnails -->
+                  <div *ngIf="rev.photos?.length > 0" class="d-flex gap-1 mt-1 justify-content-end">
+                    <img *ngFor="let p of rev.photos.slice(0,3)" [src]="p"
+                         style="width:32px;height:32px;object-fit:cover;border-radius:3px;">
+                  </div>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary"
+                        (click)="openUpdateReview(a, rev)">
+                  Update Review
+                </button>
+              </ng-container>
+
+              <!-- Add to Favorites (service) -->
+              <button class="btn btn-sm"
+                      [disabled]="togglingFav[a.serviceId]"
+                      style="background:#dc3545;color:#fff;border:none;"
+                      (click)="toggleServiceFavorite(a)">
+                {{ togglingFav[a.serviceId] ? '…' : (favoritedServices[a.serviceId] ? '❤️ Added to Favorites' : '🤍 Add to Favorites') }}
+              </button>
+
+            </div>
+          </div>
+        </div>
+        <p *ngIf="past.length === 0" class="text-center text-muted py-4">No completed appointments.</p>
+      </div>
+
+      <!-- ── Cancelled ── -->
+      <div *ngSwitchCase="'cancelled'">
+        <div *ngFor="let a of cancelled" class="card border-0 shadow-sm mb-3 p-3">
+          <div class="d-flex justify-content-between">
+            <div>
+              <h6 class="fw-bold mb-1">{{ a.serviceName }}</h6>
+              <div class="text-muted small">{{ a.scheduledAt | date:'dd MMM yyyy' }}</div>
+            </div>
+            <span class="badge bg-danger">Cancelled</span>
+          </div>
+        </div>
+        <p *ngIf="cancelled.length === 0" class="text-center text-muted py-4">No cancelled appointments.</p>
+      </div>
+
+      <!-- ── Payment History ── -->
+      <div *ngSwitchCase="'payments'">
+        <div *ngIf="historyLoading" class="text-center py-4">
+          <div class="spinner-border" style="color:#334155;"></div>
+        </div>
+        <div *ngIf="!historyLoading && paymentHistory.length === 0" class="text-center text-muted py-4">
+          No payment history yet.
+        </div>
+        <div *ngIf="!historyLoading && paymentHistory.length > 0" class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Service</th>
+                <th>Professional</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of paymentHistory">
+                <td class="fw-semibold">{{ p.service }}</td>
+                <td>{{ p.professional }}</td>
+                <td class="text-muted small">{{ p.date | date:'dd MMM yyyy' }}</td>
+                <td class="fw-bold">₹{{ p.amount }}</td>
+                <td><span class="badge bg-success">{{ p.status }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </ng-container>
+  </div>
+</div>
+
+<!-- ── Payment Modal ──────────────────────────────────────────────────────── -->
+<div class="modal-backdrop fade show" *ngIf="payingAppt" (click)="closePay()"></div>
+<div class="modal fade show d-block" tabindex="-1" *ngIf="payingAppt" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">💳 Complete Payment</h5>
+        <button type="button" class="btn-close" (click)="closePay()"></button>
+      </div>
+      <div class="modal-body">
+
+        <div *ngIf="paySuccess" class="alert alert-success py-2">{{ paySuccess }}</div>
+        <div *ngIf="payError" class="alert alert-danger py-2">{{ payError }}</div>
+
+        <!-- Summary -->
+        <div class="p-3 rounded mb-4" style="background:#f8f9fa;">
+          <div class="d-flex justify-content-between">
+            <span class="fw-semibold">{{ payingAppt.serviceName }}</span>
+            <span class="fw-bold fs-5">₹{{ payingAppt.servicePrice }}</span>
+          </div>
+          <div class="text-muted small mt-1">
+            {{ payingAppt.professionalName }} · {{ payingAppt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}
+          </div>
+        </div>
+
+        <!-- Payment method -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Select Payment Method</label>
+          <div class="d-flex gap-3">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" id="cash" name="method"
+                     [checked]="payMethod === 'CASH'" (change)="payMethod = 'CASH'">
+              <label class="form-check-label fw-semibold" for="cash">💵 Cash on Delivery</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" id="card" name="method"
+                     [checked]="payMethod === 'CARD'" (change)="payMethod = 'CARD'">
+              <label class="form-check-label fw-semibold" for="card">💳 Card</label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cash info -->
+        <div *ngIf="payMethod === 'CASH'" class="alert alert-info py-2 small">
+          Pay cash directly to the professional after the service.
+        </div>
+
+        <!-- Card fields -->
+        <div *ngIf="payMethod === 'CARD'">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Card Number <span class="text-muted small">(12 digits)</span></label>
+            <input type="text" class="form-control" [value]="cardNumber"
+                   maxlength="12" placeholder="xxxx xxxx xxxx"
+                   (input)="onCardNumberInput($event)">
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold">Expiry <span class="text-muted small">(MM/YY)</span></label>
+              <input type="text" class="form-control" [(ngModel)]="cardExpiry"
+                     maxlength="5" placeholder="MM/YY">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">CVV <span class="text-muted small">(3 digits)</span></label>
+              <input type="password" class="form-control" [value]="cardCvv"
+                     maxlength="3" placeholder="•••"
+                     (input)="onCvvInput($event)">
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" (click)="closePay()">Cancel</button>
+        <button class="btn text-white"
+                style="background:#334155;"
+                (click)="confirmPay()"
+                [disabled]="payLoading || !cardValid">
+          <span *ngIf="payLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ payLoading ? 'Processing...' : 'Confirm Payment & Mark Done' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Review Modal ───────────────────────────────────────────────────────── -->
+<div class="modal-backdrop fade show" *ngIf="reviewingAppt" (click)="closeReview()"></div>
+<div class="modal fade show d-block" tabindex="-1" *ngIf="reviewingAppt" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ reviewMode === 'update' ? 'Update Review' : 'Rate & Review' }}</h5>
+        <button type="button" class="btn-close" (click)="closeReview()"></button>
+      </div>
+      <div class="modal-body">
+
+        <div *ngIf="reviewSuccess" class="alert alert-success py-2">{{ reviewSuccess }}</div>
+        <div *ngIf="reviewError" class="alert alert-danger py-2">{{ reviewError }}</div>
+
+        <div class="text-muted small mb-3">
+          {{ reviewingAppt.serviceName }} with {{ reviewingAppt.professionalName }}
+        </div>
+
+        <div class="mb-3" *ngIf="reviewMode === 'create'">
+          <label class="form-label fw-semibold">Rating</label>
+          <div class="d-flex gap-1" style="font-size:2rem;">
+            <span *ngFor="let s of stars(5)" style="cursor:pointer;"
+                  [style.color]="s <= reviewRating ? '#f5a623' : '#ccc'"
+                  (click)="setRating(s)">★</span>
+          </div>
+          <small class="text-muted">{{ reviewRating }} / 5</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Feedback (optional)</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="reviewComment"
+                    maxlength="1000"
+                    placeholder="Share your experience..."></textarea>
+          <small class="text-muted">{{ reviewComment.length }}/1000</small>
+        </div>
+
+        <!-- Photo upload -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Photos (optional)</label>
+          <input type="file" class="form-control" accept="image/*" multiple
+                 (change)="onPhotoSelected($event)">
+          <small class="text-muted">Upload photos of your experience</small>
+          <!-- Preview -->
+          <div *ngIf="reviewPhotoPreview.length > 0" class="d-flex flex-wrap gap-2 mt-2">
+            <img *ngFor="let url of reviewPhotoPreview" [src]="url"
+                 style="width:60px;height:60px;object-fit:cover;border-radius:4px;">
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" (click)="closeReview()">
+          {{ reviewMode === 'update' ? 'Cancel' : 'Skip' }}
+        </button>
+        <button class="btn text-white" style="background:#334155;"
+                (click)="submitReview()" [disabled]="reviewLoading">
+          <span *ngIf="reviewLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ reviewLoading ? 'Saving...' : (reviewMode === 'update' ? 'Update Review' : 'Submit Review') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

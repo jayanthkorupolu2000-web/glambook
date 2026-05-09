@@ -1,0 +1,181 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Salon Owner Management</h2>
+        <button class="btn btn-outline-primary" (click)="loadOwners()" [disabled]="loading">
+          <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+          Refresh
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading salon owners...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+        <button type="button" class="btn-close" (click)="error = null"></button>
+      </div>
+
+      <!-- Table -->
+      <div *ngIf="!loading && !error" class="card">
+        <div class="card-header bg-light">
+          <h5 class="card-title mb-0">
+            <i class="fas fa-store me-2"></i>
+            Salon Owners ({{ owners.length }})
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Owner Name</th>
+                  <th>Salon Name</th>
+                  <th>City</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let owner of owners; trackBy: trackByOwnerId">
+                  <td class="text-muted">{{ owner.id }}</td>
+                  <td><strong>{{ owner.name }}</strong></td>
+                  <td><span class="text-primary fw-medium">{{ owner.salonName }}</span></td>
+                  <td>
+                    <span [class]="getCityBadgeClass(owner.city)">{{ owner.city }}</span>
+                  </td>
+                  <td>
+                    <a [href]="'mailto:' + owner.email" class="text-decoration-none">{{ owner.email }}</a>
+                  </td>
+                  <td>
+                    <span *ngIf="owner.phone; else noPhone">
+                      <i class="fas fa-phone me-1"></i>{{ owner.phone }}
+                    </span>
+                    <ng-template #noPhone>
+                      <span class="text-muted fst-italic">Not provided</span>
+                    </ng-template>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-secondary" (click)="openEditModal(owner)" title="Edit">
+                      <i class="fas fa-pencil-alt me-1"></i>Edit
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!loading && !error && owners.length === 0" class="text-center py-5">
+        <i class="fas fa-store fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No Salon Owners Found</h4>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit Modal ──────────────────────────────────────────────────────────── -->
+<div class="modal-backdrop fade show" *ngIf="showEditModal" (click)="closeEditModal()"></div>
+
+<div class="modal fade show d-block" tabindex="-1" role="dialog" *ngIf="showEditModal" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-store me-2 text-primary"></i>Edit Salon Owner
+        </h5>
+        <button type="button" class="btn-close" (click)="closeEditModal()" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <div *ngIf="editSuccess" class="alert alert-success py-2">
+          <i class="fas fa-check-circle me-2"></i>{{ editSuccess }}
+        </div>
+        <div *ngIf="editError" class="alert alert-danger py-2">
+          <i class="fas fa-exclamation-circle me-2"></i>{{ editError }}
+        </div>
+
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()" novalidate>
+
+          <!-- Read-only -->
+          <div class="row mb-3">
+            <div class="col-6">
+              <label class="form-label text-muted small fw-semibold">EMAIL (read-only)</label>
+              <input type="text" class="form-control form-control-sm bg-light"
+                     [value]="editTarget?.email" readonly>
+            </div>
+            <div class="col-6">
+              <label class="form-label text-muted small fw-semibold">CITY (read-only)</label>
+              <input type="text" class="form-control form-control-sm bg-light"
+                     [value]="editTarget?.city" readonly>
+            </div>
+          </div>
+
+          <hr class="my-3">
+
+          <!-- Editable: Owner Name -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="ownerName">
+              Owner Name <span class="text-danger">*</span>
+            </label>
+            <input id="ownerName" type="text" class="form-control"
+                   [class.is-invalid]="ownerNameCtrl.invalid && ownerNameCtrl.touched"
+                   formControlName="ownerName" placeholder="Enter owner name">
+            <div class="invalid-feedback">Please provide a valid ownerName</div>
+          </div>
+
+          <!-- Editable: Salon Name -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="salonName">
+              Salon Name <span class="text-danger">*</span>
+            </label>
+            <input id="salonName" type="text" class="form-control"
+                   [class.is-invalid]="salonNameCtrl.invalid && salonNameCtrl.touched"
+                   formControlName="salonName" placeholder="Enter salon name">
+            <div class="invalid-feedback">Please provide a valid salonName</div>
+          </div>
+
+          <!-- Editable: Phone -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="phone">
+              Phone <span class="text-danger">*</span>
+            </label>
+            <input id="phone" type="tel" class="form-control"
+                   [class.is-invalid]="phoneCtrl.invalid && phoneCtrl.touched"
+                   formControlName="phone" placeholder="10-digit mobile number">
+            <div class="invalid-feedback">Please provide a valid phone</div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeEditModal()">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary"
+                (click)="saveEdit()"
+                [disabled]="editForm.invalid || editLoading">
+          <span *ngIf="editLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          {{ editLoading ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

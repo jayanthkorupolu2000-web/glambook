@@ -1,0 +1,130 @@
+<!-- ── Backdrop ── -->
+<div *ngIf="professionalId != null" class="portfolio-backdrop" (click)="close()"></div>
+
+<!-- ── Slide-in Panel ── -->
+<div *ngIf="professionalId != null" class="portfolio-panel" (click)="$event.stopPropagation()">
+
+  <!-- Header -->
+  <div class="portfolio-header d-flex justify-content-between align-items-center px-4 py-3">
+    <div>
+      <h5 class="fw-bold mb-0" style="color:#244AFD;">🖼️ Portfolio</h5>
+      <small class="text-muted">{{ professionalName }}</small>
+    </div>
+    <button class="btn-close" (click)="close()" aria-label="Close"></button>
+  </div>
+
+  <!-- Body -->
+  <div class="portfolio-body">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-5">
+      <div class="spinner-border" style="color:#244AFD;"></div>
+      <p class="text-muted mt-2 small">Loading portfolio...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="alert alert-danger mx-3 mt-3">{{ error }}</div>
+
+    <!-- Empty state -->
+    <div *ngIf="!loading && !error && items.length === 0" class="text-center py-5 text-muted">
+      <div style="font-size:3.5rem;">🎨</div>
+      <p class="mt-2 fw-semibold">No portfolio items yet.</p>
+      <small>This professional hasn't added any work samples.</small>
+    </div>
+
+    <!-- ── Photos & Before/After ── -->
+    <ng-container *ngIf="!loading && photoItems.length > 0">
+      <h6 class="fw-semibold mb-3" style="color:#244AFD;">📸 Photos</h6>
+      <div class="portfolio-grid mb-4">
+
+        <div *ngFor="let item of photoItems" class="portfolio-card">
+
+          <!-- BEFORE / AFTER -->
+          <ng-container *ngIf="item.mediaType === 'BEFORE_AFTER_PHOTO'">
+            <div class="before-after-wrap">
+              <div class="ba-side" (click)="openLightbox(item, 'before')">
+                <span class="ba-label before-label">BEFORE</span>
+                <img [src]="beforeUrl(item)" alt="Before"
+                     class="portfolio-img"
+                     (error)="onImgError($event)">
+              </div>
+              <div class="ba-side" (click)="openLightbox(item, 'after')">
+                <span class="ba-label after-label">AFTER</span>
+                <img [src]="afterUrl(item)" alt="After"
+                     class="portfolio-img"
+                     (error)="onImgError($event)">
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- SINGLE PHOTO -->
+          <ng-container *ngIf="item.mediaType === 'SINGLE_PHOTO'">
+            <div class="pf-single-wrap" (click)="openLightbox(item)">
+              <img [src]="primaryUrl(item)" alt="Portfolio photo"
+                   class="portfolio-img single-img"
+                   (error)="onImgError($event)">
+            </div>
+          </ng-container>
+
+          <!-- Caption & tags -->
+          <div class="portfolio-meta">
+            <div class="d-flex flex-wrap gap-1 mb-1">
+              <span *ngIf="item.serviceTag" class="badge bg-secondary">{{ item.serviceTag }}</span>
+              <span *ngIf="item.isFeatured" class="badge bg-warning text-dark">⭐ Featured</span>
+            </div>
+            <div *ngIf="item.tags" class="d-flex flex-wrap gap-1 mb-1">
+              <span *ngFor="let t of item.tags.split(',')"
+                    class="badge bg-light text-dark border" style="font-size:.68rem;">{{ t.trim() }}</span>
+            </div>
+            <p *ngIf="item.caption" class="small text-muted mb-1">{{ item.caption }}</p>
+            <p *ngIf="item.testimonial" class="small fst-italic text-muted mb-0">"{{ item.testimonial }}"</p>
+          </div>
+        </div>
+
+      </div>
+    </ng-container>
+
+    <!-- ── Videos ── -->
+    <ng-container *ngIf="!loading && videoItems.length > 0">
+      <h6 class="fw-semibold mb-3" style="color:#244AFD;">🎬 Videos</h6>
+      <div class="portfolio-grid">
+        <div *ngFor="let item of videoItems" class="portfolio-card">
+          <video controls class="portfolio-video">
+            <source [src]="primaryUrl(item)"
+                    [type]="(item.videoUrl || item.filePath || '')?.endsWith('.webm') ? 'video/webm' : 'video/mp4'">
+          </video>
+          <div class="portfolio-meta">
+            <span *ngIf="item.serviceTag" class="badge bg-secondary">{{ item.serviceTag }}</span>
+            <p *ngIf="item.caption" class="small text-muted mt-1 mb-0">{{ item.caption }}</p>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+  </div>
+</div>
+
+<!-- ── Lightbox ── -->
+<div *ngIf="lightboxItem" class="lightbox-backdrop" (click)="closeLightbox()">
+  <div class="lightbox-content" (click)="$event.stopPropagation()">
+    <button class="lightbox-close btn-close btn-close-white" (click)="closeLightbox()"></button>
+
+    <!-- Before/After toggle -->
+    <div *ngIf="lightboxItem.mediaType === 'BEFORE_AFTER_PHOTO'" class="lightbox-toggle">
+      <button class="btn btn-sm"
+              [class.btn-light]="lightboxSide === 'before'"
+              [class.btn-outline-light]="lightboxSide !== 'before'"
+              (click)="lightboxSide = 'before'">Before</button>
+      <button class="btn btn-sm ms-2"
+              [class.btn-light]="lightboxSide === 'after'"
+              [class.btn-outline-light]="lightboxSide !== 'after'"
+              (click)="lightboxSide = 'after'">After</button>
+    </div>
+
+    <img [src]="lightboxUrl" alt="Portfolio" class="lightbox-img"
+         (error)="onImgError($event)">
+
+    <div *ngIf="lightboxItem.caption" class="lightbox-caption mt-2">{{ lightboxItem.caption }}</div>
+    <div *ngIf="lightboxItem.testimonial" class="lightbox-caption fst-italic mt-1">"{{ lightboxItem.testimonial }}"</div>
+  </div>
+</div>

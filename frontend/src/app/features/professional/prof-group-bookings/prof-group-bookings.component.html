@@ -1,0 +1,30 @@
+<div class="container py-4" style="max-width:720px;">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">👥 Group Bookings</h4>
+
+  <div *ngIf="loading" class="text-center py-5"><div class="spinner-border" style="color:#244AFD;"></div></div>
+
+  <div *ngIf="!loading">
+    <div *ngFor="let b of bookings" class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-bold">Group Booking #{{ b.id }}</span>
+          <span [class]="statusBadge(b.status)">{{ b.status }}</span>
+        </div>
+        <div class="text-muted small">👤 Customer: {{ b.customerName }}</div>
+        <div class="text-muted small">📅 {{ b.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}</div>
+        <div *ngIf="b.discountPct > 0" class="badge bg-success mt-1">{{ b.discountPct }}% Discount</div>
+        <div *ngIf="b.notes" class="text-muted small mt-1">📝 {{ b.notes }}</div>
+
+        <div *ngIf="b.appointments?.length" class="mt-2">
+          <div class="fw-semibold small mb-1">Your appointment in this group:</div>
+          <div *ngFor="let a of b.appointments" class="small py-1 border-bottom">
+            {{ a.serviceName }} — <span class="badge bg-light text-dark border">{{ a.status }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="bookings.length === 0" class="text-center text-muted py-5">
+      No group bookings assigned to you yet.
+    </div>
+  </div>
+</div>

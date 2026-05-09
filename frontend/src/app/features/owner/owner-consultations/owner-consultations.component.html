@@ -1,0 +1,20 @@
+<div class="container py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">💬 Staff Consultations</h4>
+  <div *ngIf="loading" class="text-center py-5"><div class="spinner-border" style="color:#244AFD;"></div></div>
+  <div *ngIf="!loading">
+    <div *ngFor="let c of consultations" class="card border-0 shadow-sm mb-3 p-3">
+      <div class="d-flex justify-content-between mb-1">
+        <span class="badge bg-info text-dark">{{ c.topic }}</span>
+        <span [class]="statusBadge(c.status)">{{ c.status }}</span>
+      </div>
+      <div class="small text-muted">Customer: {{ c.customerName }} → Professional: {{ c.professionalName }}</div>
+      <p class="mb-1 mt-1">{{ c.question }}</p>
+      <div *ngIf="c.notes" class="p-2 rounded mt-1" style="background:#f0f4ff;">
+        <small class="fw-semibold" style="color:#244AFD;">Reply:</small>
+        <p class="mb-0 small">{{ c.notes }}</p>
+      </div>
+      <small class="text-muted">{{ c.createdAt | date:'dd MMM yyyy' }}</small>
+    </div>
+    <div *ngIf="consultations.length === 0" class="text-center text-muted py-5">No consultations found.</div>
+  </div>
+</div>

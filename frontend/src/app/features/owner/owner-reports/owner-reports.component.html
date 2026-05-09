@@ -1,0 +1,70 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">Salon Reports</h4>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <div *ngIf="report && !loading">
+    <!-- Metric Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+          <div class="fs-2 fw-bold" style="color:#244AFD;">{{ report.totalAppointments }}</div>
+          <div class="text-muted small">Total Appointments</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+          <div class="fs-2 fw-bold text-success">₹{{ report.totalRevenue | number:'1.0-0' }}</div>
+          <div class="text-muted small">Total Revenue</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+          <div class="fs-2 fw-bold text-warning">{{ report.averageRating | number:'1.1-1' }}★</div>
+          <div class="text-muted small">Avg Rating</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center p-3">
+          <div class="fs-2 fw-bold text-danger">{{ report.openComplaints }}</div>
+          <div class="text-muted small">Open Complaints</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-3">
+          <h6 class="fw-bold mb-3">Appointment Breakdown</h6>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>Completed</td><td class="fw-bold text-success">{{ report.completedAppointments }}</td></tr>
+              <tr><td>Cancelled</td><td class="fw-bold text-danger">{{ report.cancelledAppointments }}</td></tr>
+              <tr><td>Pending</td><td class="fw-bold text-warning">{{ report.totalAppointments - report.completedAppointments - report.cancelledAppointments }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card border-0 shadow-sm p-3">
+          <h6 class="fw-bold mb-3">Staff & Complaints</h6>
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr><td>Active Professionals</td><td class="fw-bold">{{ report.professionalsCount }}</td></tr>
+              <tr><td>Pending Approvals</td><td class="fw-bold text-warning">{{ report.pendingApprovals }}</td></tr>
+              <tr><td>Forwarded Complaints</td><td class="fw-bold text-info">{{ report.forwardedComplaints }}</td></tr>
+              <tr><td>Resolved Complaints</td><td class="fw-bold text-success">{{ report.resolvedComplaints }}</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-muted small mt-3 text-end">
+      Report generated: {{ report.reportGeneratedAt | date:'dd MMM yyyy, HH:mm' }}
+    </p>
+  </div>
+</div>

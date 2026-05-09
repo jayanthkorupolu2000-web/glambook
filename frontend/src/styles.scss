@@ -1,0 +1,137 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+/* ── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --color-navbar-bg:      #334155;
+  --color-primary:        #475569;
+  --color-primary-hover:  #334155;
+  --color-bg:             #FFFFFF;
+  --color-card-bg:        #FFFFFF;
+  --color-card-border:    #E2E8F0;
+  --color-text-primary:   #1E293B;
+  --color-text-secondary: #64748B;
+  --color-text-on-dark:   #FFFFFF;
+
+  /* Legacy alias kept for any inline style="color:#244AFD" references */
+  --primary: #475569;
+}
+
+/* ── Base ──────────────────────────────────────────────────── */
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ── Headings ──────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary);
+}
+
+.text-muted {
+  color: var(--color-text-secondary) !important;
+}
+
+/* ── Navbar ────────────────────────────────────────────────── */
+.navbar,
+.navbar.bg-primary,
+nav.navbar {
+  background-color: var(--color-navbar-bg) !important;
+}
+
+/* ── Primary Buttons ───────────────────────────────────────── */
+.btn-primary,
+.btn[style*="#244AFD"],
+.btn[style*="background:#244AFD"],
+.btn[style*="background: #244AFD"] {
+  background-color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-text-on-dark) !important;
+  border-radius: 8px !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-primary:hover,
+.btn[style*="#244AFD"]:hover,
+.btn[style*="background:#244AFD"]:hover,
+.btn[style*="background: #244AFD"]:hover {
+  background-color: var(--color-primary-hover) !important;
+  border-color: var(--color-primary-hover) !important;
+}
+
+/* All buttons get 8px radius */
+.btn {
+  border-radius: 8px !important;
+}
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.card {
+  background-color: var(--color-card-bg) !important;
+  border: 1px solid var(--color-card-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ── Inline color overrides (replaces hardcoded #244AFD) ───── */
+[style*="color:#244AFD"],
+[style*="color: #244AFD"] {
+  color: var(--color-primary) !important;
+}
+
+[style*="background:#244AFD"],
+[style*="background: #244AFD"],
+[style*="background-color:#244AFD"],
+[style*="background-color: #244AFD"] {
+  background-color: var(--color-primary) !important;
+}
+
+/* ── Sidebar active state ──────────────────────────────────── */
+.sidebar .nav-link.active,
+button.nav-link[style*="background:#244AFD"],
+button.nav-link[style*="background: #244AFD"] {
+  background-color: var(--color-primary) !important;
+  color: var(--color-text-on-dark) !important;
+}
+
+/* ── Badges ────────────────────────────────────────────────── */
+.badge.bg-primary {
+  background-color: var(--color-primary) !important;
+}
+
+/* ── Form controls ─────────────────────────────────────────── */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.2rem rgba(71, 85, 105, 0.2);
+}
+
+/* ── Spinner ───────────────────────────────────────────────── */
+.spinner-border[style*="#244AFD"],
+.spinner-border[style*="color:#244AFD"] {
+  color: var(--color-primary) !important;
+}
+
+/* ── Table ─────────────────────────────────────────────────── */
+.table-light th {
+  background-color: #F8FAFC;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Alerts ────────────────────────────────────────────────── */
+.alert-info {
+  border-left: 4px solid var(--color-primary);
+}
+
+/* ── Page background ───────────────────────────────────────── */
+.min-vh-100,
+.container {
+  background-color: var(--color-bg);
+}
+
+.container-fluid:not(.navbar .container-fluid) {
+  background-color: var(--color-bg);
+}

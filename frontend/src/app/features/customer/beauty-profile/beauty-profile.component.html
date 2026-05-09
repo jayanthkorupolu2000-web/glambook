@@ -1,0 +1,56 @@
+<div class="container py-4" style="max-width:640px;">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">👤 Beauty Profile</h4>
+
+  <div *ngIf="loading" class="text-center py-5"><div class="spinner-border" style="color:#244AFD;"></div></div>
+
+  <div *ngIf="!loading" class="card border-0 shadow-sm p-4">
+    <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+    <form [formGroup]="form">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Skin Type</label>
+        <select class="form-select" formControlName="skinType">
+          <option value="">Select skin type</option>
+          <option *ngFor="let s of skinTypes" [value]="s">{{ s }}</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Hair Type</label>
+        <select class="form-select" formControlName="hairType">
+          <option value="">Select hair type</option>
+          <option *ngFor="let h of hairTypes" [value]="h">{{ h }}</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Hair Texture</label>
+        <select class="form-select" formControlName="hairTexture">
+          <option value="">Select texture</option>
+          <option *ngFor="let t of hairTextures" [value]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Allergies / Sensitivities</label>
+        <input type="text" class="form-control" formControlName="allergies" placeholder="e.g. Ammonia, Parabens">
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Preferred Services</label>
+        <input type="text" class="form-control" formControlName="preferredServices" placeholder="e.g. Hair Color, Facial">
+      </div>
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Additional Notes</label>
+        <textarea class="form-control" formControlName="notes" rows="3" placeholder="Any other preferences..."></textarea>
+      </div>
+
+      <div *ngIf="!editMode">
+        <button class="btn text-white w-100 fw-semibold" style="background:#244AFD;" (click)="enableEdit()">Edit Profile</button>
+      </div>
+      <div *ngIf="editMode" class="d-flex gap-2">
+        <button class="btn text-white flex-fill fw-semibold" style="background:#244AFD;" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save' }}
+        </button>
+        <button class="btn btn-outline-secondary flex-fill" (click)="cancel()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>

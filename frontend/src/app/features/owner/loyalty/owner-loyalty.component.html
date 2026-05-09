@@ -1,0 +1,37 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">Customer Loyalty</h4>
+
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <div class="card border-0 shadow-sm" *ngIf="!loading">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>Customer</th><th>Points</th><th>Tier</th><th>Add Points</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of loyalty">
+            <td class="fw-semibold">{{ item.customerName }}</td>
+            <td>{{ item.points }}</td>
+            <td><span [class]="tierBadge(item.tier)">{{ item.tier }}</span></td>
+            <td style="width:150px;">
+              <input type="number" class="form-control form-control-sm"
+                     [(ngModel)]="item.editPoints" min="0" placeholder="pts">
+            </td>
+            <td>
+              <button class="btn btn-sm text-white" style="background:#244AFD;"
+                      (click)="save(item)" [disabled]="!item.editPoints">
+                Save
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="loyalty.length === 0">
+            <td colspan="5" class="text-center text-muted py-3">No loyalty records yet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

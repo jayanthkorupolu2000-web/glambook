@@ -1,0 +1,108 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">Analytics & Reports</h4>
+
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <!-- Metric Cards -->
+  <div class="row g-3 mb-4" *ngIf="!loading">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold" style="color:#244AFD;">{{ totalComplaints }}</div>
+        <div class="text-muted small">Total Complaints</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold text-warning">{{ avgRating }}★</div>
+        <div class="text-muted small">Avg Complaint Rating</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold text-danger">{{ cancellations.total }}</div>
+        <div class="text-muted small">Total Cancellations</div>
+        <div class="text-muted" style="font-size:0.75rem;">Same-day: {{ cancellations.sameDay }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold text-success">{{ payments.successRatio }}%</div>
+        <div class="text-muted small">Payment Success Rate</div>
+        <div class="text-muted" style="font-size:0.75rem;">{{ payments.paid }}/{{ payments.total }} paid</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="row g-4" *ngIf="!loading">
+
+    <!-- Complaints by City -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm p-3">
+        <h6 class="fw-bold mb-3">Complaints by City</h6>
+        <div *ngFor="let item of cityEntries()" class="mb-2">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small">{{ item.city }}</span>
+            <span class="small fw-bold">{{ item.count }}</span>
+          </div>
+          <div class="progress" style="height:8px;">
+            <div class="progress-bar" style="background:#244AFD;"
+                 [style.width.%]="totalComplaints > 0 ? (item.count / totalComplaints * 100) : 0">
+            </div>
+          </div>
+        </div>
+        <p *ngIf="cityEntries().length === 0" class="text-muted text-center">No data yet.</p>
+      </div>
+    </div>
+
+    <!-- Ratings Distribution -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm p-3">
+        <h6 class="fw-bold mb-3">Ratings Distribution</h6>
+        <div *ngFor="let item of ratingEntries()" class="mb-2">
+          <div class="d-flex justify-content-between mb-1">
+            <span class="small">{{ item.rating }}★</span>
+            <span class="small fw-bold">{{ item.count }}</span>
+          </div>
+          <div class="progress" style="height:8px;">
+            <div class="progress-bar bg-warning"
+                 [style.width.%]="totalComplaints > 0 ? (item.count / totalComplaints * 100) : 0">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancellation Summary -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm p-3">
+        <h6 class="fw-bold mb-3">Cancellation Summary</h6>
+        <table class="table table-sm">
+          <tbody>
+            <tr><td>Total Cancellations</td><td class="fw-bold">{{ cancellations.total }}</td></tr>
+            <tr><td>Same-Day Cancellations</td><td class="fw-bold text-warning">{{ cancellations.sameDay }}</td></tr>
+            <tr><td>Suspended Customers</td><td class="fw-bold text-danger">{{ cancellations.suspendedCustomers }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment Summary -->
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm p-3">
+        <h6 class="fw-bold mb-3">Payment Summary</h6>
+        <table class="table table-sm">
+          <tbody>
+            <tr><td>Total Payments</td><td class="fw-bold">{{ payments.total }}</td></tr>
+            <tr><td>Paid</td><td class="fw-bold text-success">{{ payments.paid }}</td></tr>
+            <tr><td>Refunded</td><td class="fw-bold text-danger">{{ payments.refunded }}</td></tr>
+            <tr><td>Success Rate</td><td class="fw-bold" style="color:#244AFD;">{{ payments.successRatio }}%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

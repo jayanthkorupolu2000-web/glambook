@@ -1,0 +1,47 @@
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="card shadow-sm p-4" style="width:100%;max-width:420px;">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold" style="color:#244AFD;">Professional Login</h2>
+      <p class="text-muted small">Sign in to your professional account</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Email Address</label>
+        <input type="email" class="form-control"
+               [class.is-invalid]="f['email'].invalid && (f['email'].touched || f['email'].dirty)"
+               formControlName="email" placeholder="you@example.com">
+        <div class="invalid-feedback">
+          <span *ngIf="f['email'].errors?.['required']">Email is required.</span>
+          <span *ngIf="f['email'].errors?.['email']">Enter a valid email address.</span>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-semibold">Password</label>
+        <input type="password" class="form-control"
+               [class.is-invalid]="f['password'].invalid && (f['password'].touched || f['password'].dirty)"
+               formControlName="password" placeholder="Enter your password">
+        <div class="invalid-feedback">Password is required.</div>
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-danger py-2 small">{{ errorMessage }}</div>
+
+      <button type="submit" class="btn w-100 text-white fw-semibold"
+              style="background:#244AFD;"
+              [disabled]="form.invalid || loading">
+        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+        {{ loading ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </form>
+
+    <hr class="my-3">
+    <p class="text-center text-muted small mb-0">
+      Not registered yet?
+      <a routerLink="/auth/professional/register" style="color:#244AFD;">Register here</a>
+    </p>
+    <p class="text-center mt-2 mb-0">
+      <a routerLink="/auth" class="text-muted small">← Back to login options</a>
+    </p>
+  </div>
+</div>

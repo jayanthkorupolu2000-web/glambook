@@ -1,0 +1,49 @@
+<div class="container py-4">
+  <h4 class="mb-4 fw-bold" style="color: #244AFD;">Salon Profile</h4>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color: #244AFD;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="profile && !loading" class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center mb-4">
+        <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+             style="width:56px;height:56px;background:#244AFD;color:#fff;font-size:1.5rem;font-weight:700;">
+          {{ profile.salonName.charAt(0) | uppercase }}
+        </div>
+        <div>
+          <h5 class="mb-0 fw-bold">{{ profile.salonName }}</h5>
+          <small class="text-muted">Salon Owner</small>
+          <div class="mt-1">
+            <span class="badge" style="background:#244AFD;">
+              📍 {{ profile.city }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label text-muted small mb-1">Owner Name</label>
+          <p class="fw-semibold mb-0">{{ profile.name }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-muted small mb-1">City</label>
+          <p class="fw-semibold mb-0">{{ profile.city }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-muted small mb-1">Email</label>
+          <p class="fw-semibold mb-0">{{ profile.email }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label text-muted small mb-1">Phone</label>
+          <p class="fw-semibold mb-0">{{ profile.phone }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,129 @@
+<div class="container py-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color:#334155;">Appointments</h4>
+    <span *ngIf="pendingCount > 0" class="badge bg-warning text-dark fs-6">
+      {{ pendingCount }} awaiting assignment
+    </span>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#334155;" role="status"></div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="!loading && !error && appointments.length === 0" class="text-muted text-center py-4">
+    No appointments found.
+  </div>
+
+  <div *ngIf="!loading && appointments.length > 0" class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Customer</th>
+          <th>Service</th>
+          <th>Assigned To</th>
+          <th>Date &amp; Time</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let appt of appointments"
+            [class.table-warning]="appt.status === 'PENDING'">
+          <td class="text-muted small">{{ appt.id }}</td>
+          <td class="fw-semibold">{{ appt.customerName }}</td>
+          <td>{{ appt.serviceName }}</td>
+          <td>
+            <span *ngIf="appt.professionalName; else unassigned">{{ appt.professionalName }}</span>
+            <ng-template #unassigned>
+              <span class="text-muted fst-italic small">Unassigned</span>
+            </ng-template>
+          </td>
+          <td>{{ appt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}</td>
+          <td><span [class]="statusBadgeClass(appt.status)">{{ appt.status }}</span></td>
+          <td>
+            <button *ngIf="appt.status === 'PENDING'"
+                    class="btn btn-sm btn-primary"
+                    (click)="openAssign(appt)">
+              Assign &amp; Confirm
+            </button>
+            <button *ngIf="appt.status === 'CONFIRMED'"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="cancelAssignment(appt)">
+              Cancel Assignment
+            </button>
+            <span *ngIf="appt.status !== 'PENDING' && appt.status !== 'CONFIRMED'" class="text-muted small">—</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── Assign Professional Modal ──────────────────────────────────────────── -->
+<div class="modal-backdrop fade show" *ngIf="assigningAppt" (click)="closeAssign()"></div>
+
+<div class="modal fade show d-block" tabindex="-1" *ngIf="assigningAppt" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-user-check me-2"></i>Assign Professional
+        </h5>
+        <button type="button" class="btn-close" (click)="closeAssign()"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <div *ngIf="assignSuccess" class="alert alert-success py-2">
+          <i class="fas fa-check-circle me-2"></i>{{ assignSuccess }}
+        </div>
+        <div *ngIf="assignError" class="alert alert-danger py-2">
+          <i class="fas fa-exclamation-circle me-2"></i>{{ assignError }}
+        </div>
+
+        <!-- Appointment summary -->
+        <div class="p-3 rounded mb-3" style="background:#f8f9fa;">
+          <div class="small text-muted mb-1">Appointment Details</div>
+          <div class="fw-semibold">{{ assigningAppt.serviceName }}</div>
+          <div class="small text-muted">
+            Customer: {{ assigningAppt.customerName }} ·
+            {{ assigningAppt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}
+          </div>
+        </div>
+
+        <!-- Professional selector -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Select Professional <span class="text-danger">*</span></label>
+          <select class="form-select" [(ngModel)]="selectedProfId">
+            <option [ngValue]="null" disabled>-- Choose a professional --</option>
+            <option *ngFor="let p of staff" [ngValue]="p.id">
+              {{ p.name }} — {{ p.specialization }}
+            </option>
+          </select>
+          <div *ngIf="staff.length === 0" class="text-muted small mt-1">
+            No active staff found. Please approve professionals first.
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeAssign()">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary"
+                (click)="confirmAssign()"
+                [disabled]="!selectedProfId || assignLoading">
+          <span *ngIf="assignLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ assignLoading ? 'Assigning...' : 'Confirm Assignment' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

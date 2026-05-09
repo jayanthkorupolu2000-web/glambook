@@ -1,0 +1,59 @@
+.table {
+  th {
+    font-weight: 600;
+    color: #495057;
+    padding: 1rem 0.75rem;
+  }
+  td {
+    padding: 0.875rem 0.75rem;
+    vertical-align: middle;
+  }
+  tbody tr:hover {
+    background-color: #f8f9fa;
+  }
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  &.bg-light {
+    border: 1px solid #dee2e6;
+  }
+}
+
+// Modal backdrop
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1040;
+}
+
+.modal {
+  z-index: 1050;
+}
+
+.modal-content {
+  border-radius: 12px;
+  border: none;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+}
+
+.modal-header {
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-footer {
+  border-top: 1px solid #e9ecef;
+  padding: 1rem 1.5rem;
+}
+
+.form-control.bg-light {
+  color: #6c757d;
+  cursor: not-allowed;
+}
+
+hr {
+  border-color: #e9ecef;
+}

@@ -1,0 +1,92 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">Welcome, Professional! 👋</h4>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-4" *ngIf="!loading">
+    <div class="col-md-2 col-sm-6">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold text-success">₹{{ analytics?.totalEarnings || 0 | number:'1.0-0' }}</div>
+        <div class="text-muted small">Total Earnings</div>
+      </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold text-warning">{{ analytics?.averageRating || 0 | number:'1.1-1' }}★</div>
+        <div class="text-muted small">Avg Rating ({{ analytics?.totalReviews || 0 }} reviews)</div>
+      </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold" style="color:#244AFD;">{{ analytics?.completedAppointments || 0 }}</div>
+        <div class="text-muted small">Completed Appointments</div>
+      </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+      <div class="card border-0 shadow-sm text-center p-3">
+        <div class="fs-2 fw-bold text-danger">{{ unreadCount }}</div>
+        <div class="text-muted small">Unread Notifications</div>
+      </div>
+    </div>
+    <div class="col-md-2 col-sm-6">
+      <div class="card border-0 shadow-sm text-center p-3"
+           [class.border-danger]="complaintsCount > 0"
+           [style.border-width]="complaintsCount > 0 ? '2px' : '1px'"
+           [style.border-style]="'solid'">
+        <div class="fs-2 fw-bold" [class.text-danger]="complaintsCount > 0" [class.text-muted]="complaintsCount === 0">
+          {{ complaintsCount }}
+        </div>
+        <div class="text-muted small">Open Complaints</div>
+        <div *ngIf="complaintsCount >= 4" class="badge bg-danger mt-1 small">⚠️ Suspension Risk</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <h6 class="fw-bold text-muted mb-3">QUICK ACTIONS</h6>
+    </div>
+    <div class="col-md-2 col-sm-4" *ngFor="let action of quickActions">
+      <div class="card border-0 shadow-sm text-center p-3 h-100"
+           style="cursor:pointer;transition:transform .15s"
+           (click)="navigate(action.route)"
+           (mouseenter)="action.hover=true" (mouseleave)="action.hover=false"
+           [style.transform]="action.hover ? 'translateY(-3px)' : ''">
+        <div class="fs-2 mb-1">{{ action.icon }}</div>
+        <div class="small fw-semibold">{{ action.label }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popular Services -->
+  <div class="row g-3" *ngIf="analytics?.popularServices?.length">
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm p-3">
+        <h6 class="fw-bold mb-3">Top Services</h6>
+        <div *ngFor="let s of analytics!.popularServices" class="d-flex justify-content-between py-1 border-bottom">
+          <span class="small">{{ s.serviceName }}</span>
+          <span class="badge" style="background:#244AFD;">{{ s.bookingCount }} bookings</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm p-3">
+        <h6 class="fw-bold mb-3">Peak Stats</h6>
+        <div class="d-flex gap-3">
+          <div class="text-center">
+            <div class="text-muted small">Peak Day</div>
+            <span class="badge fs-6 mt-1" style="background:#244AFD;">{{ analytics?.peakBookingDay || 'N/A' }}</span>
+          </div>
+          <div class="text-center">
+            <div class="text-muted small">Peak Hour</div>
+            <span class="badge bg-success fs-6 mt-1">{{ analytics?.peakBookingHour || 0 }}:00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

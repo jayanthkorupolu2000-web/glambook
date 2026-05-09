@@ -1,0 +1,39 @@
+/* ── Schedule row states ─────────────────────────────────────────────────── */
+.schedule-row {
+  transition: background .1s;
+
+  &.row-available {
+    background: #f9fff9;
+    &:hover { background: #e8f5e9; }
+  }
+
+  &.row-past {
+    background: #fff5f5;
+    opacity: .8;
+  }
+
+  &.row-booked {
+    background: #f5f5f5;
+  }
+
+  &.row-completed {
+    background: #e0f2f1;
+  }
+}
+
+/* ── Legend dots ─────────────────────────────────────────────────────────── */
+.legend-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+
+  &.available  { background: #4caf50; }
+  &.past       { background: #ef5350; }
+  &.booked     { background: #9e9e9e; }
+  &.completed  { background: #26a69a; }
+}
+
+.time-block { font-size: .88rem; }

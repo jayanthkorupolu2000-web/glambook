@@ -1,0 +1,225 @@
+/* ── Backdrop ─────────────────────────────────────────────────────────────── */
+.portfolio-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .55);
+  z-index: 1040;
+  animation: fadeIn .15s ease;
+}
+
+/* ── Slide-in panel ───────────────────────────────────────────────────────── */
+.portfolio-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(700px, 100vw);
+  height: 100vh;
+  background: #fff;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -6px 0 32px rgba(0,0,0,.2);
+  animation: slideIn .22s ease;
+  overflow: hidden;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.portfolio-header {
+  border-bottom: 1px solid #e9ecef;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+/* ── Scrollable body ──────────────────────────────────────────────────────── */
+.portfolio-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.25rem 2rem;
+}
+
+/* ── Grid ─────────────────────────────────────────────────────────────────── */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+/* ── Card ─────────────────────────────────────────────────────────────────── */
+.portfolio-card {
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fafafa;
+  transition: box-shadow .18s, transform .18s;
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    transform: translateY(-2px);
+  }
+}
+
+/* ── Images ───────────────────────────────────────────────────────────────── */
+.portfolio-img {
+  width: 100%;
+  height: 170px;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+  transition: opacity .15s;
+  background: #f0f0f0;
+
+  &:hover { opacity: .92; }
+}
+
+.single-img { height: 210px; }
+
+/* ── Before / After ───────────────────────────────────────────────────────── */
+.before-after-wrap {
+  display: flex;
+  height: 170px;
+  gap: 3px;
+}
+
+.ba-side {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  background: #e9ecef;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity .15s;
+  }
+
+  &:hover img { opacity: .88; }
+}
+
+.ba-label {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: .62rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  z-index: 1;
+  letter-spacing: .05em;
+}
+
+.before-label { background: #1a1a2e; color: #fff; }
+.after-label  { background: #198754; color: #fff; }
+
+/* ── Missing file placeholder ─────────────────────────────────────────────── */
+.pf-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 170px;
+  color: #adb5bd;
+  gap: 6px;
+  background: #f8f9fa;
+
+  span { font-size: 2.2rem; }
+  small { font-size: .72rem; }
+}
+
+/* ── Video ────────────────────────────────────────────────────────────────── */
+.portfolio-video {
+  width: 100%;
+  max-height: 210px;
+  display: block;
+  background: #000;
+}
+
+/* ── Meta ─────────────────────────────────────────────────────────────────── */
+.portfolio-meta {
+  background: #fff;
+  padding: 8px 10px 10px;
+}
+
+/* ── Lightbox ─────────────────────────────────────────────────────────────── */
+.lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.92);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn .15s ease;
+}
+
+.lightbox-content {
+  position: relative;
+  max-width: 92vw;
+  max-height: 92vh;
+  text-align: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+}
+
+.lightbox-img {
+  max-width: 100%;
+  max-height: 82vh;
+  border-radius: 8px;
+  object-fit: contain;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+
+.lightbox-caption {
+  color: #e0e0e0;
+  font-size: .85rem;
+  margin-top: 8px;
+}
+
+.lightbox-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+/* ── Single photo wrapper ─────────────────────────────────────────────────── */
+.pf-single-wrap {
+  cursor: pointer;
+  overflow: hidden;
+  background: #f0f0f0;
+  height: 210px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Missing file placeholder ─────────────────────────────────────────────── */
+.pf-missing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 170px;
+  width: 100%;
+  color: #adb5bd;
+  gap: 6px;
+  background: #f8f9fa;
+
+  span { font-size: 2.2rem; }
+  small { font-size: .72rem; }
+}

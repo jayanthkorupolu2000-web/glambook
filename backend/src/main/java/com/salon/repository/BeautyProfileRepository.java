@@ -1,0 +1,10 @@
+package com.salon.repository;
+
+import com.salon.entity.BeautyProfile;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface BeautyProfileRepository extends JpaRepository<BeautyProfile, Long> {
+    Optional<BeautyProfile> findByCustomerId(Long customerId);
+}

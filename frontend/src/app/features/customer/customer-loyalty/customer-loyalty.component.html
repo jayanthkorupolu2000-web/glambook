@@ -1,0 +1,203 @@
+<div class="container py-4" style="max-width:720px;">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">⭐ Loyalty & Rewards</h4>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <ng-container *ngIf="!loading && summary">
+
+    <!-- ── Tier Card ── -->
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+      <div class="p-1" [style.background]="currentTier.color"></div>
+      <div class="p-4 text-center">
+        <div style="font-size:3rem;">{{ currentTier.icon }}</div>
+        <div class="fs-1 fw-bold mt-1" [style.color]="currentTier.color">{{ summary.points }}</div>
+        <div class="text-muted mb-2">Total Points</div>
+        <span class="badge fs-6 px-3 py-2 mb-3" [style.background]="currentTier.color">
+          {{ currentTier.label }} Member
+        </span>
+
+        <!-- Progress to next tier -->
+        <div *ngIf="nextTier" class="mt-2">
+          <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>{{ currentTier.label }}</span>
+            <span>{{ nextTier.min - summary.totalEarned }} pts to {{ nextTier.label }} {{ nextTier.icon }}</span>
+          </div>
+          <div class="progress" style="height:10px;border-radius:5px;">
+            <div class="progress-bar" role="progressbar"
+                 [style.width]="progressPct + '%'"
+                 [style.background]="currentTier.color"></div>
+          </div>
+          <small class="text-muted">Based on {{ summary.totalEarned }} pts lifetime earned</small>
+        </div>
+        <div *ngIf="!nextTier" class="text-muted small mt-2">🎉 You've reached the highest tier!</div>
+
+        <!-- Stats row -->
+        <div class="row g-3 mt-3">
+          <div class="col-4">
+            <div class="p-2 rounded" style="background:#f0f4ff;">
+              <div class="fw-bold" style="color:#244AFD;">{{ summary.totalEarned }}</div>
+              <div class="text-muted" style="font-size:.75rem;">Total Earned</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded" style="background:#fff3e0;">
+              <div class="fw-bold text-warning">{{ summary.totalRedeemed }}</div>
+              <div class="text-muted" style="font-size:.75rem;">Total Redeemed</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="p-2 rounded" style="background:#e8f5e9;">
+              <div class="fw-bold text-success">₹{{ summary.points / 100 | number:'1.0-0' }}</div>
+              <div class="text-muted" style="font-size:.75rem;">Redeemable Value</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tier Roadmap ── -->
+    <div class="card border-0 shadow-sm mb-4 p-4">
+      <h6 class="fw-bold mb-3">Tier Roadmap</h6>
+      <div class="d-flex align-items-center">
+        <ng-container *ngFor="let t of tiers; let i = index; let last = last">
+          <div class="text-center" style="min-width:64px;">
+            <div style="font-size:1.5rem;">{{ t.icon }}</div>
+            <div class="small fw-semibold" [style.color]="t.color">{{ t.label }}</div>
+            <div class="text-muted" style="font-size:.65rem;">{{ t.min }}{{ t.max === (1/0) ? '+' : ('–' + t.max) }} pts</div>
+            <div *ngIf="summary.tier === t.name"
+                 class="badge mt-1" [style.background]="t.color" style="font-size:.6rem;">YOU</div>
+          </div>
+          <div *ngIf="!last" class="flex-fill mx-1" style="height:4px;background:#e9ecef;border-radius:2px;">
+            <div [style.width]="isTierCompleted(i) ? '100%' : '0%'"
+                 [style.background]="t.color"
+                 style="height:100%;border-radius:2px;transition:width .4s;"></div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- ── Tabs ── -->
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" style="color:#000 !important;"
+                [class.active]="activeTab === 'overview'" (click)="setTab('overview')">💳 Redeem</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" style="color:#000 !important;"
+                [class.active]="activeTab === 'history'" (click)="setTab('history')">📋 History</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" style="color:#000 !important;"
+                [class.active]="activeTab === 'benefits'" (click)="setTab('benefits')">🎁 Benefits</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" style="color:#000 !important;"
+                [class.active]="activeTab === 'early-access'" (click)="setTab('early-access')">🚀 Early Access</button>
+      </li>
+    </ul>
+
+    <!-- ── Redeem Tab ── -->
+    <div *ngIf="activeTab === 'overview'" class="card border-0 shadow-sm p-4">
+      <h6 class="fw-bold mb-1">Redeem Points for Discount</h6>
+      <p class="text-muted small mb-3">100 points = ₹10 discount on your next booking. Redeem in multiples of 100.</p>
+
+      <div *ngIf="redeemSuccess" class="alert alert-success py-2">{{ redeemSuccess }}</div>
+      <div *ngIf="redeemError"   class="alert alert-danger  py-2">{{ redeemError }}</div>
+
+      <div class="row g-3 align-items-end">
+        <div class="col-8">
+          <label class="form-label fw-semibold small">Points to Redeem</label>
+          <input type="number" class="form-control" [(ngModel)]="redeemPoints"
+                 min="100" step="100" [max]="summary.points">
+          <small class="text-muted">You have <strong>{{ summary.points }}</strong> pts available</small>
+        </div>
+        <div class="col-4">
+          <div class="p-2 rounded text-center mb-2" style="background:#f0f4ff;">
+            <div class="fw-bold" style="color:#244AFD;">₹{{ discountValue }}</div>
+            <div class="text-muted" style="font-size:.7rem;">Discount</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn text-white w-100 mt-3 fw-semibold" style="background:#244AFD;"
+              (click)="redeem()" [disabled]="redeeming || summary.points < 100">
+        <span *ngIf="redeeming" class="spinner-border spinner-border-sm me-2"></span>
+        {{ redeeming ? 'Redeeming...' : 'Redeem ' + redeemPoints + ' pts for ₹' + discountValue + ' off' }}
+      </button>
+
+      <div *ngIf="summary.points < 100" class="text-center text-muted small mt-2">
+        Earn {{ 100 - summary.points }} more points to start redeeming.
+      </div>
+    </div>
+
+    <!-- ── History Tab ── -->
+    <div *ngIf="activeTab === 'history'" class="card border-0 shadow-sm p-4">
+      <h6 class="fw-bold mb-3">Transaction History</h6>
+      <div *ngFor="let t of transactions"
+           class="d-flex justify-content-between align-items-start py-2 border-bottom">
+        <div class="d-flex align-items-start gap-2">
+          <span style="font-size:1.2rem;">{{ t.type === 'EARN' ? '⬆️' : '⬇️' }}</span>
+          <div>
+            <div class="small fw-semibold">{{ t.description }}</div>
+            <div class="text-muted" style="font-size:.72rem;">{{ t.createdAt | date:'dd MMM yyyy, hh:mm a' }}</div>
+          </div>
+        </div>
+        <span class="fw-bold"
+              [class.text-success]="t.type === 'EARN'"
+              [class.text-danger]="t.type === 'REDEEM'">
+          {{ t.type === 'EARN' ? '+' : '-' }}{{ t.points }} pts
+        </span>
+      </div>
+      <div *ngIf="transactions.length === 0" class="text-center text-muted py-4">
+        No transactions yet. Book a service to earn your first points!
+      </div>
+    </div>
+
+    <!-- ── Benefits Tab ── -->
+    <div *ngIf="activeTab === 'benefits'" class="card border-0 shadow-sm p-4">
+      <h6 class="fw-bold mb-3">Your {{ currentTier.label }} Benefits</h6>
+      <ul class="list-unstyled mb-0">
+        <li *ngFor="let b of summary.tierBenefits"
+            class="d-flex align-items-start gap-2 py-2 border-bottom">
+          <span style="color:#244AFD;">✓</span>
+          <span class="small">{{ b }}</span>
+        </li>
+      </ul>
+      <div *ngIf="nextTier" class="mt-3 p-3 rounded" style="background:#f0f4ff;">
+        <div class="small fw-semibold" style="color:#244AFD;">
+          Unlock more at {{ nextTier.label }} {{ nextTier.icon }} ({{ nextTier.min }} pts lifetime)
+        </div>
+        <div class="text-muted small">{{ nextTier.min - summary.totalEarned }} more points to earn</div>
+      </div>
+    </div>
+
+    <!-- ── Early Access Tab ── -->
+    <div *ngIf="activeTab === 'early-access'" class="card border-0 shadow-sm p-4">
+      <h6 class="fw-bold mb-1">🚀 Early Access Services</h6>
+      <p class="text-muted small mb-3">
+        As a <strong [style.color]="currentTier.color">{{ currentTier.label }}</strong> member,
+        you get exclusive early access to these services before they're available to everyone.
+      </p>
+
+      <div *ngIf="summary.earlyAccessServices.length > 0" class="row g-2">
+        <div *ngFor="let svc of summary.earlyAccessServices" class="col-md-6">
+          <div class="d-flex align-items-center gap-2 p-2 rounded border" style="background:#f8f9fa;">
+            <span style="color:#244AFD;font-size:1.1rem;">🎯</span>
+            <span class="small fw-semibold">{{ svc }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="summary.earlyAccessServices.length === 0" class="text-center py-4">
+        <div style="font-size:2.5rem;">🥉</div>
+        <p class="text-muted small mt-2">
+          Early access starts at <strong>Silver tier</strong> (500 pts lifetime earned).<br>
+          You need <strong>{{ 500 - summary.totalEarned }}</strong> more points to unlock it.
+        </p>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

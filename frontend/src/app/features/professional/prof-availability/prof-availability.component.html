@@ -1,0 +1,105 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-1">My Availability</h4>
+  <p class="text-muted small mb-4">Set working hours and breaks. Customers can only book Working slots.</p>
+
+  <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
+  <div *ngIf="error"   class="alert alert-danger  py-2">{{ error }}</div>
+
+  <!-- Add Slot -->
+  <div class="card border-0 shadow-sm p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="fw-bold mb-0">Add Time Slot</h6>
+      <button type="button" class="btn btn-sm btn-outline-secondary"
+              (click)="generateDefaultSchedule()"
+              [disabled]="!form.value.availDate || submitting">
+        Generate Default Schedule
+      </button>
+    </div>
+    <p class="text-muted small mb-3">
+      Default: 9 AM – 8 PM &nbsp;|&nbsp; Breaks: 10:30–10:50 AM, 3:30–3:50 PM &nbsp;|&nbsp; Lunch: 12–1 PM
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="addSlot()">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Date</label>
+          <input type="date" class="form-control form-control-sm" formControlName="availDate" [min]="today()">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Start</label>
+          <input type="time" class="form-control form-control-sm" formControlName="startTime">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">End</label>
+          <input type="time" class="form-control form-control-sm" formControlName="endTime">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Type</label>
+          <select class="form-select form-select-sm" formControlName="slotType">
+            <option *ngFor="let t of slotTypes" [value]="t.value">{{ t.label }}</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-sm w-100 text-white"
+                  style="background:#334155;" [disabled]="form.invalid || submitting">
+            <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>Add
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Schedule -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+      <span class="fw-semibold">Schedule</span>
+      <div class="d-flex align-items-center gap-2">
+        <span class="small text-muted">View date:</span>
+        <input type="date" class="form-control form-control-sm" style="width:150px;" [(ngModel)]="viewDate">
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="text-center py-4">
+      <div class="spinner-border spinner-border-sm"></div>
+    </div>
+
+    <div *ngIf="!loading" class="card-body p-3">
+
+      <div *ngIf="slotsForViewDate.length > 0" class="timeline">
+        <div *ngFor="let s of slotsForViewDate" class="timeline-slot"
+             [class.slot-working]="s.slotType === 'WORKING' && !s.isBooked"
+             [class.slot-booked]="s.slotType === 'WORKING' && s.isBooked"
+             [class.slot-lunch]="s.slotType === 'LUNCH_BREAK'"
+             [class.slot-break]="s.slotType === 'BREAK'"
+             [class.slot-blocked]="s.slotType === 'BLOCKED'">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-semibold small">
+              {{ formatTime(s.startTime) }} – {{ formatTime(s.endTime) }}
+              <span class="text-muted fw-normal ms-2">{{ slotTypeLabel(s.slotType) }}</span>
+              <span *ngIf="s.slotType === 'WORKING' && s.isBooked" class="text-muted fw-normal ms-1">(Booked)</span>
+            </span>
+            <button class="btn btn-sm btn-outline-danger py-0 px-2"
+                    [disabled]="s.isBooked"
+                    (click)="deleteSlot(s.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="slotsForViewDate.length === 0" class="text-muted small text-center py-4">
+        No slots for {{ viewDate | date:'dd MMM yyyy' }}.
+        Select a date and click "Generate Default Schedule".
+      </div>
+
+      <div *ngIf="uniqueDates.length > 0" class="mt-3 pt-2 border-top">
+        <span class="small text-muted">Dates: </span>
+        <button *ngFor="let d of uniqueDates" class="btn btn-sm ms-1"
+                [class.btn-dark]="d === viewDate"
+                [class.btn-outline-secondary]="d !== viewDate"
+                (click)="viewDate = d">
+          {{ d | date:'dd MMM' }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

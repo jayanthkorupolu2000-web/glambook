@@ -1,0 +1,74 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">Complaints</h4>
+
+  <div class="d-flex gap-2 mb-3">
+    <select class="form-select w-auto" [(ngModel)]="statusFilter" (change)="load()">
+      <option value="FORWARDED">Forwarded to Me</option>
+      <option value="ALL">All Complaints</option>
+    </select>
+    <button class="btn btn-outline-primary" (click)="load()">Refresh</button>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <div class="card border-0 shadow-sm" *ngIf="!loading">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr><th>#</th><th>Customer</th><th>Professional</th><th>Feedback</th><th>Rating</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of complaints">
+            <td class="text-muted">{{ c.id }}</td>
+            <td>{{ c.customerName }}</td>
+            <td>{{ c.professionalName }}</td>
+            <td><span class="badge bg-secondary">{{ c.feedback }}</span></td>
+            <td>
+              <span *ngFor="let s of stars(5)" [style.color]="s <= c.rating ? '#f5a623' : '#ccc'">★</span>
+            </td>
+            <td><span [class]="statusBadge(c.status)">{{ c.status }}</span></td>
+            <td>
+              <button class="btn btn-sm btn-outline-primary"
+                      [disabled]="c.status !== 'FORWARDED'"
+                      data-bs-toggle="modal" data-bs-target="#actionModal"
+                      (click)="openAction(c)">
+                Log Action
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="complaints.length === 0">
+            <td colspan="7" class="text-center text-muted py-3">No complaints found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Action Modal -->
+<div class="modal fade" id="actionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" style="color:#244AFD;">Log Corrective Action</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small">Complaint #{{ selectedComplaint?.id }} — {{ selectedComplaint?.professionalName }}</p>
+        <label class="form-label fw-semibold">Action Notes</label>
+        <textarea class="form-control" rows="4" [(ngModel)]="actionNotes"
+                  placeholder="Describe the corrective action taken..."></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" data-bs-dismiss="modal"
+                [disabled]="!actionNotes.trim() || submitting"
+                (click)="submitAction()">
+          Submit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

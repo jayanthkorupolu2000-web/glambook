@@ -1,0 +1,123 @@
+<div class="container-fluid py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">User Management</h4>
+
+  <!-- Tab Toggle -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <button class="nav-link fw-semibold" [class.active]="activeTab === 'customers'"
+              (click)="activeTab = 'customers'">
+        Customers ({{ customers.length }})
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link fw-semibold" [class.active]="activeTab === 'professionals'"
+              (click)="activeTab = 'professionals'">
+        Professionals ({{ professionals.length }})
+      </button>
+    </li>
+  </ul>
+
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <!-- Customers Table -->
+  <div *ngIf="activeTab === 'customers' && !loading" class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>City</th>
+            <th>Status</th>
+            <th>Cancellations</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of customers">
+            <td class="text-muted">{{ c.id }}</td>
+            <td>{{ c.name }}</td>
+            <td>{{ c.city }}</td>
+            <td><span [class]="statusBadge(c.status)">{{ c.status }}</span></td>
+            <td>{{ c.cancelCount }}</td>
+            <td>
+              <button [class]="actionClass(c.status)"
+                      data-bs-toggle="modal" data-bs-target="#confirmModal"
+                      (click)="openConfirm(c.id, 'CUSTOMER', c.status, c.name)">
+                {{ actionLabel(c.status) }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="customers.length === 0">
+            <td colspan="6" class="text-center text-muted py-3">No customers found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Professionals Table -->
+  <div *ngIf="activeTab === 'professionals' && !loading" class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>City</th>
+            <th>Specialization</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of professionals">
+            <td class="text-muted">{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.city }}</td>
+            <td>{{ p.specialization }}</td>
+            <td><span [class]="statusBadge(p.status)">{{ p.status }}</span></td>
+            <td>
+              <button [class]="actionClass(p.status)"
+                      data-bs-toggle="modal" data-bs-target="#confirmModal"
+                      (click)="openConfirm(p.id, 'PROFESSIONAL', p.status, p.name)">
+                {{ actionLabel(p.status) }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="professionals.length === 0">
+            <td colspan="6" class="text-center text-muted py-3">No professionals found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title fw-bold">Confirm Action</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0">
+          Are you sure you want to
+          <strong>{{ pendingNewStatus === 'SUSPENDED' ? 'suspend' : 'reactivate' }}</strong>
+          <strong>{{ pendingName }}</strong>?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger btn-sm" data-bs-dismiss="modal" (click)="executeAction()">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

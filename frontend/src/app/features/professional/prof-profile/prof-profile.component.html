@@ -1,0 +1,149 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color:#244AFD;">My Profile</h4>
+    <button *ngIf="!editMode" class="btn btn-outline-primary" (click)="startEdit()">Edit Profile</button>
+    <div *ngIf="editMode" class="d-flex gap-2">
+      <button class="btn btn-secondary" (click)="editMode=false">Cancel</button>
+      <button class="btn text-white" style="background:#244AFD;" (click)="save()" [disabled]="saving">
+        <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>Save
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
+  <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <div *ngIf="profile && !loading" class="row g-4">
+    <!-- Photo Section -->
+    <div class="col-md-3 text-center">
+      <div class="mb-3">
+        <img *ngIf="photoPreview || profile.profilePhotoUrl"
+             [src]="photoPreview || profile.profilePhotoUrl"
+             class="rounded-circle border" style="width:120px;height:120px;object-fit:cover;">
+        <div *ngIf="!photoPreview && !profile.profilePhotoUrl"
+             class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+             style="width:120px;height:120px;background:#244AFD;color:#fff;font-size:2.5rem;font-weight:700;">
+          {{ profile.name.charAt(0) }}
+        </div>
+      </div>
+      <input type="file" #photoInput accept=".jpg,.jpeg,.png,.webp" class="d-none" (change)="onPhotoSelected($event)">
+      <button class="btn btn-sm btn-outline-primary mb-2" (click)="photoInput.click()">Choose Photo</button>
+      <button *ngIf="selectedPhoto" class="btn btn-sm btn-primary d-block mx-auto" (click)="uploadPhoto()">Upload</button>
+      <div class="mt-2">
+        <span *ngFor="let s of stars(5)" [style.color]="s <= profile.averageRating ? '#f5a623' : '#ccc'" class="fs-5">★</span>
+        <div class="text-muted small">{{ profile.averageRating | number:'1.1-1' }} ({{ profile.totalReviews }} reviews)</div>
+      </div>
+      <div class="mt-2">
+        <span class="badge" [class]="profile.status === 'ACTIVE' ? 'bg-success' : profile.status === 'PENDING' ? 'bg-warning' : 'bg-danger'">
+          {{ profile.status }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="col-md-9">
+      <div *ngIf="!editMode">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="text-muted small">Name</label><p class="fw-semibold">{{ profile.name }}</p></div>
+          <div class="col-md-6"><label class="text-muted small">Email</label><p class="fw-semibold">{{ profile.email }}</p></div>
+          <div class="col-md-6"><label class="text-muted small">City</label><p class="fw-semibold">{{ profile.city }}</p></div>
+          <div class="col-md-6"><label class="text-muted small">Specialization</label><p class="fw-semibold">{{ profile.specialization }}</p></div>
+          <div class="col-md-6"><label class="text-muted small">Experience</label><p class="fw-semibold">{{ profile.experienceYears }} years</p></div>
+          <div class="col-md-6"><label class="text-muted small">Response Time</label><p class="fw-semibold">{{ profile.responseTimeHrs }} hrs</p></div>
+          <div class="col-md-6"><label class="text-muted small">Salon Owner</label><p class="fw-semibold">{{ profile.salonOwnerName }}</p></div>
+          <div class="col-md-6"><label class="text-muted small">Instagram</label><p class="fw-semibold">{{ profile.instagramHandle || '—' }}</p></div>
+          <div class="col-12"><label class="text-muted small">Bio</label><p>{{ profile.bio || '—' }}</p></div>
+          <div class="col-md-6">
+            <label class="text-muted small">Available at Salon</label>
+            <p><span [class]="profile.isAvailableSalon ? 'badge bg-success' : 'badge bg-secondary'">
+              {{ profile.isAvailableSalon ? 'Yes' : 'No' }}
+            </span></p>
+          </div>
+          <div class="col-md-6">
+            <label class="text-muted small">Home Visits</label>
+            <p>
+              <span [class]="profile.isAvailableHome ? 'badge bg-success' : 'badge bg-secondary'">
+                {{ profile.isAvailableHome ? 'Yes' : 'No' }}
+              </span>
+              <span *ngIf="profile.isAvailableHome && profile.travelRadiusKm" class="ms-2 text-muted small">
+                (within {{ profile.travelRadiusKm }} km)
+              </span>
+            </p>
+          </div>
+          <div *ngIf="profile.isAvailableHome" class="col-12">
+            <div class="p-2 rounded" style="background:#f0f4ff;border-left:3px solid #244AFD;">
+              <small class="fw-semibold" style="color:#244AFD;">🏠 Home Visit Info</small>
+              <div class="small text-muted mt-1">
+                Travel radius: <strong>{{ profile.travelRadiusKm || 0 }} km</strong> from {{ profile.city }}.
+                Customers within this radius can book home visits.
+                <span *ngIf="profile.serviceAreas"> · Areas: {{ profile.serviceAreas }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <form *ngIf="editMode" [formGroup]="form">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Specialization</label>
+            <input class="form-control" formControlName="specialization">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Experience (years)</label>
+            <input type="number" class="form-control" formControlName="experienceYears">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Response Time (hrs)</label>
+            <input type="number" class="form-control" formControlName="responseTimeHrs">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Instagram Handle</label>
+            <input class="form-control" formControlName="instagramHandle" placeholder="@username">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Bio</label>
+            <textarea class="form-control" rows="3" formControlName="bio"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Certifications</label>
+            <textarea class="form-control" rows="2" formControlName="certifications"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Service Areas (comma-separated)</label>
+            <input class="form-control" formControlName="serviceAreas">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Travel Radius (km)</label>
+            <input type="number" class="form-control" formControlName="travelRadiusKm" min="0" max="50">
+            <small class="text-muted">
+              How far you travel for home visits. Set 0 if you don't do home visits.
+            </small>
+          </div>
+          <div class="col-md-3 d-flex align-items-center gap-2 mt-4">
+            <input type="checkbox" class="form-check-input" formControlName="isAvailableSalon" id="salon">
+            <label class="form-check-label fw-semibold" for="salon">Available at Salon</label>
+          </div>
+          <div class="col-md-3 d-flex align-items-center gap-2 mt-4">
+            <input type="checkbox" class="form-check-input" formControlName="isAvailableHome" id="home"
+                   (change)="onHomeVisitToggle($event)">
+            <label class="form-check-label fw-semibold" for="home">Home Visits</label>
+          </div>
+          <!-- Show travel radius hint when home visits enabled -->
+          <div *ngIf="form.get('isAvailableHome')?.value" class="col-12">
+            <div class="p-2 rounded" style="background:#f0f4ff;border-left:3px solid #244AFD;">
+              <small style="color:#244AFD;">🏠 Home Visit enabled — set your travel radius above.</small>
+              <div class="small text-muted">
+                Customers within <strong>{{ form.get('travelRadiusKm')?.value || 0 }} km</strong> of your city can book you for home visits.
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

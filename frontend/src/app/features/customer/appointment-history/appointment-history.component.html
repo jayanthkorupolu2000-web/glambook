@@ -1,0 +1,101 @@
+<div class="container py-4">
+  <h2 class="fw-bold mb-4" style="color:#244AFD;">My Appointments</h2>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="d-flex justify-content-center py-5">
+    <div class="spinner-border" style="color:#244AFD;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error && !loading" class="alert alert-danger">{{ error }}</div>
+
+  <ng-container *ngIf="!loading">
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
+      <li class="nav-item">
+        <button class="nav-link fw-semibold"
+                [class.active]="activeTab === 'upcoming'"
+                (click)="activeTab = 'upcoming'">
+          Upcoming
+          <span class="badge ms-1" style="background:#244AFD;">{{ upcoming.length }}</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold"
+                [class.active]="activeTab === 'past'"
+                (click)="activeTab = 'past'">
+          Past
+          <span class="badge bg-secondary ms-1">{{ past.length }}</span>
+        </button>
+      </li>
+    </ul>
+
+    <!-- Upcoming Tab -->
+    <div *ngIf="activeTab === 'upcoming'">
+      <p *ngIf="upcoming.length === 0" class="text-muted">No upcoming appointments.</p>
+      <div *ngFor="let appt of upcoming" class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <h5 class="fw-bold mb-1">{{ appt.service.name }}</h5>
+              <p class="mb-1 text-muted">
+                <i class="bi bi-person-fill me-1"></i>{{ appt.professional.name }}
+                &bull; {{ appt.professional.salonOwner.salonName }}
+              </p>
+              <p class="mb-1">
+                <i class="bi bi-calendar-event me-1" style="color:#244AFD;"></i>
+                {{ appt.dateTime | date:'medium' }}
+              </p>
+              <p class="mb-0">
+                <i class="bi bi-currency-rupee me-1" style="color:#244AFD;"></i>₹{{ appt.service.price }}
+              </p>
+            </div>
+            <div class="d-flex flex-column align-items-end gap-2">
+              <span class="badge" [ngClass]="statusBadgeClass(appt.status)">{{ appt.status }}</span>
+              <button class="btn btn-sm btn-outline-danger"
+                      [disabled]="cancellingId === appt.id"
+                      (click)="cancel(appt.id)">
+                <span *ngIf="cancellingId === appt.id" class="spinner-border spinner-border-sm me-1"></span>
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Past Tab -->
+    <div *ngIf="activeTab === 'past'">
+      <p *ngIf="past.length === 0" class="text-muted">No past appointments.</p>
+      <div *ngFor="let appt of past" class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <h5 class="fw-bold mb-1">{{ appt.service.name }}</h5>
+              <p class="mb-1 text-muted">
+                <i class="bi bi-person-fill me-1"></i>{{ appt.professional.name }}
+                &bull; {{ appt.professional.salonOwner.salonName }}
+              </p>
+              <p class="mb-1">
+                <i class="bi bi-calendar-event me-1" style="color:#244AFD;"></i>
+                {{ appt.dateTime | date:'medium' }}
+              </p>
+              <p class="mb-0">
+                <i class="bi bi-currency-rupee me-1" style="color:#244AFD;"></i>₹{{ appt.service.price }}
+              </p>
+            </div>
+            <div class="d-flex flex-column align-items-end gap-2">
+              <span class="badge" [ngClass]="statusBadgeClass(appt.status)">{{ appt.status }}</span>
+              <button class="btn btn-sm text-white fw-semibold"
+                      style="background:#244AFD;"
+                      (click)="rebook(appt)">
+                Rebook
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,122 @@
+<div class="container py-4" style="max-width:600px;">
+  <h2 class="fw-bold mb-4">Book an Appointment</h2>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border"></div>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <div *ngIf="professional" class="card border-0 shadow-sm mb-4">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="rounded-circle d-flex align-items-center justify-content-center"
+             style="width:44px;height:44px;background:#334155;color:#fff;font-weight:700;">
+          {{ professional.name.charAt(0).toUpperCase() }}
+        </div>
+        <div class="flex-fill">
+          <div class="fw-bold">{{ professional.name }}</div>
+          <small class="text-muted">{{ professional.specialization }} · {{ professional.city }}</small>
+        </div>
+        <button class="btn btn-sm btn-outline-secondary"
+                (click)="showPortfolio = true">
+          🖼️ View Portfolio
+        </button>
+      </div>
+    </div>
+
+    <!-- Portfolio Modal -->
+    <app-portfolio-modal
+      [professionalId]="showPortfolio && professional ? professional.id : null"
+      [professionalName]="professional?.name || ''"
+      (closed)="showPortfolio = false">
+    </app-portfolio-modal>
+
+    <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+    <div *ngIf="error"   class="alert alert-danger">{{ error }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Service <span class="text-danger">*</span></label>
+        <select class="form-select" formControlName="serviceId"
+                [class.is-invalid]="f['serviceId'].touched && f['serviceId'].invalid"
+                (change)="onServiceChange()">
+          <option [ngValue]="null" disabled>Select a service</option>
+          <option *ngFor="let svc of services" [value]="svc.id">
+            {{ svc.name }} — ₹{{ svc.price }} ({{ svc.durationMins }} min)
+          </option>
+        </select>
+        <div class="invalid-feedback">Please select a service.</div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Date <span class="text-danger">*</span></label>
+        <input type="date" class="form-control" [(ngModel)]="selectedDate"
+               [ngModelOptions]="{standalone: true}" [min]="minDate"
+               (change)="onDateChange()">
+      </div>
+
+      <div *ngIf="selectedDate && form.value.serviceId" class="mb-4">
+        <label class="form-label fw-semibold">Time Slot</label>
+
+        <div *ngIf="slotsLoading" class="text-muted small">
+          <span class="spinner-border spinner-border-sm me-1"></span>Loading slots...
+        </div>
+
+        <div *ngIf="!slotsLoading && slots.length === 0" class="text-muted small">
+          No slots available for this date.
+        </div>
+
+        <div *ngIf="!slotsLoading && slots.length > 0">
+          <!-- Legend -->
+          <div class="d-flex gap-3 mb-2 flex-wrap" style="font-size:.75rem;">
+            <span><span class="slot-dot available"></span> Available</span>
+            <span><span class="slot-dot past"></span> Past / Unavailable</span>
+            <span><span class="slot-dot booked"></span> Booked</span>
+            <span><span class="slot-dot completed"></span> Completed</span>
+            <span><span class="slot-dot selected"></span> Selected</span>
+          </div>
+
+          <div class="slot-grid mb-2">
+            <button *ngFor="let slot of slots" type="button"
+                    class="slot-btn"
+                    [ngClass]="slotClass(slot)"
+                    [disabled]="slot.slotStatus !== 'AVAILABLE'"
+                    [title]="slot.slotStatus === 'UNAVAILABLE' && slot.past
+                              ? 'This slot has passed'
+                              : slot.slotStatus === 'COMPLETED'
+                              ? 'Appointment completed'
+                              : slot.isBooked
+                              ? 'Already booked'
+                              : ''"
+                    (click)="selectSlot(slot)">
+              <span [class.text-decoration-line-through]="slot.slotStatus === 'UNAVAILABLE' || slot.slotStatus === 'COMPLETED'">
+                {{ slot.label }}
+              </span>
+              <small *ngIf="slot.slotStatus === 'COMPLETED'" class="d-block" style="font-size:.65rem;">✓ Done</small>
+              <small *ngIf="slot.past && slot.slotStatus === 'UNAVAILABLE'" class="d-block" style="font-size:.65rem;">Past</small>
+            </button>
+          </div>
+
+          <div *ngIf="slotError" class="text-danger small">{{ slotError }}</div>
+
+          <div *ngIf="selectedSlot && !slotError" class="text-success small">
+            ✓ Selected: {{ selectedDate | date:'EEE dd MMM' }} · {{ selectedSlot.label }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedDate && !form.value.serviceId" class="text-muted small mb-3">
+        Select a service to see available time slots.
+      </div>
+
+      <button type="submit" class="btn w-100 text-white fw-semibold"
+              style="background:#334155;"
+              [disabled]="submitting || !selectedSlot || form.invalid">
+        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+        {{ submitting ? 'Booking...' : 'Confirm Booking' }}
+      </button>
+
+    </form>
+  </ng-container>
+</div>

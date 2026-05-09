@@ -1,0 +1,157 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0" style="color:#244AFD;">My Services</h4>
+    <button class="btn text-white fw-semibold" style="background:#244AFD;" (click)="showForm=!showForm; error=''; success=''">
+      {{ showForm ? 'Cancel' : '+ Add Service' }}
+    </button>
+  </div>
+
+  <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
+  <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
+
+  <!-- Add Service Form -->
+  <div *ngIf="showForm" class="card border-0 shadow-sm p-4 mb-4">
+    <h6 class="fw-bold mb-3">New Service</h6>
+
+    <!-- Quick pick from salon owner's list -->
+    <div class="mb-3 p-3 rounded" style="background:#f0f4ff;border:1px solid #244AFD;">
+      <label class="form-label fw-semibold small" style="color:#244AFD;">
+        📋 Quick Pick from Salon Services
+      </label>
+      <select class="form-select" [formControl]="$any(form.get('ownerServiceId'))"
+              (change)="onOwnerServiceSelect($event)">
+        <option value="">— Select a salon service to auto-fill —</option>
+        <optgroup *ngFor="let cat of categories" [label]="cat">
+          <option *ngFor="let s of getServicesByCategory(cat)" [value]="s.id">
+            {{ s.name }} ({{ s.gender }}) — ₹{{ s.price }} · {{ s.durationMins }}min
+          </option>
+        </optgroup>
+      </select>
+      <small class="text-muted">Selecting a service auto-fills the form below. You can still edit the price.</small>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="row g-3">
+
+        <!-- Service Name -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Service Name <span class="text-danger">*</span></label>
+          <input class="form-control" formControlName="name" placeholder="e.g. Bridal Makeup">
+        </div>
+
+        <!-- Category dropdown -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="category">
+            <option value="">Select category</option>
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+            <option value="Hair">Hair</option>
+            <option value="Beard">Beard</option>
+            <option value="Skin">Skin</option>
+            <option value="Nails">Nails</option>
+            <option value="Makeup">Makeup</option>
+            <option value="Body">Body</option>
+            <option value="Grooming">Grooming</option>
+            <option value="Packages">Packages</option>
+            <option value="Special">Special</option>
+          </select>
+        </div>
+
+        <!-- Target Group -->
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">For (Target Group) <span class="text-danger">*</span></label>
+          <select class="form-select" formControlName="targetGroup">
+            <option value="WOMEN">Women</option>
+            <option value="MEN">Men</option>
+            <option value="KIDS">Kids</option>
+          </select>
+        </div>
+
+        <!-- Price -->
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Price (₹) <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" formControlName="price" placeholder="e.g. 500">
+        </div>
+
+        <!-- Duration -->
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Duration (mins)</label>
+          <select class="form-select" formControlName="durationMins">
+            <option *ngFor="let d of durations" [value]="d">{{ d }} min</option>
+          </select>
+        </div>
+
+        <!-- Discount -->
+        <div class="col-md-4">
+          <label class="form-label fw-semibold">Discount %</label>
+          <input type="number" class="form-control" formControlName="discountPct" min="0" max="100">
+        </div>
+
+      </div>
+      <button type="submit" class="btn text-white fw-semibold mt-3 px-4"
+              style="background:#244AFD;" [disabled]="form.invalid || submitting">
+        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
+        Add Service
+      </button>
+    </form>
+  </div>
+
+  <!-- Services Table -->
+  <div *ngIf="loading" class="text-center py-4">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <div class="card border-0 shadow-sm" *ngIf="!loading">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>For</th>
+            <th>Duration</th>
+            <th>Price</th>
+            <th>Discount</th>
+            <th>Effective</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of services">
+            <td class="fw-semibold">{{ s.name }}</td>
+            <td>{{ s.category }}</td>
+            <td>
+              <span [class]="targetGroupBadge(s.targetGroup)">
+                {{ targetGroupLabel(s.targetGroup) }}
+              </span>
+            </td>
+            <td>{{ s.durationMins }} min</td>
+            <td>₹{{ s.price }}</td>
+            <td>{{ s.discountPct || 0 }}%</td>
+            <td class="fw-bold text-success">₹{{ effectivePrice(s.price, s.discountPct) | number:'1.0-0' }}</td>
+            <td>
+              <!-- Status dropdown: null/true = active, false = inactive -->
+              <select class="form-select form-select-sm"
+                      style="width:115px;"
+                      [value]="s.isActive === false ? 'inactive' : 'active'"
+                      (change)="onStatusChange(s, $event)">
+                <option value="active">✅ Active</option>
+                <option value="inactive">⏸ Inactive</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-danger" title="Delete service"
+                      (click)="deleteService(s.id)">🗑</button>
+            </td>
+          </tr>
+          <tr *ngIf="services.length === 0">
+            <td colspan="8" class="text-center text-muted py-4">
+              No services yet. Add your first service above!
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

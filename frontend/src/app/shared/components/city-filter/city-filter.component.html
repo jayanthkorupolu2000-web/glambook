@@ -1,0 +1,28 @@
+<div class="dropdown city-filter">
+  <button
+    class="btn btn-outline-primary dropdown-toggle"
+    type="button"
+    data-bs-toggle="dropdown"
+    aria-expanded="false"
+  >
+    {{ selectedCity || 'Select City' }}
+  </button>
+  <ul class="dropdown-menu">
+    <li>
+      <button class="dropdown-item" type="button" (click)="onCitySelect(null)">
+        All Cities
+      </button>
+    </li>
+    <li><hr class="dropdown-divider" /></li>
+    <li *ngFor="let city of cities">
+      <button
+        class="dropdown-item"
+        type="button"
+        [class.active]="city === selectedCity"
+        (click)="onCitySelect(city)"
+      >
+        {{ city }}
+      </button>
+    </li>
+  </ul>
+</div>

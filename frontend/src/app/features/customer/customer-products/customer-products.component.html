@@ -1,0 +1,39 @@
+<div class="container py-4">
+  <h4 class="fw-bold mb-4" style="color:#244AFD;">🛍️ Products</h4>
+
+  <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+  <div *ngIf="loading" class="text-center py-5"><div class="spinner-border" style="color:#244AFD;"></div></div>
+
+  <div class="row g-3" *ngIf="!loading">
+    <div *ngFor="let p of products" class="col-md-4 col-sm-6">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body d-flex flex-column">
+          <!-- Fav button top-right -->
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="rounded d-flex align-items-center justify-content-center flex-fill me-2"
+                 style="height:100px;background:#f0f4ff;font-size:2.5rem;">🧴</div>
+            <button class="btn btn-sm p-1" [title]="p.favorited ? 'Remove from favorites' : 'Add to favorites'"
+                    (click)="toggleFavorite(p)" [disabled]="togglingFav[p.id]"
+                    [style.color]="p.favorited ? '#e74c3c' : '#bbb'"
+                    style="font-size:1.3rem;line-height:1;background:none;border:none;">
+              {{ togglingFav[p.id] ? '…' : (p.favorited ? '❤️' : '🤍') }}
+            </button>
+          </div>
+          <h6 class="fw-bold">{{ p.name }}</h6>
+          <p class="text-muted small flex-fill">{{ p.description }}</p>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="fw-bold" style="color:#244AFD;">₹{{ p.price }}</span>
+            <span class="badge bg-light text-dark border">{{ p.category }}</span>
+          </div>
+          <button class="btn text-white mt-3 w-100" style="background:#244AFD;"
+                  (click)="order(p)" [disabled]="addingToCart[p.id]">
+            {{ addingToCart[p.id] ? 'Ordering...' : 'Order Now' }}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="products.length === 0" class="col-12 text-center text-muted py-5">
+      No products available at the moment.
+    </div>
+  </div>
+</div>

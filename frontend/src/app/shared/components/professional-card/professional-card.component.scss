@@ -1,0 +1,41 @@
+.professional-card {
+  border: 1px solid var(--color-card-border);
+  border-radius: 10px;
+  background-color: var(--color-card-bg);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(71, 85, 105, 0.12) !important;
+  }
+
+  &__header {
+    background-color: var(--color-primary);
+    border-radius: 10px 10px 0 0;
+  }
+
+  &__specialization, &__city { font-size: 0.875rem; color: var(--color-text-secondary); }
+
+  &__rating { display: flex; gap: 2px; }
+
+  &__star {
+    font-size: 1.25rem;
+    color: #ccc;
+    &--filled { color: #f5a623; }
+  }
+
+  &__services { max-height: 120px; overflow-y: auto; }
+
+  &__book-btn {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    border-radius: 8px;
+    color: var(--color-text-on-dark);
+
+    &:hover {
+      background-color: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
+    }
+  }
+}

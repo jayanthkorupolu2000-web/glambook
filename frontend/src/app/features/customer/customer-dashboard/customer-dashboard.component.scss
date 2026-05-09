@@ -1,0 +1,22 @@
+/* Sidebar navigation buttons — avoids Bootstrap nav-link color overrides */
+.sidebar-nav-btn {
+  background: transparent;
+  border: none;
+  color: #333333;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: #f0f4ff;
+    color: #244AFD;
+  }
+}
+
+.sidebar-nav-active {
+  background: #244AFD !important;
+  color: #ffffff !important;
+
+  span {
+    color: #ffffff !important;
+  }
+}

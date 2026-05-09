@@ -1,0 +1,40 @@
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-0" style="color:#244AFD;">📋 Salon Policies</h4>
+      <small class="text-muted" *ngIf="city">Policies from your salon owner · {{ city }}</small>
+    </div>
+    <button class="btn btn-sm btn-outline-primary" (click)="loadPolicies()" [disabled]="loading">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="!loading && policies.length === 0 && !error" class="text-center text-muted py-5">
+    <div style="font-size:3rem;">📄</div>
+    <p class="mt-2">No policies published yet.</p>
+    <small>Your salon owner hasn't published any policies for {{ city }}.</small>
+  </div>
+
+  <div *ngIf="!loading && policies.length > 0">
+    <div *ngFor="let p of policies" class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <h6 class="fw-bold mb-0" style="color:#244AFD;">{{ p.title }}</h6>
+            <small class="text-muted">
+              By {{ p.ownerName }} · {{ p.createdAt | date:'dd MMM yyyy, hh:mm a' }}
+            </small>
+          </div>
+          <span class="badge bg-primary">Policy</span>
+        </div>
+        <p class="mb-0" style="white-space:pre-wrap;line-height:1.7;">{{ p.content }}</p>
+      </div>
+    </div>
+  </div>
+</div>
