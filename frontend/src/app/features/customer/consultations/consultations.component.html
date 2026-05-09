@@ -9,47 +9,56 @@
   <div *ngIf="success" class="alert alert-success">{{ success }}</div>
   <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
 
-  <!-- Form -->
+  <!-- ── Submission Form ── -->
   <div *ngIf="showForm" class="card border-0 shadow-sm p-4 mb-4">
     <h6 class="fw-bold mb-3">Ask a Professional</h6>
     <form [formGroup]="form">
 
-      <!-- Optional: pick a specific professional -->
+      <!-- Professional picker -->
       <div class="mb-3">
         <label class="form-label fw-semibold">Professional <small class="text-muted">(optional)</small></label>
         <select class="form-select" formControlName="professionalId">
-          <option value="">Any available professional</option>
+          <option value="">Any professional matching this topic</option>
           <option *ngFor="let p of professionals" [value]="p.id">{{ p.name }} — {{ p.specialization }}</option>
+        </select>
+        <small *ngIf="professionals.length === 0" class="text-muted">
+          No professionals found for this topic — your question will be visible to all professionals.
+        </small>
+      </div>
+
+      <!-- Topic -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Topic</label>
+        <select class="form-select" formControlName="topic">
+          <option *ngFor="let t of topics" [value]="t">{{ t }}</option>
         </select>
       </div>
 
-      <div class="row g-3 mb-3">
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Topic</label>
-          <select class="form-select" formControlName="topic">
-            <option *ngFor="let t of topics" [value]="t">{{ t }}</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Consultation Type</label>
-          <select class="form-select" formControlName="type">
-            <option *ngFor="let t of types" [value]="t">{{ t }}</option>
-          </select>
-        </div>
-      </div>
-
+      <!-- Question -->
       <div class="mb-4">
         <label class="form-label fw-semibold">Your Question <span class="text-danger">*</span></label>
         <textarea class="form-control" formControlName="question" rows="4"
-                  placeholder="Describe your concern in detail (min 10 characters)..."></textarea>
-        <small class="text-muted">{{ form.get('question')?.value?.length || 0 }}/2000</small>
+                  placeholder="Describe your concern..."
+                  [class.is-invalid]="form.get('question')?.invalid && form.get('question')?.dirty"></textarea>
+        <div class="d-flex justify-content-between align-items-start mt-1">
+          <div>
+            <div *ngIf="form.get('question')?.dirty && form.get('question')?.errors?.['required']"
+                 class="text-danger small">Question is required.</div>
+            <div *ngIf="form.get('question')?.dirty && form.get('question')?.errors?.['minlength']"
+                 class="text-danger small">
+              Question must be at least {{ form.get('question')?.errors?.['minlength']?.requiredLength }} characters
+              ({{ form.get('question')?.errors?.['minlength']?.actualLength }} entered).
+            </div>
+          </div>
+          <small class="text-muted">{{ form.get('question')?.value?.length || 0 }}/2000</small>
+        </div>
       </div>
 
       <!-- Photo Upload -->
       <div class="mb-4">
         <label class="form-label fw-semibold">Reference Photo <small class="text-muted">(optional)</small></label>
-        <div *ngIf="!photoPreview" class="border rounded p-3 text-center" style="border-style:dashed!important;cursor:pointer;"
-             (click)="photoInput.click()">
+        <div *ngIf="!photoPreview" class="border rounded p-3 text-center"
+             style="border-style:dashed!important;cursor:pointer;" (click)="photoInput.click()">
           <div class="text-muted mb-1">📷 Upload a photo to help the professional understand your concern</div>
           <small class="text-muted">JPG, PNG or WEBP · Max 5 MB</small>
           <input #photoInput type="file" accept="image/jpeg,image/png,image/webp" class="d-none"
@@ -64,32 +73,34 @@
       </div>
 
       <button class="btn text-white w-100 fw-semibold" style="background:#244AFD;"
-              (click)="submit()" [disabled]="submitting || uploadingPhoto || form.invalid">
-        {{ submitting || uploadingPhoto ? 'Submitting...' : 'Submit Consultation' }}
+              (click)="submit()" [disabled]="submitting">
+        {{ submitting ? 'Submitting...' : 'Submit Consultation' }}
       </button>
     </form>
   </div>
 
-  <!-- List -->
-  <div *ngIf="loading" class="text-center py-5"><div class="spinner-border" style="color:#244AFD;"></div></div>
+  <!-- ── List ── -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" style="color:#244AFD;"></div>
+  </div>
 
   <div *ngIf="!loading && !showForm">
     <div *ngFor="let c of consultations" class="card border-0 shadow-sm mb-3">
       <div class="card-body">
+
+        <!-- Header row -->
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div class="d-flex align-items-center gap-2">
             <span class="fs-5">{{ topicIcon(c.topic) }}</span>
-            <div>
-              <span class="badge bg-info text-dark me-1">{{ c.topic }}</span>
-              <span class="badge bg-light text-dark border">{{ c.type }}</span>
-            </div>
+            <span class="badge bg-info text-dark">{{ c.topic }}</span>
           </div>
           <span [class]="statusBadge(c.status)">{{ c.status }}</span>
         </div>
 
+        <!-- Question -->
         <p class="fw-semibold mb-1">{{ c.question }}</p>
         <div class="text-muted small mb-2">
-          To: {{ c.professionalName || 'Any Professional' }} · {{ c.createdAt | date:'dd MMM yyyy' }}
+          To: {{ c.professionalName || 'Any Professional' }} · {{ c.createdAt | date:'dd MMM yyyy, hh:mm a' }}
         </div>
 
         <!-- Attached photo -->
@@ -99,22 +110,35 @@
         </div>
 
         <!-- Professional's response -->
-        <div *ngIf="c.notes" class="p-3 rounded mt-2" style="background:#f0f4ff;border-left:3px solid #244AFD;">
-          <div class="fw-semibold small mb-1" style="color:#244AFD;">
-            💬 {{ c.professionalName }}'s Response:
+        <div *ngIf="c.professionalReply" class="p-3 rounded mt-2"
+             style="background:#f0f4ff;border-left:3px solid #244AFD;">
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:28px;height:28px;background:#244AFD;color:#fff;font-size:.75rem;font-weight:700;flex-shrink:0;">
+              {{ (c.professionalName || 'P').charAt(0) }}
+            </div>
+            <span class="fw-semibold small" style="color:#244AFD;">
+              {{ c.professionalName }}'s Response
+            </span>
+            <span class="text-muted small ms-auto">
+              {{ c.professionalRepliedAt | date:'dd MMM yyyy, hh:mm a' }}
+            </span>
           </div>
-          <p class="mb-0 small">{{ c.notes }}</p>
-          <small class="text-muted">{{ c.updatedAt | date:'dd MMM yyyy' }}</small>
+          <p class="mb-0 small">{{ c.professionalReply }}</p>
         </div>
 
+        <!-- Pending indicator -->
         <div *ngIf="c.status === 'PENDING'" class="mt-2">
-          <small class="text-warning">⏳ Awaiting professional response...</small>
+          <small class="text-warning fw-semibold">⏳ Awaiting professional response...</small>
         </div>
+
       </div>
     </div>
 
     <div *ngIf="consultations.length === 0" class="text-center text-muted py-5">
-      No consultations yet. Ask a professional about your beauty concerns!
+      <div style="font-size:2.5rem;">💬</div>
+      <p class="mt-2">No consultations yet.</p>
+      <small>Ask a professional about your beauty concerns!</small>
     </div>
   </div>
 </div>

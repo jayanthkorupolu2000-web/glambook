@@ -53,6 +53,34 @@ public class WalletService {
                 .orElse(BigDecimal.ZERO);
     }
 
+    /**
+     * Debit the customer's wallet. Throws ValidationException if balance is insufficient.
+     */
+    @Transactional
+    public Wallet debit(Customer customer, BigDecimal amount, String source, String description) {
+        Wallet wallet = walletRepository.findByCustomerId(customer.getId())
+                .orElseThrow(() -> new com.salon.exception.ValidationException("No wallet found for customer"));
+
+        if (wallet.getBalance().compareTo(amount) < 0) {
+            throw new com.salon.exception.ValidationException(
+                    "Insufficient wallet balance. Available: ₹" + wallet.getBalance());
+        }
+
+        wallet.setBalance(wallet.getBalance().subtract(amount));
+        Wallet saved = walletRepository.save(wallet);
+
+        walletTransactionRepository.save(WalletTransaction.builder()
+                .customer(customer)
+                .type("debit")
+                .amount(amount)
+                .source(source)
+                .description(description)
+                .build());
+
+        log.info("Debited ₹{} from wallet of customer {} (source={})", amount, customer.getId(), source);
+        return saved;
+    }
+
     /** Full transaction history, newest first. */
     public List<WalletTransaction> getTransactions(Long customerId) {
         return walletTransactionRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);

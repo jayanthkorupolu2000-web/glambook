@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 const BASE = 'http://localhost:8080';
@@ -59,6 +60,11 @@ export class CustomerProductsComponent implements OnInit {
   payError = '';
   paySuccess = '';
 
+  // Wallet
+  walletBalance = 0;
+  walletLoading = false;
+  useWallet = false;
+
   // Reviews inside order modal
   orderModalReviews: any[] = [];
   orderModalReviewsLoading = false;
@@ -82,11 +88,22 @@ export class CustomerProductsComponent implements OnInit {
   hasOrdered = false;
   alreadyReviewed = false;
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
     this.load();
     if (this.auth.getUserId()) this.loadRecommended();
+
+    // Auto-open order modal when navigated from favorites with ?order=<productId>
+    this.route.queryParams.subscribe(params => {
+      const productId = params['order'];
+      if (productId) {
+        this.http.get<any>(`${BASE}/api/products/${productId}`).subscribe({
+          next: product => { if (product) this.openOrder(product); },
+          error: () => {}
+        });
+      }
+    });
   }
 
   // ── Load products ──────────────────────────────────────────────────────────
@@ -296,6 +313,13 @@ export class CustomerProductsComponent implements OnInit {
     this.cardCvv = '';
     this.payError = '';
     this.paySuccess = '';
+    this.useWallet = false;
+    this.walletBalance = 0;
+    this.walletLoading = true;
+    this.http.get<{ balance: number }>(`${BASE}/api/wallet/balance`).subscribe({
+      next: d => { this.walletBalance = d.balance; this.walletLoading = false; },
+      error: () => { this.walletBalance = 0; this.walletLoading = false; }
+    });
   }
 
   closePayment(): void {
@@ -320,13 +344,28 @@ export class CustomerProductsComponent implements OnInit {
     return this.cardNumber.length === 12 && this.cardExpiry.length === 5 && this.cardCvv.length === 3;
   }
 
+  get walletDeduction(): number {
+    if (!this.useWallet || !this.payingOrder) return 0;
+    return Math.min(this.walletBalance, this.payingOrder.totalPrice);
+  }
+
+  get remainingAmount(): number {
+    if (!this.payingOrder) return 0;
+    return Math.max(0, this.payingOrder.totalPrice - this.walletDeduction);
+  }
+
+  get fullyPaidByWallet(): boolean {
+    return this.useWallet && this.remainingAmount === 0;
+  }
+
   confirmPayment(): void {
     if (!this.payingOrder) return;
     this.payLoading = true;
     this.payError = '';
 
     this.http.post<any>(`${BASE}/api/products/orders/${this.payingOrder.orderId}/pay`, {
-      method: this.payMethod
+      method: this.fullyPaidByWallet ? 'WALLET' : this.payMethod,
+      walletAmountUsed: this.walletDeduction
     }).subscribe({
       next: (paid) => {
         this.payLoading = false;
@@ -410,6 +449,22 @@ export class CustomerProductsComponent implements OnInit {
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   stars(n: number): number[] { return [1, 2, 3, 4, 5]; }
+
+  /** Returns a real product image URL — uses stored imageUrl or a category-based Unsplash photo */
+  productImageUrl(product: any): string {
+    if (product?.imageUrl) return product.imageUrl;
+    // Category-based curated Unsplash images (stable source IDs)
+    const map: Record<string, string> = {
+      HAIRCARE:   'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&h=200&fit=crop',
+      SKINCARE:   'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=200&fit=crop',
+      MAKEUP:     'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300&h=200&fit=crop',
+      NAILCARE:   'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=200&fit=crop',
+      FRAGRANCE:  'https://images.unsplash.com/photo-1541643600914-78b084683702?w=300&h=200&fit=crop',
+      TOOLS:      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=200&fit=crop',
+    };
+    const cat = (product?.category || '').toUpperCase();
+    return map[cat] || map['HAIRCARE'];
+  }
 
   stockBadge(stock: number): string {
     if (stock === 0) return 'danger';

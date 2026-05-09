@@ -21,4 +21,5 @@ public class ServiceResponse {
     private BigDecimal discountPct;
     private Boolean isActive;
     private boolean favorited;
+    private Long professionalId;
 }

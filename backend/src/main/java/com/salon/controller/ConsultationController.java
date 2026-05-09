@@ -27,13 +27,30 @@ public class ConsultationController {
     private final ConsultationService consultationService;
     private final FileStorageService fileStorageService;
 
+    @Operation(summary = "Get professionals matching a consultation topic")
+    @GetMapping("/api/v1/consultations/professionals")
+    public ResponseEntity<List<com.salon.dto.response.ProfessionalResponse>> getProfessionalsByTopic(
+            @RequestParam(defaultValue = "GENERAL") String topic) {
+        return ResponseEntity.ok(consultationService.getProfessionalsByTopic(topic));
+    }
+
     @Operation(summary = "Create consultation")
-    @PostMapping("/api/v1/customers/{customerId}/consultations")
+    @PostMapping(value = "/api/v1/customers/{customerId}/consultations",
+                 consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<ConsultationResponse> create(
             @PathVariable Long customerId,
-            @Valid @RequestBody ConsultationRequest req) {
+            @RequestPart("data") @Valid ConsultationRequest req,
+            @RequestPart(value = "photo", required = false) MultipartFile photo) {
         req.setCustomerId(customerId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(consultationService.create(req));
+        ConsultationResponse created = consultationService.create(req);
+        // Attach photo if provided
+        if (photo != null && !photo.isEmpty()) {
+            String storedPath = fileStorageService.storePhoto(photo, "consultations");
+            String apiUrl = storedPath.replaceFirst("^/uploads/", "/api/v1/files/");
+            consultationService.attachPhoto(created.getId(), apiUrl);
+            created.setPhotoUrl(apiUrl);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @Operation(summary = "Get customer consultations")
@@ -77,8 +94,12 @@ public class ConsultationController {
     public ResponseEntity<Map<String, String>> uploadPhoto(
             @PathVariable Long consultationId,
             @RequestParam("file") MultipartFile file) {
-        String url = fileStorageService.storePhoto(file, "consultations");
-        consultationService.attachPhoto(consultationId, url);
-        return ResponseEntity.ok(Map.of("photoUrl", url));
+        // Store file and get path like /uploads/consultations/uuid.jpg
+        String storedPath = fileStorageService.storePhoto(file, "consultations");
+        // Convert to a URL served by FileController: /api/v1/files/consultations/uuid.jpg
+        // storedPath = /uploads/consultations/uuid.jpg → strip /uploads/ prefix
+        String apiUrl = storedPath.replaceFirst("^/uploads/", "/api/v1/files/");
+        consultationService.attachPhoto(consultationId, apiUrl);
+        return ResponseEntity.ok(Map.of("photoUrl", apiUrl));
     }
 }

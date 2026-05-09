@@ -97,7 +97,7 @@
         </div>
         <div class="photos-grid">
           <img *ngFor="let photo of r.photos; let pi = index"
-               [src]="photo"
+               [src]="resolvePhotoUrl(photo)"
                class="photo-thumb"
                alt="Review photo {{ pi + 1 }}"
                (click)="openLightbox(r.photos!, pi)">

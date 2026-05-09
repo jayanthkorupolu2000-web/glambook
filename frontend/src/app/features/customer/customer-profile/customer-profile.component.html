@@ -72,31 +72,6 @@
             </div>
           </div>
 
-          <!-- Emergency & Medical Info -->
-          <hr class="my-3">
-          <h6 class="fw-bold mb-3" style="color:#244AFD;">🚨 Emergency &amp; Medical Information</h6>
-          <p class="text-muted small mb-3">This information helps professionals provide safe and personalised care.</p>
-
-          <!-- Emergency Contact -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Emergency Contact Number</label>
-            <input type="tel" class="form-control" formControlName="emergencyContact"
-                   [class.is-invalid]="f['emergencyContact'].touched && f['emergencyContact'].invalid"
-                   [readonly]="!editMode"
-                   placeholder="10-digit emergency contact number" />
-            <div class="invalid-feedback">Emergency contact must be exactly 10 digits.</div>
-            <small class="text-muted">Optional — shared only with your assigned professional during appointments.</small>
-          </div>
-
-          <!-- Medical Notes -->
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Medical Notes / Conditions</label>
-            <textarea class="form-control" formControlName="medicalNotes" rows="3"
-                      [readonly]="!editMode"
-                      placeholder="e.g. Allergic to certain dyes, skin conditions, medications that affect treatments..."></textarea>
-            <small class="text-muted">Optional — helps professionals avoid treatments that may be harmful to you.</small>
-          </div>
-
           <!-- Actions -->
           <div *ngIf="!editMode">
             <button type="button" class="btn text-white fw-semibold w-100"

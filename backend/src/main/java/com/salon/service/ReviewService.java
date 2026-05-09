@@ -11,7 +11,6 @@ import com.salon.exception.UnauthorizedException;
 import com.salon.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,12 +35,6 @@ public class ReviewService {
     private final ProfessionalRepository professionalRepository;
     private final AppointmentRepository appointmentRepository;
     private final ProfessionalNotificationRepository professionalNotificationRepository;
-
-    @Value("${review.photo.dir:../frontend/src/assets/review-photos}")
-    private String reviewPhotoDir;
-
-    @Value("${review.photo.url-prefix:assets/review-photos/}")
-    private String reviewPhotoUrlPrefix;
 
     // ── Create ────────────────────────────────────────────────────────────────
 
@@ -201,7 +194,8 @@ public class ReviewService {
         List<String> paths = new ArrayList<>();
         if (files == null || files.isEmpty()) return paths;
         try {
-            Path dir = Paths.get(reviewPhotoDir);
+            // Resolve uploads/reviews relative to the JVM working directory (project root)
+            Path dir = Paths.get(System.getProperty("user.dir"), "uploads", "reviews");
             Files.createDirectories(dir);
             for (MultipartFile file : files) {
                 if (file == null || file.isEmpty()) continue;
@@ -209,8 +203,8 @@ public class ReviewService {
                 String filename = UUID.randomUUID() + ext;
                 Path dest = dir.resolve(filename);
                 file.transferTo(dest.toFile());
-                // Return Angular-relative asset path — served directly by ng serve / ng build
-                paths.add(reviewPhotoUrlPrefix + filename);
+                // Return path served by FileController: /api/v1/files/reviews/filename
+                paths.add("/api/v1/files/reviews/" + filename);
             }
         } catch (IOException e) {
             log.error("Failed to save review photos: {}", e.getMessage());

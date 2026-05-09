@@ -68,6 +68,8 @@ export class CustomerLoyaltyComponent implements OnInit {
       next: data => {
         this.summary = data;
         this.walletBalance = data.walletBalance ?? 0;
+        // Default to full available points
+        this.redeemPoints = data.points >= 100 ? data.points : 100;
         this.loading = false;
         this.loadTransactions(id);
         this.loadWalletTransactions();
@@ -119,7 +121,11 @@ export class CustomerLoyaltyComponent implements OnInit {
   }
 
   get discountValue(): number {
-    return Math.floor(this.redeemPoints / 100) * 10;
+    return Math.round(this.redeemPoints / 10);
+  }
+
+  get maxRedeemable(): number {
+    return this.summary?.points ?? 0;
   }
 
   get tierIndex(): number {
@@ -139,7 +145,6 @@ export class CustomerLoyaltyComponent implements OnInit {
     this.redeemError = '';
     this.redeemSuccess = '';
     if (!this.redeemPoints || this.redeemPoints < 100) { this.redeemError = 'Minimum 100 points required.'; return; }
-    if (this.redeemPoints % 100 !== 0) { this.redeemError = 'Points must be in multiples of 100.'; return; }
     if (this.summary && this.redeemPoints > this.summary.points) { this.redeemError = 'Not enough points.'; return; }
     const id = this.auth.getUserId();
     if (!id) return;
@@ -150,7 +155,7 @@ export class CustomerLoyaltyComponent implements OnInit {
         this.summary = updated;
         this.walletBalance = updated.walletBalance ?? this.walletBalance;
         this.redeemSuccess = `✅ ₹${credited} added to your wallet!`;
-        this.redeemPoints = 100;
+        this.redeemPoints = updated.points >= 100 ? updated.points : 100;
         this.redeeming = false;
         this.loadTransactions(id);
         this.loadWalletTransactions();

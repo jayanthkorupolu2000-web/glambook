@@ -41,6 +41,8 @@ public interface ProductService {
 
     ProductReviewResponseDTO addReview(Long customerId, Long productId, ProductReviewRequest request);
 
+    ProductReviewResponseDTO updateReview(Long customerId, Long productId, ProductReviewRequest request);
+
     List<ProductReviewResponseDTO> getReviews(Long productId);
 
     boolean hasDeliveredOrder(Long customerId, Long productId);

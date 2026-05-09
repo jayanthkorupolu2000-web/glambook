@@ -63,7 +63,7 @@ public class FileStorageService {
         try {
             byte[] bytes = java.util.Base64.getDecoder().decode(base64Data);
             String filename = UUID.randomUUID() + "." + ext;
-            Path dir = Paths.get(uploadDir, subfolder);
+            Path dir = Paths.get(System.getProperty("user.dir"), uploadDir, subfolder);
             Files.createDirectories(dir);
             Path dest = dir.resolve(filename);
             Files.write(dest, bytes);
@@ -88,7 +88,8 @@ public class FileStorageService {
         try {
             String ext = getExtension(file.getOriginalFilename());
             String filename = UUID.randomUUID() + "." + ext;
-            Path dir = Paths.get(uploadDir, subfolder);
+            // Resolve relative to the current working directory (project root when running via mvn)
+            Path dir = Paths.get(System.getProperty("user.dir"), uploadDir, subfolder);
             Files.createDirectories(dir);
             Path dest = dir.resolve(filename);
             file.transferTo(dest.toFile());

@@ -128,31 +128,40 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     public LoyaltyResponse redeemPoints(Long customerId, int pointsToRedeem) {
         if (pointsToRedeem < MIN_REDEEM_POINTS)
             throw new InvalidOperationException("Minimum redemption is " + MIN_REDEEM_POINTS + " points");
-        if (pointsToRedeem % REDEEM_MULTIPLE != 0)
-            throw new InvalidOperationException("Points must be redeemed in multiples of " + REDEEM_MULTIPLE);
 
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
+        // Use transaction history as source of truth (same as getSummary)
+        List<LoyaltyTransaction> txns = transactionRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
+        int totalEarned   = txns.stream().filter(t -> "EARN".equals(t.getType())).mapToInt(LoyaltyTransaction::getPoints).sum();
+        int totalRedeemed = txns.stream().filter(t -> "REDEEM".equals(t.getType())).mapToInt(LoyaltyTransaction::getPoints).sum();
+        int available = totalEarned - totalRedeemed;
+
+        if (pointsToRedeem > available)
+            throw new InvalidOperationException("Insufficient points. You have " + available + " pts.");
+
+        // Sync and deduct from loyalty table records
         List<Loyalty> records = loyaltyRepository.findByCustomerId(customerId);
-        int total = records.stream().mapToInt(Loyalty::getPoints).sum();
-
-        if (pointsToRedeem > total)
-            throw new InvalidOperationException("Insufficient points. You have " + total + " pts.");
-
-        // Deduct points across loyalty records (spread if needed)
-        int remaining = pointsToRedeem;
-        for (Loyalty l : records) {
-            if (remaining <= 0) break;
-            int deduct = Math.min(l.getPoints(), remaining);
-            l.setPoints(l.getPoints() - deduct);
-            l.setUpdatedAt(LocalDateTime.now());
-            loyaltyRepository.save(l);
-            remaining -= deduct;
+        if (!records.isEmpty()) {
+            Loyalty first = records.get(0);
+            // Sync first record to correct available balance before deducting
+            first.setPoints(available - pointsToRedeem);
+            first.setUpdatedAt(LocalDateTime.now());
+            loyaltyRepository.save(first);
+            // Zero out any other records
+            for (int i = 1; i < records.size(); i++) {
+                Loyalty l = records.get(i);
+                if (l.getPoints() != 0) {
+                    l.setPoints(0);
+                    l.setUpdatedAt(LocalDateTime.now());
+                    loyaltyRepository.save(l);
+                }
+            }
         }
 
-        // Calculate rupee amount: 100 pts = ₹10
-        BigDecimal creditAmount = BigDecimal.valueOf((long) pointsToRedeem / REDEEM_MULTIPLE * 10);
+        // Calculate rupee amount: 100 pts = ₹10  →  1 pt = ₹0.10
+        BigDecimal creditAmount = BigDecimal.valueOf(pointsToRedeem).divide(BigDecimal.TEN, 2, java.math.RoundingMode.HALF_UP);
 
         // Record loyalty transaction
         transactionRepository.save(LoyaltyTransaction.builder()
@@ -162,7 +171,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
                 .description("Redeemed " + pointsToRedeem + " pts → ₹" + creditAmount + " added to wallet")
                 .build());
 
-        // Credit wallet and record wallet transaction
+        // Credit wallet
         Wallet wallet = walletService.credit(
                 customer,
                 creditAmount,
@@ -183,12 +192,29 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     @Override
     public LoyaltyResponse getSummary(Long customerId) {
         List<Loyalty> records = loyaltyRepository.findByCustomerId(customerId);
-        int total = records.stream().mapToInt(Loyalty::getPoints).sum();
-        LoyaltyTier tier = calculateTier(total);
 
         List<LoyaltyTransaction> txns = transactionRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);
         int totalEarned   = txns.stream().filter(t -> "EARN".equals(t.getType())).mapToInt(LoyaltyTransaction::getPoints).sum();
         int totalRedeemed = txns.stream().filter(t -> "REDEEM".equals(t.getType())).mapToInt(LoyaltyTransaction::getPoints).sum();
+
+        // Derive current available points from transaction history (source of truth)
+        // This avoids stale loyalty table rows causing a mismatch
+        int total = totalEarned - totalRedeemed;
+
+        // Sync loyalty records if they are out of date
+        int recordTotal = records.stream().mapToInt(Loyalty::getPoints).sum();
+        if (recordTotal != total && !records.isEmpty()) {
+            // Distribute the correct total across the first record; others set to 0
+            for (int i = 0; i < records.size(); i++) {
+                Loyalty l = records.get(i);
+                int corrected = (i == 0) ? total : 0;
+                if (l.getPoints() != corrected) {
+                    l.setPoints(corrected);
+                    l.setUpdatedAt(LocalDateTime.now());
+                    loyaltyRepository.save(l);
+                }
+            }
+        }
 
         LoyaltyResponse res = new LoyaltyResponse();
         res.setCustomerId(customerId);

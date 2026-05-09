@@ -30,7 +30,8 @@ public class FileController {
             @PathVariable String subfolder,
             @PathVariable String filename) {
         try {
-            Path filePath = Paths.get(uploadDir).resolve(subfolder).resolve(filename).normalize();
+            Path filePath = Paths.get(System.getProperty("user.dir"), uploadDir)
+                    .resolve(subfolder).resolve(filename).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (!resource.exists()) {

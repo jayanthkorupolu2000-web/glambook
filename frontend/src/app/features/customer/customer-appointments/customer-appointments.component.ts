@@ -28,6 +28,11 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   payError = '';
   paySuccess = '';
 
+  // Wallet
+  walletBalance = 0;
+  walletLoading = false;
+  useWallet = false;
+
   // Payment history
   paymentHistory: any[] = [];
   historyLoading = false;
@@ -37,10 +42,10 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
 
   // Review modal
   reviewingAppt: AppointmentResponse | null = null;
-  reviewRating = 5;
-  reviewQualityRating = 5;
-  reviewTimelinessRating = 5;
-  reviewProfessionalismRating = 5;
+  reviewRating = 0;
+  reviewQualityRating = 0;
+  reviewTimelinessRating = 0;
+  reviewProfessionalismRating = 0;
   reviewComment = '';
   reviewLoading = false;
   reviewError = '';
@@ -192,6 +197,13 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     this.cardCvv = '';
     this.payError = '';
     this.paySuccess = '';
+    this.useWallet = false;
+    this.walletBalance = 0;
+    this.walletLoading = true;
+    this.http.get<{ balance: number; currency: string }>(`${BASE}/api/wallet/balance`).subscribe({
+      next: data => { this.walletBalance = data.balance; this.walletLoading = false; },
+      error: () => { this.walletBalance = 0; this.walletLoading = false; }
+    });
   }
 
   closePay(): void { this.payingAppt = null; }
@@ -213,15 +225,36 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     return this.cardNumber.length === 12 && this.cardExpiry.length === 5 && this.cardCvv.length === 3;
   }
 
+  /** Amount deducted from wallet (capped at total) */
+  get walletDeduction(): number {
+    if (!this.useWallet || !this.payingAppt) return 0;
+    return Math.min(this.walletBalance, this.payingAppt.servicePrice);
+  }
+
+  /** Remaining amount to pay via Cash/Card */
+  get remainingAmount(): number {
+    if (!this.payingAppt) return 0;
+    return Math.max(0, this.payingAppt.servicePrice - this.walletDeduction);
+  }
+
+  /** True when wallet covers the full amount */
+  get fullyPaidByWallet(): boolean {
+    return this.useWallet && this.remainingAmount === 0;
+  }
+
   confirmPay(): void {
     if (!this.payingAppt) return;
     this.payLoading = true;
     this.payError = '';
 
-    const body = {
+    const walletAmountUsed = this.walletDeduction;
+    const remaining = this.remainingAmount;
+
+    const body: any = {
       appointmentId: this.payingAppt.id,
-      amount: this.payingAppt.servicePrice,
-      method: this.payMethod
+      amount: remaining,
+      method: this.fullyPaidByWallet ? 'WALLET' : this.payMethod,
+      walletAmountUsed: walletAmountUsed
     };
 
     this.http.post(`${BASE}/api/payments`, body).subscribe({
@@ -252,10 +285,10 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
 
   openReview(appt: AppointmentResponse): void {
     this.reviewingAppt = appt;
-    this.reviewRating = 5;
-    this.reviewQualityRating = 5;
-    this.reviewTimelinessRating = 5;
-    this.reviewProfessionalismRating = 5;
+    this.reviewRating = 0;
+    this.reviewQualityRating = 0;
+    this.reviewTimelinessRating = 0;
+    this.reviewProfessionalismRating = 0;
     this.reviewComment = '';
     this.reviewPhotos = [];
     this.reviewPhotoPreview = [];
@@ -501,4 +534,10 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   }
 
   stars(n: number): number[] { return [1, 2, 3, 4, 5]; }
+
+  resolveReviewPhotoUrl(url: string): string {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `http://localhost:8080${url}`;
+  }
 }

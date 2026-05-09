@@ -126,6 +126,7 @@ public class FavoritesService {
                 .durationMins(s.getDurationMins())
                 .isActive(s.getIsActive())
                 .favorited(favorited)
+                .professionalId(s.getProfessionalId())
                 .build();
     }
 }

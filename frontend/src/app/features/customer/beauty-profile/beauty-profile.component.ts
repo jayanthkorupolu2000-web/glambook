@@ -3,7 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 
-// Use /api/v1/ path — the backend now handles both /api/ and /api/v1/
 const API = 'http://localhost:8080/api/v1';
 
 @Component({
@@ -18,20 +17,32 @@ export class BeautyProfileComponent implements OnInit {
   error = '';
   editMode = false;
 
-  skinTypes = ['Normal', 'Oily', 'Dry', 'Combination', 'Sensitive'];
-  hairTypes = ['Straight', 'Wavy', 'Curly', 'Coily'];
+  skinTypes  = ['Normal', 'Oily', 'Dry', 'Combination', 'Sensitive'];
+  hairTypes  = ['Straight', 'Wavy', 'Curly', 'Coily'];
   hairTextures = ['Fine', 'Medium', 'Thick'];
+
+  allergyOptions = [
+    'Ammonia', 'Parabens', 'Sulfates', 'Fragrances', 'Formaldehyde',
+    'PPD (Hair Dye)', 'Latex', 'Nickel', 'Lanolin', 'Alcohol'
+  ];
+
+  serviceOptions = [
+    'Haircut', 'Hair Color', 'Hair Treatment', 'Blowout',
+    'Facial', 'Cleanup', 'Waxing', 'Threading',
+    'Manicure', 'Pedicure', 'Makeup', 'Bridal Makeup'
+  ];
+
+  selectedAllergies: Set<string> = new Set();
+  selectedServices:  Set<string> = new Set();
 
   constructor(private fb: FormBuilder, private auth: AuthService, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      skinType:          [''],
-      hairType:          [''],
-      hairTexture:       [''],
-      allergies:         [''],
-      preferredServices: [''],
-      notes:             ['']
+      skinType:    [''],
+      hairType:    [''],
+      hairTexture: [''],
+      notes:       ['']
     });
     this.form.disable();
     this.load();
@@ -45,20 +56,22 @@ export class BeautyProfileComponent implements OnInit {
       next: data => {
         this.form.enable();
         this.form.patchValue({
-          skinType:          data.skinType          || '',
-          hairType:          data.hairType          || '',
-          hairTexture:       data.hairTexture       || '',
-          allergies:         data.allergies         || '',
-          preferredServices: data.preferredServices || '',
-          notes:             data.notes             || ''
+          skinType:    data.skinType    || '',
+          hairType:    data.hairType    || '',
+          hairTexture: data.hairTexture || '',
+          notes:       data.notes       || ''
         });
+        // Parse comma-separated strings back into sets
+        this.selectedAllergies = new Set(
+          (data.allergies || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+        );
+        this.selectedServices = new Set(
+          (data.preferredServices || '').split(',').map((s: string) => s.trim()).filter(Boolean)
+        );
         this.form.disable();
         this.loading = false;
       },
-      error: () => {
-        // No profile yet — that's fine, just show empty form
-        this.loading = false;
-      }
+      error: () => { this.loading = false; }
     });
   }
 
@@ -75,6 +88,20 @@ export class BeautyProfileComponent implements OnInit {
     this.load();
   }
 
+  toggleAllergy(item: string): void {
+    if (!this.editMode) return;
+    this.selectedAllergies.has(item)
+      ? this.selectedAllergies.delete(item)
+      : this.selectedAllergies.add(item);
+  }
+
+  toggleService(item: string): void {
+    if (!this.editMode) return;
+    this.selectedServices.has(item)
+      ? this.selectedServices.delete(item)
+      : this.selectedServices.add(item);
+  }
+
   save(): void {
     const id = this.auth.getUserId();
     if (!id) return;
@@ -83,12 +110,12 @@ export class BeautyProfileComponent implements OnInit {
     this.success = '';
 
     const payload = {
-      skinType:          this.form.value.skinType          || null,
-      hairType:          this.form.value.hairType          || null,
-      hairTexture:       this.form.value.hairTexture       || null,
-      allergies:         this.form.value.allergies         || null,
-      preferredServices: this.form.value.preferredServices || null,
-      notes:             this.form.value.notes             || null
+      skinType:          this.form.value.skinType    || null,
+      hairType:          this.form.value.hairType    || null,
+      hairTexture:       this.form.value.hairTexture || null,
+      allergies:         [...this.selectedAllergies].join(', ') || null,
+      preferredServices: [...this.selectedServices].join(', ')  || null,
+      notes:             this.form.value.notes       || null
     };
 
     this.http.put<any>(`${API}/customers/${id}/beauty-profile`, payload).subscribe({

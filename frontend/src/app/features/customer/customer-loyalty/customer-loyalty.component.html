@@ -12,8 +12,8 @@
       <div class="p-1" [style.background]="currentTier.color"></div>
       <div class="p-4 text-center">
         <div style="font-size:3rem;">{{ currentTier.icon }}</div>
-        <div class="fs-1 fw-bold mt-1" [style.color]="currentTier.color">{{ summary.points }}</div>
-        <div class="text-muted mb-2">Total Points</div>
+        <div class="fs-1 fw-bold mt-1" [style.color]="currentTier.color">{{ summary.totalEarned }}</div>
+        <div class="text-muted mb-2">Total Points Earned</div>
         <span class="badge fs-6 px-3 py-2 mb-3" [style.background]="currentTier.color">
           {{ currentTier.label }} Member
         </span>
@@ -35,21 +35,27 @@
 
         <!-- Stats row -->
         <div class="row g-3 mt-3">
-          <div class="col-4">
+          <div class="col-6 col-md-3">
             <div class="p-2 rounded" style="background:#f0f4ff;">
               <div class="fw-bold" style="color:#244AFD;">{{ summary.totalEarned }}</div>
               <div class="text-muted" style="font-size:.75rem;">Total Earned</div>
             </div>
           </div>
-          <div class="col-4">
+          <div class="col-6 col-md-3">
             <div class="p-2 rounded" style="background:#fff3e0;">
               <div class="fw-bold text-warning">{{ summary.totalRedeemed }}</div>
               <div class="text-muted" style="font-size:.75rem;">Total Redeemed</div>
             </div>
           </div>
-          <div class="col-4">
+          <div class="col-6 col-md-3">
             <div class="p-2 rounded" style="background:#e8f5e9;">
-              <div class="fw-bold text-success">₹{{ summary.points / 100 | number:'1.0-0' }}</div>
+              <div class="fw-bold text-success">{{ summary.points }}</div>
+              <div class="text-muted" style="font-size:.75rem;">Available Points</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="p-2 rounded" style="background:#e8f5e9;">
+              <div class="fw-bold text-success">₹{{ summary.points / 10 | number:'1.0-0' }}</div>
               <div class="text-muted" style="font-size:.75rem;">Redeemable Value</div>
             </div>
           </div>
@@ -111,7 +117,7 @@
     <!-- ── Redeem Tab ── -->
     <div *ngIf="activeTab === 'overview'" class="card border-0 shadow-sm p-4">
       <h6 class="fw-bold mb-1">Redeem Points for Wallet Credit</h6>
-      <p class="text-muted small mb-3">100 points = ₹10 added to your wallet. Redeem in multiples of 100.</p>
+      <p class="text-muted small mb-3">100 points = ₹10 added to your wallet. Redeem any amount (min 100 pts).</p>
 
       <!-- Toast-style success -->
       <div *ngIf="redeemSuccess"
@@ -126,7 +132,7 @@
         <div class="col-8">
           <label class="form-label fw-semibold small">Points to Redeem</label>
           <input type="number" class="form-control" [(ngModel)]="redeemPoints"
-                 min="100" step="100" [max]="summary.points">
+                 min="100" step="1" [max]="maxRedeemable">
           <small class="text-muted">You have <strong>{{ summary.points }}</strong> pts available</small>
         </div>
         <div class="col-4">
@@ -138,20 +144,15 @@
       </div>
 
       <button class="btn text-white w-100 mt-3 fw-semibold" style="background:#244AFD;"
-              (click)="redeem()" [disabled]="redeeming || summary.points < 100">
+              (click)="redeem()" [disabled]="redeeming || maxRedeemable < 100">
         <span *ngIf="redeeming" class="spinner-border spinner-border-sm me-2"></span>
-        {{ redeeming ? 'Redeeming...' : 'Redeem ' + redeemPoints + ' pts for ₹' + discountValue + ' off' }}
+        {{ redeeming ? 'Redeeming...' : 'Redeem ' + redeemPoints + ' pts for ₹' + discountValue + ' wallet credit' }}
       </button>
 
-      <div *ngIf="summary.points < 100" class="text-center text-muted small mt-2">
+      <div *ngIf="maxRedeemable < 100" class="text-center text-muted small mt-2">
         Earn {{ 100 - summary.points }} more points to start redeeming.
       </div>
 
-      <!-- Wallet balance inline reminder -->
-      <div class="mt-3 p-2 rounded text-center" style="background:#f8f9fa;border:1px dashed #244AFD;">
-        <span class="small text-muted">💰 Current Wallet Balance: </span>
-        <span class="fw-bold" style="color:#244AFD;">₹{{ walletBalance | number:'1.2-2' }}</span>
-      </div>
     </div>
 
     <!-- ── History Tab ── -->

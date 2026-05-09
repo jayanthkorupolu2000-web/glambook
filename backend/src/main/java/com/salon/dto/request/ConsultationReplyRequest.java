@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class ConsultationReplyRequest {
-    @NotBlank(message = "Please provide a valid notes")
-    @Size(min = 10, max = 2000, message = "Please provide a valid notes")
-    private String notes;
+    @NotBlank(message = "Please provide a reply message")
+    @Size(min = 10, max = 2000, message = "Reply must be between 10 and 2000 characters")
+    private String professionalReply;
 }

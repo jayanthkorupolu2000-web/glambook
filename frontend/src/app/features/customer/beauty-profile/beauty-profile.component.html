@@ -31,11 +31,48 @@
       </div>
       <div class="mb-3">
         <label class="form-label fw-semibold">Allergies / Sensitivities</label>
-        <input type="text" class="form-control" formControlName="allergies" placeholder="e.g. Ammonia, Parabens">
+        <!-- View mode: show as tags -->
+        <div *ngIf="!editMode" class="d-flex flex-wrap gap-2 mt-1">
+          <span *ngFor="let a of allergyOptions" [class.d-none]="!selectedAllergies.has(a)"
+                class="badge rounded-pill px-3 py-2" style="background:#fdecea;color:#c0392b;font-size:.8rem;">
+            {{ a }}
+          </span>
+          <span *ngIf="selectedAllergies.size === 0" class="text-muted small">None selected</span>
+        </div>
+        <!-- Edit mode: checkbox tags -->
+        <div *ngIf="editMode" class="d-flex flex-wrap gap-2 mt-1">
+          <span *ngFor="let a of allergyOptions"
+                (click)="toggleAllergy(a)"
+                class="badge rounded-pill px-3 py-2 cursor-pointer"
+                [style.background]="selectedAllergies.has(a) ? '#c0392b' : '#f0f0f0'"
+                [style.color]="selectedAllergies.has(a) ? '#fff' : '#555'"
+                style="font-size:.82rem;cursor:pointer;user-select:none;transition:background .15s;">
+            <span *ngIf="selectedAllergies.has(a)" style="margin-right:4px;">✓</span>{{ a }}
+          </span>
+        </div>
       </div>
+
       <div class="mb-3">
         <label class="form-label fw-semibold">Preferred Services</label>
-        <input type="text" class="form-control" formControlName="preferredServices" placeholder="e.g. Hair Color, Facial">
+        <!-- View mode: show as tags -->
+        <div *ngIf="!editMode" class="d-flex flex-wrap gap-2 mt-1">
+          <span *ngFor="let s of serviceOptions" [class.d-none]="!selectedServices.has(s)"
+                class="badge rounded-pill px-3 py-2" style="background:#e8f5e9;color:#2e7d32;font-size:.8rem;">
+            {{ s }}
+          </span>
+          <span *ngIf="selectedServices.size === 0" class="text-muted small">None selected</span>
+        </div>
+        <!-- Edit mode: checkbox tags -->
+        <div *ngIf="editMode" class="d-flex flex-wrap gap-2 mt-1">
+          <span *ngFor="let s of serviceOptions"
+                (click)="toggleService(s)"
+                class="badge rounded-pill px-3 py-2"
+                [style.background]="selectedServices.has(s) ? '#2e7d32' : '#f0f0f0'"
+                [style.color]="selectedServices.has(s) ? '#fff' : '#555'"
+                style="font-size:.82rem;cursor:pointer;user-select:none;transition:background .15s;">
+            <span *ngIf="selectedServices.has(s)" style="margin-right:4px;">✓</span>{{ s }}
+          </span>
+        </div>
       </div>
       <div class="mb-4">
         <label class="form-label fw-semibold">Additional Notes</label>

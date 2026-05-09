@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 
 const API = 'http://localhost:8080/api/v1';
@@ -16,20 +17,15 @@ export class CustomerFavoritesComponent implements OnInit {
   loading = false;
   togglingProduct: Record<number, boolean> = {};
   togglingService: Record<number, boolean> = {};
-  orderingProduct: Record<number, boolean> = {};
+
   success = '';
   error = '';
 
-  constructor(private http: HttpClient, private auth: AuthService) {}
+  constructor(private http: HttpClient, private auth: AuthService, private router: Router) {}
 
-  ngOnInit(): void {
-    this.loadAll();
-  }
+  ngOnInit(): void { this.loadAll(); }
 
-  loadAll(): void {
-    this.loadProducts();
-    this.loadServices();
-  }
+  loadAll(): void { this.loadProducts(); this.loadServices(); }
 
   loadProducts(): void {
     const id = this.auth.getUserId();
@@ -55,10 +51,7 @@ export class CustomerFavoritesComponent implements OnInit {
     if (!id) return;
     this.togglingProduct[product.id] = true;
     this.http.post<any>(`${API}/customers/${id}/favorites/products/${product.id}`, {}).subscribe({
-      next: () => {
-        this.products = this.products.filter(p => p.id !== product.id);
-        this.togglingProduct[product.id] = false;
-      },
+      next: () => { this.products = this.products.filter(p => p.id !== product.id); this.togglingProduct[product.id] = false; },
       error: () => { this.togglingProduct[product.id] = false; }
     });
   }
@@ -68,31 +61,26 @@ export class CustomerFavoritesComponent implements OnInit {
     if (!id) return;
     this.togglingService[service.id] = true;
     this.http.post<any>(`${API}/customers/${id}/favorites/services/${service.id}`, {}).subscribe({
-      next: () => {
-        this.services = this.services.filter(s => s.id !== service.id);
-        this.togglingService[service.id] = false;
-      },
+      next: () => { this.services = this.services.filter(s => s.id !== service.id); this.togglingService[service.id] = false; },
       error: () => { this.togglingService[service.id] = false; }
     });
   }
 
+  /** Navigate to products page and auto-open the order modal for this product */
   orderProduct(product: any): void {
-    const id = this.auth.getUserId();
-    if (!id) return;
-    this.orderingProduct[product.id] = true;
-    this.http.post(`http://localhost:8080/api/customers/${id}/orders`, {
-      items: [{ productId: product.id, quantity: 1 }]
-    }).subscribe({
-      next: () => {
-        this.success = `${product.name} ordered successfully!`;
-        this.orderingProduct[product.id] = false;
-        setTimeout(() => this.success = '', 3000);
-      },
-      error: (e) => {
-        this.error = e?.error?.message || 'Failed to place order.';
-        this.orderingProduct[product.id] = false;
-        setTimeout(() => this.error = '', 3000);
-      }
+    this.router.navigate(['/dashboard/customer/products'], {
+      queryParams: { order: product.id }
     });
   }
+
+  /** Navigate to the booking page for the professional who offers this service */
+  bookService(service: any): void {
+    if (service.professionalId) {
+      this.router.navigate(['/dashboard/customer/book', service.professionalId]);
+    } else {
+      this.router.navigate(['/dashboard/customer/search'], { queryParams: { q: service.name } });
+    }
+  }
+
+  stars(n: number): number[] { return [1, 2, 3, 4, 5]; }
 }

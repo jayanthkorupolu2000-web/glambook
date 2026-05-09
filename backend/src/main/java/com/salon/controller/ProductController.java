@@ -146,11 +146,18 @@ public class ProductController {
     @Operation(summary = "Pay for a product order (marks it as DELIVERED and awards loyalty points)")
     public ResponseEntity<ProductOrderResponseDTO> payOrder(
             @PathVariable Long orderId,
-            @RequestBody java.util.Map<String, String> body,
+            @RequestBody java.util.Map<String, Object> body,
             HttpServletRequest req) {
         Long customerId = extractCustomerId(req);
-        String method = body.getOrDefault("method", "CASH");
-        return ResponseEntity.ok(productService.payOrder(customerId, orderId, method));
+        String method = (String) body.getOrDefault("method", "CASH");
+        java.math.BigDecimal walletAmountUsed = java.math.BigDecimal.ZERO;
+        Object w = body.get("walletAmountUsed");
+        if (w != null) {
+            try { walletAmountUsed = new java.math.BigDecimal(w.toString()); } catch (Exception ignored) {}
+        }
+        com.salon.service.impl.ProductServiceImpl impl =
+                (com.salon.service.impl.ProductServiceImpl) productService;
+        return ResponseEntity.ok(impl.payOrder(customerId, orderId, method, walletAmountUsed));
     }
 
     @PostMapping("/{id}/favorites")
@@ -189,6 +196,17 @@ public class ProductController {
             HttpServletRequest req) {
         Long customerId = extractCustomerId(req);
         return ResponseEntity.status(201).body(productService.addReview(customerId, id, request));
+    }
+
+    @PatchMapping("/{id}/reviews")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @Operation(summary = "Update your review for a product")
+    public ResponseEntity<ProductReviewResponseDTO> updateReview(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductReviewRequest request,
+            HttpServletRequest req) {
+        Long customerId = extractCustomerId(req);
+        return ResponseEntity.ok(productService.updateReview(customerId, id, request));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

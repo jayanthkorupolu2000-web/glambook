@@ -39,6 +39,7 @@ public class ProductServiceImpl implements ProductService {
     private final CustomerRepository customerRepository;
     private final AppointmentRepository appointmentRepository;
     private final LoyaltyService loyaltyService;
+    private final com.salon.service.WalletService walletService;
 
     // ── Browse / Search ───────────────────────────────────────────────────────
 
@@ -193,6 +194,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductOrderResponseDTO payOrder(Long customerId, Long orderId, String method) {
+        return payOrder(customerId, orderId, method, BigDecimal.ZERO);
+    }
+
+    @Transactional
+    public ProductOrderResponseDTO payOrder(Long customerId, Long orderId, String method, BigDecimal walletAmountUsed) {
         ProductOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
         if (!order.getCustomer().getId().equals(customerId))
@@ -202,13 +208,23 @@ public class ProductServiceImpl implements ProductService {
         if (order.getStatus() == ProductOrderStatus.DELIVERED)
             throw new InvalidOperationException("Order has already been paid");
 
-        // Mark as DELIVERED (payment = delivery for online product orders)
+        // Deduct wallet if used
+        if (walletAmountUsed != null && walletAmountUsed.compareTo(BigDecimal.ZERO) > 0) {
+            walletService.debit(
+                order.getCustomer(),
+                walletAmountUsed,
+                "product_payment",
+                "Wallet payment for order #" + orderId + " (" + order.getProduct().getName() + ")"
+            );
+        }
+
+        // Mark as DELIVERED
         order.setStatus(ProductOrderStatus.DELIVERED);
         order.setDeliveryDate(java.time.LocalDate.now());
         ProductOrder saved = orderRepository.save(order);
 
-        log.info("Product order {} paid via {} by customer {} — marked DELIVERED",
-                orderId, method, customerId);
+        log.info("Product order {} paid via {} (wallet: ₹{}) by customer {} — marked DELIVERED",
+                orderId, method, walletAmountUsed, customerId);
 
         // Award loyalty points on payment: ₹100 = 10 pts
         int points = saved.getTotalPrice()
@@ -219,7 +235,6 @@ public class ProductServiceImpl implements ProductService {
             try {
                 loyaltyService.awardPointsForProductPurchase(customerId, saved.getTotalPrice());
             } catch (Exception e) {
-                // Non-fatal — log and continue; don't roll back the payment
                 log.warn("Could not award loyalty points for order {}: {}", orderId, e.getMessage());
             }
         }
@@ -299,6 +314,18 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
+    public ProductReviewResponseDTO updateReview(Long customerId, Long productId,
+                                                 ProductReviewRequest request) {
+        ProductReview review = reviewRepository.findByCustomerIdAndProductId(customerId, productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
+
+        review.setRating(request.getRating());
+        review.setReviewText(request.getReviewText());
+        return toReviewDTO(reviewRepository.save(review));
+    }
+
+    @Override
     public List<ProductReviewResponseDTO> getReviews(Long productId) {
         return reviewRepository.findByProductIdOrderByCreatedAtDesc(productId)
                 .stream().map(this::toReviewDTO).collect(Collectors.toList());
@@ -346,6 +373,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductOrderResponseDTO toOrderDTO(ProductOrder o, int loyaltyPoints) {
         return ProductOrderResponseDTO.builder()
                 .orderId(o.getId())
+                .productId(o.getProduct().getId())
                 .productName(o.getProduct().getName())
                 .productImageUrl(o.getProduct().getImageUrl())
                 .quantity(o.getQuantity())

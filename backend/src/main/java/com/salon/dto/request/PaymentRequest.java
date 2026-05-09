@@ -20,9 +20,14 @@ public class PaymentRequest {
     private Long appointmentId;
 
     @NotNull(message = "Please provide a valid amount")
-    @DecimalMin(value = "0.01", message = "Please provide a valid amount")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Please provide a valid amount")
     private BigDecimal amount;
 
     @NotNull(message = "Please provide a valid method")
     private PaymentMethod method;
+
+    /** Amount to deduct from the customer's wallet (0 if wallet not used). */
+    @Builder.Default
+    @DecimalMin(value = "0.0", inclusive = true, message = "Wallet amount must be non-negative")
+    private BigDecimal walletAmountUsed = BigDecimal.ZERO;
 }

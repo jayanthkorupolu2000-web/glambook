@@ -34,18 +34,22 @@ public class Consultation {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private ConsultationType type = ConsultationType.GENERAL;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
     private ConsultationTopic topic = ConsultationTopic.GENERAL;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String question;
 
+    /** General notes (internal use). */
     @Column(columnDefinition = "TEXT")
     private String notes;
+
+    /** Professional's response to the customer's question. */
+    @Column(name = "professional_reply", columnDefinition = "TEXT")
+    private String professionalReply;
+
+    /** Timestamp when the professional submitted their reply. */
+    @Column(name = "professional_replied_at")
+    private LocalDateTime professionalRepliedAt;
 
     @Column(name = "photo_url")
     private String photoUrl;

@@ -11,10 +11,11 @@ public class ConsultationResponse {
     private String customerName;
     private Long professionalId;
     private String professionalName;
-    private String type;
     private String topic;
     private String question;
     private String notes;
+    private String professionalReply;
+    private LocalDateTime professionalRepliedAt;
     private String photoUrl;
     private String status;
     private LocalDateTime createdAt;

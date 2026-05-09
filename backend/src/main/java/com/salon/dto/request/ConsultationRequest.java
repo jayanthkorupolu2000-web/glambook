@@ -13,10 +13,9 @@ public class ConsultationRequest {
     private Long professionalId;
     private Long appointmentId;
 
-    private String type = "GENERAL";
     private String topic = "GENERAL";
 
     @NotBlank(message = "Please provide a valid question")
-    @Size(min = 10, max = 2000, message = "Please provide a valid question")
+    @Size(min = 3, max = 2000, message = "Please provide a valid question")
     private String question;
 }

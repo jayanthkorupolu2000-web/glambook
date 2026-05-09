@@ -26,7 +26,7 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
     private final ReviewRepository reviewRepository;
     private final BeautyProfileRepository beautyProfileRepository;
     private final CustomerNotificationRepository notifRepository;
-    private final OrderRepository orderRepository;
+    private final ProductOrderRepository productOrderRepository;
     private final PolicyService policyService;
 
     @Override
@@ -81,9 +81,9 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
             // Unread notifications
             dashboard.setUnreadNotificationCount((int) notifRepository.countByCustomerIdAndIsRead(customerId, false));
 
-            // Pending orders
-            dashboard.setPendingOrderCount((int) orderRepository
-                    .findByCustomerIdAndDeliveryStatus(customerId, OrderDeliveryStatus.PROCESSING).size());
+            // Active orders — PLACED (not yet delivered/cancelled)
+            dashboard.setPendingOrderCount(
+                    productOrderRepository.findByCustomerIdAndStatus(customerId, ProductOrderStatus.PLACED).size());
 
             // Beauty profile complete
             boolean bpComplete = beautyProfileRepository.findByCustomerId(customerId)

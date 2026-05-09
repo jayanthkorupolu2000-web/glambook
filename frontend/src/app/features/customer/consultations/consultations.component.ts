@@ -25,19 +25,23 @@ export class ConsultationsComponent implements OnInit {
   uploadingPhoto = false;
 
   topics = ['HAIR', 'SKIN', 'MAKEUP', 'GENERAL'];
-  types = ['VIRTUAL', 'IN_PERSON', 'GENERAL'];
 
   constructor(private http: HttpClient, private auth: AuthService, private fb: FormBuilder) {}
 
   ngOnInit(): void {
     this.form = this.fb.group({
       professionalId: [''],
-      type: ['GENERAL', Validators.required],
       topic: ['GENERAL', Validators.required],
-      question: ['', [Validators.required, Validators.minLength(10)]]
+      question: ['', [Validators.required, Validators.minLength(3)]]
     });
     this.load();
-    this.loadProfessionals();
+    this.loadProfessionalsByTopic('GENERAL');
+
+    // Reload professionals whenever topic changes
+    this.form.get('topic')!.valueChanges.subscribe(topic => {
+      this.form.patchValue({ professionalId: '' });
+      this.loadProfessionalsByTopic(topic);
+    });
   }
 
   load(): void {
@@ -50,10 +54,10 @@ export class ConsultationsComponent implements OnInit {
     });
   }
 
-  loadProfessionals(): void {
-    this.http.get<any[]>('http://localhost:8080/api/professionals/all').subscribe({
+  loadProfessionalsByTopic(topic: string): void {
+    this.http.get<any[]>(`http://localhost:8080/api/v1/consultations/professionals?topic=${topic}`).subscribe({
       next: data => { this.professionals = Array.isArray(data) ? data : []; },
-      error: () => {}
+      error: () => { this.professionals = []; }
     });
   }
 
@@ -83,50 +87,41 @@ export class ConsultationsComponent implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      Object.values(this.form.controls).forEach(c => c.markAsDirty());
+      return;
+    }
     const id = this.auth.getUserId();
     if (!id) return;
     this.submitting = true;
     this.error = '';
     const v = this.form.value;
-    const payload: any = {
+
+    const data: any = {
       customerId: id,
-      type: v.type,
       topic: v.topic,
       question: v.question
     };
-    if (v.professionalId) payload.professionalId = Number(v.professionalId);
+    if (v.professionalId) data.professionalId = Number(v.professionalId);
 
-    this.http.post<any>(`${API}/customers/${id}/consultations`, payload).subscribe({
-      next: (created) => {
-        if (this.selectedPhoto && created?.id) {
-          this.uploadPhoto(created.id);
-        } else {
-          this.onSubmitSuccess();
-        }
-      },
-      error: (e) => { this.error = e?.error?.message || 'Failed to submit.'; this.submitting = false; }
-    });
-  }
-
-  private uploadPhoto(consultationId: number): void {
-    this.uploadingPhoto = true;
+    // Send as multipart — same pattern as reviews
     const fd = new FormData();
-    fd.append('file', this.selectedPhoto!);
-    this.http.post(`${API}/consultations/${consultationId}/photo`, fd).subscribe({
-      next: () => { this.uploadingPhoto = false; this.onSubmitSuccess(); },
-      error: () => {
-        // Consultation was created; photo upload failed — still show success
-        this.uploadingPhoto = false;
-        this.onSubmitSuccess();
-      }
+    fd.append('data', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    if (this.selectedPhoto) {
+      fd.append('photo', this.selectedPhoto, this.selectedPhoto.name);
+    }
+
+    this.http.post<any>(`${API}/customers/${id}/consultations`, fd).subscribe({
+      next: () => { this.onSubmitSuccess(); },
+      error: (e) => { this.error = e?.error?.message || 'Failed to submit.'; this.submitting = false; }
     });
   }
 
   private onSubmitSuccess(): void {
     this.success = 'Consultation submitted! A professional will respond shortly.';
     this.showForm = false;
-    this.form.reset({ type: 'GENERAL', topic: 'GENERAL' });
+    this.form.reset({ topic: 'GENERAL' });
     this.selectedPhoto = null;
     this.photoPreview = null;
     this.submitting = false;
@@ -146,6 +141,10 @@ export class ConsultationsComponent implements OnInit {
   }
 
   photoUrl(url: string): string {
-    return `http://localhost:8080/api/v1/files${url}`;
+    if (!url) return '';
+    // If already a full URL, return as-is
+    if (url.startsWith('http')) return url;
+    // Path is like /api/v1/files/consultations/uuid.jpg
+    return `http://localhost:8080${url}`;
   }
 }

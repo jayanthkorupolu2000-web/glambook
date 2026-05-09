@@ -237,3 +237,7 @@ CREATE TABLE IF NOT EXISTS product_orders (
 -- ================= PROFESSIONAL — widen certifications column =================
 -- Needed to store JSON array of multiple certificate metadata entries.
 ALTER TABLE professional MODIFY COLUMN certifications MEDIUMTEXT NULL;
+
+-- ================= CONSULTATIONS — remove type, add reply fields =================
+ALTER TABLE consultations ADD COLUMN professional_reply TEXT NULL;
+ALTER TABLE consultations ADD COLUMN professional_replied_at DATETIME NULL;

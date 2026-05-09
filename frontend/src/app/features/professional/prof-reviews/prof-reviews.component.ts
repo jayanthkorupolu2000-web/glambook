@@ -2,7 +2,6 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { ReviewWithResponse } from '../../../models/professional.model';
 import { AuthService } from '../../../services/auth.service';
 import { ProfessionalReviewService } from '../../../services/professional-review.service';
-import { ReviewPhotoStoreService } from '../../../services/review-photo-store.service';
 
 @Component({
   selector: 'app-prof-reviews',
@@ -33,8 +32,7 @@ export class ProfReviewsComponent implements OnInit {
 
   constructor(
     private reviewService: ProfessionalReviewService,
-    private auth: AuthService,
-    private photoStore: ReviewPhotoStoreService
+    private auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -78,7 +76,8 @@ export class ProfReviewsComponent implements OnInit {
     this.loading = true;
     this.reviewService.getReviews(this.profId).subscribe({
       next: data => {
-        this.reviews = this.photoStore.mergeIntoReviews(data) as ReviewWithResponse[];
+        // Photos are now served directly from the backend — no localStorage merge needed
+        this.reviews = data as ReviewWithResponse[];
         this.applyFilter();
         this.loading = false;
       },
@@ -115,7 +114,7 @@ export class ProfReviewsComponent implements OnInit {
 
   // ── Lightbox ─────────────────────────────────────────────────────
   openLightbox(photos: string[], index: number): void {
-    this.lightboxPhotos = photos;
+    this.lightboxPhotos = photos.map(p => this.resolvePhotoUrl(p));
     this.lightboxIndex  = index;
     this.lightboxOpen   = true;
   }
@@ -148,5 +147,12 @@ export class ProfReviewsComponent implements OnInit {
 
   initials(name: string): string {
     return (name || '?').charAt(0).toUpperCase();
+  }
+
+  /** Resolve a photo path to a full URL */
+  resolvePhotoUrl(url: string): string {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `http://localhost:8080${url}`;
   }
 }
