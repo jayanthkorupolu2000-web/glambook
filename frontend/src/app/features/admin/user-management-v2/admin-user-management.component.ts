@@ -36,6 +36,8 @@ export class AdminUserManagementComponent implements OnInit {
   pendingUserType = '';
   pendingNewStatus = '';
   pendingName = '';
+  suspendReason = '';
+  reasonSubmitted = false;
 
   constructor(private adminService: AdminService) {}
 
@@ -74,18 +76,19 @@ export class AdminUserManagementComponent implements OnInit {
     this.pendingUserType = userType;
     this.pendingNewStatus = currentStatus === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
     this.pendingName = name;
+    this.suspendReason = '';
+    this.reasonSubmitted = false;
   }
 
   executeAction(): void {
+    if (this.pendingNewStatus === 'SUSPENDED') {
+      this.reasonSubmitted = true;
+      if (!this.suspendReason.trim()) return;
+    }
     this.adminService.updateUserStatus(this.pendingId, this.pendingUserType, this.pendingNewStatus).subscribe({
-      next: res => {
-        if (this.pendingUserType === 'CUSTOMER') {
-          const c = this.customers.find(x => x.id === this.pendingId);
-          if (c) c.status = res.status;
-        } else {
-          const p = this.professionals.find(x => x.id === this.pendingId);
-          if (p) p.status = res.status;
-        }
+      next: () => {
+        // Reload from server to get the persisted status
+        this.loadUsers();
       },
       error: () => alert('Failed to update status.')
     });

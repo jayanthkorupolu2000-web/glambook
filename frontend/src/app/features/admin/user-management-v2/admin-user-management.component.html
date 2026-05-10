@@ -99,23 +99,51 @@
 
 <!-- Confirm Modal -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
-  <div class="modal-dialog modal-sm">
+  <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header">
-        <h6 class="modal-title fw-bold">Confirm Action</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <div class="modal-header"
+           [style.background]="pendingNewStatus === 'SUSPENDED' ? 'linear-gradient(135deg,#dc2626,#991b1b)' : 'linear-gradient(135deg,#16a34a,#15803d)'">
+        <h6 class="modal-title fw-bold text-white">
+          {{ pendingNewStatus === 'SUSPENDED' ? '⚠ Suspend User' : '✓ Reactivate User' }}
+        </h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p class="mb-0">
+
+        <p class="mb-3">
           Are you sure you want to
           <strong>{{ pendingNewStatus === 'SUSPENDED' ? 'suspend' : 'reactivate' }}</strong>
           <strong>{{ pendingName }}</strong>?
         </p>
+
+        <!-- Reason — only shown when suspending -->
+        <div *ngIf="pendingNewStatus === 'SUSPENDED'">
+          <label class="form-label fw-semibold small">
+            Reason for Suspension <span class="text-danger">*</span>
+          </label>
+          <textarea class="form-control" rows="3" [(ngModel)]="suspendReason"
+                    placeholder="e.g. Multiple same-day cancellations, policy violations..."
+                    [class.is-invalid]="reasonSubmitted && !suspendReason.trim()">
+          </textarea>
+          <div class="invalid-feedback">Please provide a reason for suspension.</div>
+          <small class="text-muted">This reason will be recorded for audit purposes.</small>
+        </div>
+
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-danger btn-sm" data-bs-dismiss="modal" (click)="executeAction()">
-          Confirm
+        <button *ngIf="pendingNewStatus === 'SUSPENDED'"
+                class="btn btn-danger btn-sm"
+                [disabled]="!suspendReason.trim()"
+                data-bs-dismiss="modal"
+                (click)="executeAction()">
+          Confirm Suspension
+        </button>
+        <button *ngIf="pendingNewStatus !== 'SUSPENDED'"
+                class="btn btn-success btn-sm"
+                data-bs-dismiss="modal"
+                (click)="executeAction()">
+          Confirm Reactivation
         </button>
       </div>
     </div>

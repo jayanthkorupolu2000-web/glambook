@@ -33,6 +33,21 @@
   <!-- Main Content -->
   <div class="flex-fill p-4 overflow-auto">
 
+    <!-- ── SUSPENSION BANNER ── -->
+    <div *ngIf="isSuspended"
+         class="alert mb-4 d-flex align-items-start gap-3"
+         style="background:#fdecea;border:1.5px solid #f5c6c2;border-radius:12px;color:#c0392b;">
+      <span style="font-size:1.5rem;flex-shrink:0;">🚫</span>
+      <div>
+        <div class="fw-bold" style="font-size:1rem;">Your account has been suspended</div>
+        <div class="mt-1" style="font-size:.85rem;">
+          Your account is currently suspended by the admin. You can view your profile and history,
+          but you cannot book new appointments or make payments.
+          If you believe this is a mistake, please contact support.
+        </div>
+      </div>
+    </div>
+
     <div *ngIf="loading" class="text-center py-5">
       <div class="spinner-border" style="color:#244AFD;"></div>
     </div>

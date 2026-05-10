@@ -55,6 +55,8 @@ public class CustomerController {
                 .city(c.getCity())
                 .emergencyContact(c.getEmergencyContact())
                 .medicalNotes(c.getMedicalNotes())
+                .status(c.getStatus() != null ? c.getStatus().name() : "ACTIVE")
+                .cancelCount(c.getCancelCount())
                 .build();
     }
 }

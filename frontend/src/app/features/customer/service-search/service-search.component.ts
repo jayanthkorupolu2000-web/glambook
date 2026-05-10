@@ -145,7 +145,22 @@ export class ServiceSearchComponent implements OnInit {
   }
 
   bookNow(profId: number): void {
-    this.router.navigate(['/dashboard/customer/book', profId]);
+    // Check suspension status before allowing booking
+    const customerId = this.auth.getUserId();
+    if (customerId) {
+      this.http.get<any>(`http://localhost:8080/api/customers/${customerId}`).subscribe({
+        next: data => {
+          if (data.status === 'SUSPENDED') {
+            alert('Your account is suspended. You cannot book appointments. Please contact support.');
+            return;
+          }
+          this.router.navigate(['/dashboard/customer/book', profId]);
+        },
+        error: () => this.router.navigate(['/dashboard/customer/book', profId])
+      });
+    } else {
+      this.router.navigate(['/dashboard/customer/book', profId]);
+    }
   }
 
   openPortfolio(pro: ProfessionalSearchResult): void {

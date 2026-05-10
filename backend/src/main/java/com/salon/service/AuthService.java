@@ -60,6 +60,9 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), customer.getPassword())) {
             throw new UnauthorizedException("Invalid credentials");
         }
+        if (com.salon.entity.UserStatus.SUSPENDED.equals(customer.getStatus())) {
+            throw new UnauthorizedException("Your account has been suspended. Please contact support.");
+        }
         String token = jwtUtil.generateToken(customer.getEmail(), "CUSTOMER", customer.getId(), customer.getCity());
         return AuthResponse.builder()
                 .token(token)

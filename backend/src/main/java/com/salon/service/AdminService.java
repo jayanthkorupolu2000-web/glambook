@@ -99,6 +99,8 @@ public class AdminService {
                 .email(customer.getEmail())
                 .phone(customer.getPhone())
                 .city(customer.getCity())
+                .status(customer.getStatus() != null ? customer.getStatus().name() : "ACTIVE")
+                .cancelCount(customer.getCancelCount())
                 .build();
     }
 
@@ -124,6 +126,7 @@ public class AdminService {
                 .city(professional.getCity())
                 .specialization(professional.getSpecialization())
                 .experienceYears(professional.getExperienceYears())
+                .status(professional.getStatus() != null ? professional.getStatus().name() : "ACTIVE")
                 .salonOwner(ownerResponse)
                 .build();
     }

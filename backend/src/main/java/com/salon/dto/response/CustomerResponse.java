@@ -17,4 +17,6 @@ public class CustomerResponse {
     private String city;
     private String emergencyContact;
     private String medicalNotes;
+    private String status;
+    private Integer cancelCount;
 }

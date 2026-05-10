@@ -1,3 +1,4 @@
+import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -17,6 +18,7 @@ export class CustomerDashboardHomeComponent implements OnInit {
   customerId = 0;
   activeSection = 'home';
   policyDismissed = false;
+  isSuspended = false;
 
   sidebarLinks = [
     { id: 'home', icon: '🏠', label: 'Dashboard' },
@@ -36,19 +38,27 @@ export class CustomerDashboardHomeComponent implements OnInit {
     private dashboardService: CustomerDashboardService,
     private notifService: CustomerNotificationService,
     private auth: AuthService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
     this.customerId = this.auth.getUserId() || 0;
     this.policyDismissed = !!sessionStorage.getItem('policy_dismissed');
+    this.checkSuspensionStatus();
     this.load();
 
-    // Keep sidebar highlight in sync with the current URL
     this.syncActiveSection(this.router.url);
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: any) => this.syncActiveSection(e.urlAfterRedirects || e.url));
+  }
+
+  checkSuspensionStatus(): void {
+    this.http.get<any>(`http://localhost:8080/api/customers/${this.customerId}`).subscribe({
+      next: data => { this.isSuspended = data.status === 'SUSPENDED'; },
+      error: () => {}
+    });
   }
 
   private syncActiveSection(url: string): void {

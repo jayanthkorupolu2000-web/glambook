@@ -272,7 +272,6 @@ com\salon\service\ScheduleService.class
 com\salon\service\WalletService.class
 com\salon\dto\request\ReviewRequest$ReviewRequestBuilder.class
 com\salon\entity\ProductOrder.class
-com\salon\service\OtpService.class
 com\salon\entity\UserStatus.class
 com\salon\exception\GlobalExceptionHandler.class
 com\salon\controller\OwnerComplaintController.class
