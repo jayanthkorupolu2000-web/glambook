@@ -61,4 +61,7 @@ public class Customer {
     @Column(name = "reminder_opt_in")
     @Builder.Default
     private boolean reminderOptIn = true;
+
+    @Column(name = "suspension_reason", columnDefinition = "TEXT")
+    private String suspensionReason;
 }

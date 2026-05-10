@@ -10,4 +10,7 @@ public class UserStatusRequest {
     @NotBlank(message = "Please provide a valid status")
     @Pattern(regexp = "ACTIVE|SUSPENDED", message = "Status must be ACTIVE or SUSPENDED")
     private String status;
+
+    /** Optional reason shown to the customer when suspended */
+    private String reason;
 }

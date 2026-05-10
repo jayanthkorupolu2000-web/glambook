@@ -41,9 +41,10 @@
       <div>
         <div class="fw-bold" style="font-size:1rem;">Your account has been suspended</div>
         <div class="mt-1" style="font-size:.85rem;">
-          Your account is currently suspended by the admin. You can view your profile and history,
-          but you cannot book new appointments or make payments.
-          If you believe this is a mistake, please contact support.
+          {{ suspensionReason || 'Your account is currently suspended. You cannot book new appointments or make payments.' }}
+        </div>
+        <div class="mt-2" style="font-size:.82rem;opacity:.85;">
+          If you believe this is a mistake or have resolved the issue, please contact support to reactivate your account.
         </div>
       </div>
     </div>

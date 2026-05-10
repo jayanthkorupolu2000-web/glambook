@@ -57,6 +57,8 @@ public class SuspensionServiceImpl implements SuspensionService {
                 log.warn("Customer {} has their first same-day cancellation — warning issued", customerId);
             } else if (newCount >= 3) {
                 customer.setStatus(UserStatus.SUSPENDED);
+                customer.setSuspensionReason("Account suspended due to " + newCount
+                        + " same-day appointment cancellations. Your account will be reactivated once reviewed by admin.");
                 log.warn("Customer {} suspended after {} same-day cancellations", customerId, newCount);
             }
 
@@ -67,12 +69,25 @@ public class SuspensionServiceImpl implements SuspensionService {
     @Override
     @Transactional
     public UserStatusResponse updateUserStatus(Long userId, String userType, String status) {
+        return updateUserStatus(userId, userType, status, null);
+    }
+
+    @Override
+    @Transactional
+    public UserStatusResponse updateUserStatus(Long userId, String userType, String status, String reason) {
         UserStatus newStatus = UserStatus.valueOf(status.toUpperCase());
 
         if ("CUSTOMER".equalsIgnoreCase(userType)) {
             var customer = customerRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + userId));
             customer.setStatus(newStatus);
+            if (newStatus == UserStatus.SUSPENDED) {
+                customer.setSuspensionReason(reason != null && !reason.isBlank()
+                        ? reason
+                        : "Your account has been suspended by the admin. Please contact support to resolve this.");
+            } else {
+                customer.setSuspensionReason(null); // clear on reactivation
+            }
             customerRepository.save(customer);
             return new UserStatusResponse(customer.getId(), customer.getName(), "CUSTOMER", newStatus.name());
 

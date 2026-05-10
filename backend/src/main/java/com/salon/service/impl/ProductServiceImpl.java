@@ -142,6 +142,10 @@ public class ProductServiceImpl implements ProductService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
+        if (customer.getStatus() == UserStatus.SUSPENDED) {
+            throw new InvalidOperationException("Your account is suspended. You cannot place orders.");
+        }
+
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + request.getProductId()));
 

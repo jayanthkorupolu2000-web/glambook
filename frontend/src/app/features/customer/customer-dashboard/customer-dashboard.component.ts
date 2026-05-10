@@ -19,6 +19,7 @@ export class CustomerDashboardHomeComponent implements OnInit {
   activeSection = 'home';
   policyDismissed = false;
   isSuspended = false;
+  suspensionReason = '';
 
   sidebarLinks = [
     { id: 'home', icon: '🏠', label: 'Dashboard' },
@@ -45,7 +46,6 @@ export class CustomerDashboardHomeComponent implements OnInit {
   ngOnInit(): void {
     this.customerId = this.auth.getUserId() || 0;
     this.policyDismissed = !!sessionStorage.getItem('policy_dismissed');
-    this.checkSuspensionStatus();
     this.load();
 
     this.syncActiveSection(this.router.url);
@@ -55,10 +55,7 @@ export class CustomerDashboardHomeComponent implements OnInit {
   }
 
   checkSuspensionStatus(): void {
-    this.http.get<any>(`http://localhost:8080/api/customers/${this.customerId}`).subscribe({
-      next: data => { this.isSuspended = data.status === 'SUSPENDED'; },
-      error: () => {}
-    });
+    // No longer needed — suspension reason comes from the dashboard API response
   }
 
   private syncActiveSection(url: string): void {
@@ -71,6 +68,9 @@ export class CustomerDashboardHomeComponent implements OnInit {
     this.dashboardService.getDashboard(this.customerId).subscribe({
       next: data => {
         this.dashboard = data;
+        // Derive suspension state from dashboard response (avoids extra API call)
+        this.isSuspended = !!data.suspensionReason;
+        this.suspensionReason = data.suspensionReason || '';
         this.loading = false;
       },
       error: (err) => {
@@ -88,7 +88,8 @@ export class CustomerDashboardHomeComponent implements OnInit {
           unreadNotificationCount: 0,
           pendingOrderCount: 0,
           beautyProfileComplete: false,
-          latestGlobalPolicy: null
+          latestGlobalPolicy: null,
+          suspensionReason: null
         };
         this.loading = false;
       }

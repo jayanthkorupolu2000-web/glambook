@@ -18,4 +18,5 @@ public class CustomerDashboardResponse {
     private int pendingOrderCount;
     private boolean beautyProfileComplete;
     private PolicyResponse latestGlobalPolicy;
+    private String suspensionReason;
 }

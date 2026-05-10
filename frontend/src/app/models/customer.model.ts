@@ -111,6 +111,7 @@ export interface CustomerDashboardDTO {
   pendingOrderCount: number;
   beautyProfileComplete: boolean;
   latestGlobalPolicy: { title: string; content: string; createdAt: string } | null;
+  suspensionReason: string | null;
 }
 
 export interface ProfessionalSearchResult {

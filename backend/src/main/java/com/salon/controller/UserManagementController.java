@@ -32,7 +32,7 @@ public class UserManagementController {
             @PathVariable Long id,
             @RequestParam String userType,
             @Valid @RequestBody UserStatusRequest dto) {
-        return ResponseEntity.ok(suspensionService.updateUserStatus(id, userType, dto.getStatus()));
+        return ResponseEntity.ok(suspensionService.updateUserStatus(id, userType, dto.getStatus(), dto.getReason()));
     }
 
     @PatchMapping("/{id}/edit")

@@ -45,6 +45,11 @@ public class CustomerDashboardServiceImpl implements CustomerDashboardService {
             dashboard.setCustomerName(customer.getName());
             dashboard.setProfilePhotoUrl(customer.getProfilePhotoUrl());
             dashboard.setCityName(customer.getCity());
+            if (customer.getStatus() == UserStatus.SUSPENDED) {
+                dashboard.setSuspensionReason(customer.getSuspensionReason() != null
+                        ? customer.getSuspensionReason()
+                        : "Your account has been suspended. Please contact support to resolve this.");
+            }
 
             // Upcoming appointments — CONFIRMED or PENDING (not yet completed/cancelled)
             List<Appointment> upcoming = appointmentRepository

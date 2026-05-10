@@ -245,3 +245,18 @@ ALTER TABLE consultations ADD COLUMN professional_replied_at DATETIME NULL;
 -- ================= PROFESSIONAL — suspension fields =================
 ALTER TABLE professional ADD COLUMN suspension_reason TEXT NULL;
 ALTER TABLE professional ADD COLUMN suspended_until DATETIME NULL;
+
+-- ================= CUSTOMER — suspension reason =================
+ALTER TABLE customer ADD COLUMN suspension_reason TEXT NULL;
+
+-- ================= CUSTOMER NOTIFICATIONS — add ACCOUNT_SUSPENDED type =================
+ALTER TABLE customer_notifications
+MODIFY COLUMN type ENUM(
+'BOOKING_CONFIRMED','BOOKING_CANCELLED',
+'PAYMENT_SUCCESS','PAYMENT_REFUNDED',
+'REVIEW_RESPONSE','COMMUNICATION_RECEIVED',
+'LOYALTY_POINTS_EARNED','POLICY_UPDATED',
+'PROMOTION_AVAILABLE','CONSULTATION_CONFIRMED',
+'PAYMENT_REMINDER','ACCOUNT_SUSPENDED',
+'PAYMENT_REMINDER'
+) NOT NULL;
