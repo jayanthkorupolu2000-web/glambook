@@ -1,0 +1,320 @@
+/* ══════════════════════════════════════════════════════════════════
+   Staff List — Component Styles
+══════════════════════════════════════════════════════════════════ */
+
+:host {
+  display: block;
+}
+
+/* ── Page wrapper ──────────────────────────────────────────────── */
+.staff-page {
+  padding: 2rem 1.75rem;
+  background: #f2f5fa;
+  min-height: 100vh;
+}
+
+.staff-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #334155;
+  margin: 0 0 1.5rem;
+}
+
+/* ── Staff card ────────────────────────────────────────────────── */
+.staff-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e4e8f0;
+  box-shadow: 0 2px 12px rgba(51,65,85,.07);
+  padding: 1.25rem;
+  height: 100%;
+  transition: box-shadow .2s, transform .15s;
+
+  &:hover {
+    box-shadow: 0 6px 20px rgba(51,65,85,.12);
+    transform: translateY(-2px);
+  }
+}
+
+/* ── Avatar ────────────────────────────────────────────────────── */
+.staff-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #334155;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Status badges ─────────────────────────────────────────────── */
+.badge-active    { background: #dcfce7; color: #166534; font-size: .7rem; font-weight: 700; padding: .3rem .7rem; border-radius: 20px; }
+.badge-pending   { background: #fef9c3; color: #854d0e; font-size: .7rem; font-weight: 700; padding: .3rem .7rem; border-radius: 20px; }
+.badge-suspended { background: #fee2e2; color: #991b1b; font-size: .7rem; font-weight: 700; padding: .3rem .7rem; border-radius: 20px; }
+
+/* ── Suspension info strip ─────────────────────────────────────── */
+.suspension-info {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+  padding: .5rem .75rem;
+  font-size: .75rem;
+  color: #7c5c00;
+  margin-top: .6rem;
+}
+
+/* ── Action buttons ────────────────────────────────────────────── */
+.btn-approve {
+  flex: 1;
+  padding: .45rem .75rem;
+  border-radius: 8px;
+  border: none;
+  background: #16a34a;
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+
+  &:hover:not(:disabled) { background: #15803d; }
+  &:disabled { opacity: .6; cursor: not-allowed; }
+}
+
+.btn-suspend {
+  flex: 1;
+  padding: .45rem .75rem;
+  border-radius: 8px;
+  border: 1.5px solid #dc2626;
+  background: transparent;
+  color: #dc2626;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+
+  &:hover:not(:disabled) { background: #dc2626; color: #fff; }
+  &:disabled { opacity: .6; cursor: not-allowed; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SUSPENSION MODAL — use ::ng-deep so fixed overlay escapes
+   component encapsulation
+══════════════════════════════════════════════════════════════════ */
+
+/* Backdrop */
+:host ::ng-deep .modal-backdrop-custom {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  backdrop-filter: blur(4px);
+  z-index: 2000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem;
+  animation: sdFadeIn .18s ease;
+}
+
+@keyframes sdFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Modal box */
+:host ::ng-deep .modal-box {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  animation: sdSlideUp .22s cubic-bezier(.4, 0, .2, 1);
+}
+
+@keyframes sdSlideUp {
+  from { opacity: 0; transform: translateY(28px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header */
+:host ::ng-deep .modal-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.4rem 1.6rem 1.1rem;
+  border-bottom: 1px solid #fee2e2;
+  background: linear-gradient(135deg, #fff5f5 0%, #fff 100%);
+}
+
+:host ::ng-deep .modal-box-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #c0392b;
+  margin: 0 0 .2rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+:host ::ng-deep .modal-box-sub {
+  font-size: .82rem;
+  color: #64748b;
+  margin: 0;
+}
+
+:host ::ng-deep .modal-close-btn {
+  background: #f1f5f9;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: .85rem;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #334155;
+  }
+}
+
+/* Body */
+:host ::ng-deep .modal-box-body {
+  padding: 1.5rem 1.6rem;
+}
+
+:host ::ng-deep .modal-box-body .form-label {
+  font-size: .85rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: .4rem;
+}
+
+:host ::ng-deep .modal-box-body .form-control {
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: .88rem;
+  padding: .65rem .9rem;
+  transition: border-color .15s, box-shadow .15s;
+  resize: vertical;
+
+  &:focus {
+    border-color: #334155;
+    box-shadow: 0 0 0 3px rgba(51,65,85,.1);
+    outline: none;
+  }
+
+  &.is-invalid {
+    border-color: #dc2626;
+  }
+}
+
+/* Duration radio group */
+:host ::ng-deep .duration-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+:host ::ng-deep .duration-option {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  font-size: .85rem;
+  font-weight: 600;
+  color: #475569;
+
+  input[type="radio"] {
+    accent-color: #334155;
+    width: 16px;
+    height: 16px;
+  }
+
+  &.selected {
+    border-color: #334155;
+    background: #f1f5f9;
+    color: #1e293b;
+  }
+}
+
+/* Warning box */
+:host ::ng-deep .suspend-warning-box {
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  font-size: .8rem;
+  color: #78350f;
+  margin-top: .75rem;
+
+  svg { flex-shrink: 0; margin-top: 2px; }
+
+  strong { font-size: .82rem; }
+
+  ul {
+    font-size: .78rem;
+    margin: .4rem 0 0;
+    padding-left: 1.1rem;
+    line-height: 1.7;
+  }
+}
+
+/* Footer */
+:host ::ng-deep .modal-box-footer {
+  padding: 1rem 1.6rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  background: #f8fafc;
+}
+
+:host ::ng-deep .modal-box-footer .btn-cancel {
+  padding: .6rem 1.4rem;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+
+  &:hover:not(:disabled) { background: #f1f5f9; }
+  &:disabled { opacity: .6; cursor: not-allowed; }
+}
+
+:host ::ng-deep .modal-box-footer .btn-confirm-suspend {
+  padding: .6rem 1.4rem;
+  border-radius: 10px;
+  border: none;
+  background: #dc2626;
+  color: #fff;
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  transition: background .15s, transform .1s;
+
+  &:hover:not(:disabled) { background: #b91c1c; transform: translateY(-1px); }
+  &:disabled { opacity: .65; cursor: not-allowed; transform: none; }
+}

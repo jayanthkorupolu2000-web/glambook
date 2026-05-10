@@ -1,74 +1,198 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">Complaints</h4>
+<div class="oc-page">
 
-  <div class="d-flex gap-2 mb-3">
-    <select class="form-select w-auto" [(ngModel)]="statusFilter" (change)="load()">
-      <option value="FORWARDED">Forwarded to Me</option>
-      <option value="ALL">All Complaints</option>
-    </select>
-    <button class="btn btn-outline-primary" (click)="load()">Refresh</button>
+  <div class="oc-header-row">
+    <div>
+      <h4 class="oc-title">Complaints</h4>
+      <p class="oc-subtitle">Complaints forwarded to you by admin about your professionals</p>
+    </div>
+    <div class="oc-filters">
+      <select class="oc-select" [(ngModel)]="statusFilter" (change)="load()">
+        <option value="FORWARDED">Forwarded to Me</option>
+        <option value="ALL">All Complaints</option>
+      </select>
+      <button class="oc-btn-refresh" (click)="load()">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
   </div>
 
-  <div *ngIf="loading" class="text-center py-4">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <div *ngIf="success" class="oc-alert oc-success">✓ {{ success }}</div>
+  <div *ngIf="error"   class="oc-alert oc-danger">⚠ {{ error }}</div>
+
+  <div *ngIf="loading" class="oc-loading">
+    <div class="spinner-border" style="color:#334155;width:1.4rem;height:1.4rem;border-width:2px;"></div>
+    <span>Loading complaints...</span>
   </div>
 
-  <div class="card border-0 shadow-sm" *ngIf="!loading">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr><th>#</th><th>Customer</th><th>Professional</th><th>Feedback</th><th>Rating</th><th>Status</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let c of complaints">
-            <td class="text-muted">{{ c.id }}</td>
-            <td>{{ c.customerName }}</td>
-            <td>{{ c.professionalName }}</td>
-            <td><span class="badge bg-secondary">{{ c.feedback }}</span></td>
-            <td>
-              <span *ngFor="let s of stars(5)" [style.color]="s <= c.rating ? '#f5a623' : '#ccc'">★</span>
-            </td>
-            <td><span [class]="statusBadge(c.status)">{{ c.status }}</span></td>
-            <td>
-              <button class="btn btn-sm btn-outline-primary"
-                      [disabled]="c.status !== 'FORWARDED'"
-                      data-bs-toggle="modal" data-bs-target="#actionModal"
-                      (click)="openAction(c)">
-                Log Action
-              </button>
-            </td>
-          </tr>
-          <tr *ngIf="complaints.length === 0">
-            <td colspan="7" class="text-center text-muted py-3">No complaints found.</td>
-          </tr>
-        </tbody>
-      </table>
+  <div *ngIf="!loading && complaints.length === 0" class="oc-empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <p>No complaints found. Your salon is doing great!</p>
+  </div>
+
+  <div *ngIf="!loading && complaints.length > 0" class="oc-list">
+    <div *ngFor="let c of complaints" class="oc-card">
+
+      <!-- Card header -->
+      <div class="oc-card-header">
+        <div class="oc-card-left">
+          <div class="oc-avatar">{{ c.customerName.charAt(0) }}</div>
+          <div>
+            <div class="oc-customer-name">{{ c.customerName }}</div>
+            <div class="oc-date">{{ c.createdAt | date:'dd MMM yyyy, HH:mm' }}</div>
+          </div>
+        </div>
+        <span class="oc-status"
+              [style.background]="statusBg(c.status)"
+              [style.color]="statusColor(c.status)">
+          {{ c.status }}
+        </span>
+      </div>
+
+      <!-- Professional -->
+      <div class="oc-prof-row">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:13px;height:13px;opacity:.5;">
+          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+        </svg>
+        <span>Professional: <strong>{{ c.professionalName }}</strong></span>
+      </div>
+
+      <!-- Description -->
+      <p class="oc-desc">{{ c.description }}</p>
+
+      <!-- Meta -->
+      <div class="oc-meta">
+        <span class="oc-feedback">{{ c.feedback }}</span>
+        <span class="oc-stars">
+          <span *ngFor="let s of stars(5)" [style.color]="s <= c.rating ? '#f5a623' : '#d1d5db'">★</span>
+        </span>
+      </div>
+
+      <!-- Owner action notes (if already logged) -->
+      <div *ngIf="c.ownerActionNotes" class="oc-action-logged">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:13px;height:13px;flex-shrink:0;">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+        </svg>
+        <span><strong>Your remarks:</strong> {{ c.ownerActionNotes }}</span>
+      </div>
+
+      <!-- Resolution -->
+      <div *ngIf="c.resolutionNotes" class="oc-resolved">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:13px;height:13px;flex-shrink:0;">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span><strong>Admin resolution:</strong> {{ c.resolutionNotes }}</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="oc-actions" *ngIf="c.status === 'FORWARDED'">
+        <button class="oc-btn-action" (click)="openAction(c)">
+          <svg viewBox="0 0 20 20" fill="currentColor" style="width:13px;height:13px;">
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+          </svg>
+          Add Remarks
+        </button>
+        <button class="oc-btn-suspend" (click)="openSuspend(c)">
+          <svg viewBox="0 0 20 20" fill="currentColor" style="width:13px;height:13px;">
+            <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd"/>
+          </svg>
+          Suspend Professional
+        </button>
+      </div>
+
     </div>
   </div>
 </div>
 
-<!-- Action Modal -->
-<div class="modal fade" id="actionModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold" style="color:#244AFD;">Log Corrective Action</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- ── Add Remarks Modal ── -->
+<div *ngIf="selectedComplaint" class="oc-modal-backdrop" (click)="closeAction()">
+  <div class="oc-modal" (click)="$event.stopPropagation()">
+    <div class="oc-modal-header">
+      <div class="oc-modal-title">✏️ Add Remarks</div>
+      <div class="oc-modal-sub">Complaint #{{ selectedComplaint.id }} — {{ selectedComplaint.professionalName }}</div>
+      <button class="oc-modal-close" (click)="closeAction()">✕</button>
+    </div>
+    <div class="oc-modal-body">
+      <p class="small text-muted mb-2">
+        Describe what action you are taking or have taken regarding this complaint.
+        This will be visible to the customer.
+      </p>
+      <label class="oc-modal-label">Your Remarks <span class="req">*</span></label>
+      <textarea class="oc-modal-input" rows="4" [(ngModel)]="actionNotes"
+                placeholder="e.g. I have spoken to the professional and warned them about their behaviour. They have been asked to improve their service quality..."></textarea>
+      <small style="color:#94a3b8;font-size:.72rem;">Minimum 10 characters · {{ actionNotes.length }} typed</small>
+    </div>
+    <div class="oc-modal-footer">
+      <button class="oc-modal-btn-cancel" (click)="closeAction()" [disabled]="submitting">Cancel</button>
+      <button class="oc-modal-btn-submit" (click)="submitAction()"
+              [disabled]="actionNotes.trim().length < 10 || submitting">
+        <span *ngIf="submitting" class="spinner-border spinner-border-sm"></span>
+        {{ submitting ? 'Saving...' : 'Save Remarks' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Suspend Professional Modal ── -->
+<div *ngIf="suspendTarget" class="oc-modal-backdrop" (click)="closeSuspend()">
+  <div class="oc-modal oc-modal-danger" (click)="$event.stopPropagation()">
+    <div class="oc-modal-header danger-header">
+      <div class="oc-modal-title">⚠ Suspend Professional</div>
+      <div class="oc-modal-sub">Suspending <strong>{{ suspendTarget.professionalName }}</strong> based on complaint #{{ suspendTarget.id }}</div>
+      <button class="oc-modal-close" (click)="closeSuspend()">✕</button>
+    </div>
+    <div class="oc-modal-body">
+
+      <div class="oc-modal-field">
+        <label class="oc-modal-label">Reason <span class="req">*</span></label>
+        <textarea class="oc-modal-input" rows="3" [(ngModel)]="suspendReason"
+                  placeholder="Reason for suspension..."
+                  [class.invalid]="suspendSubmitted && !suspendReason.trim()"></textarea>
+        <span class="oc-modal-error" *ngIf="suspendSubmitted && !suspendReason.trim()">Reason is required.</span>
       </div>
-      <div class="modal-body">
-        <p class="text-muted small">Complaint #{{ selectedComplaint?.id }} — {{ selectedComplaint?.professionalName }}</p>
-        <label class="form-label fw-semibold">Action Notes</label>
-        <textarea class="form-control" rows="4" [(ngModel)]="actionNotes"
-                  placeholder="Describe the corrective action taken..."></textarea>
+
+      <div class="oc-modal-field">
+        <label class="oc-modal-label">Duration</label>
+        <div class="oc-duration-group">
+          <label class="oc-duration-opt" [class.selected]="suspendDurationType === 'permanent'">
+            <input type="radio" [(ngModel)]="suspendDurationType" value="permanent"> 🔒 Permanent
+          </label>
+          <label class="oc-duration-opt" [class.selected]="suspendDurationType === 'days'">
+            <input type="radio" [(ngModel)]="suspendDurationType" value="days"> 📅 Specific days
+          </label>
+        </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary" data-bs-dismiss="modal"
-                [disabled]="!actionNotes.trim() || submitting"
-                (click)="submitAction()">
-          Submit
-        </button>
+
+      <div *ngIf="suspendDurationType === 'days'" class="oc-modal-field">
+        <label class="oc-modal-label">Number of Days</label>
+        <input type="number" class="oc-modal-input" [(ngModel)]="suspendDays"
+               min="1" max="365" placeholder="e.g. 7" (input)="clampDays()"
+               [class.invalid]="suspendSubmitted && suspendDurationType === 'days' && (!suspendDays || suspendDays < 1)">
+        <small *ngIf="suspendEndDate" style="color:#64748b;font-size:.72rem;">
+          Ends on: <strong>{{ suspendEndDate | date:'dd MMM yyyy' }}</strong>
+        </small>
       </div>
+
+      <div class="oc-warn-box">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:16px;height:16px;flex-shrink:0;">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div>
+          <strong>This will:</strong> suspend the professional, cancel all their active appointments, and notify them and affected customers.
+        </div>
+      </div>
+
+    </div>
+    <div class="oc-modal-footer">
+      <button class="oc-modal-btn-cancel" (click)="closeSuspend()" [disabled]="suspendLoading">Cancel</button>
+      <button class="oc-modal-btn-danger" (click)="confirmSuspend()" [disabled]="suspendLoading">
+        <span *ngIf="suspendLoading" class="spinner-border spinner-border-sm"></span>
+        {{ suspendLoading ? 'Suspending...' : 'Confirm Suspension' }}
+      </button>
     </div>
   </div>
 </div>

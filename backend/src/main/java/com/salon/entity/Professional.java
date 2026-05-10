@@ -43,6 +43,12 @@ public class Professional {
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
+    @Column(name = "suspension_reason", columnDefinition = "TEXT")
+    private String suspensionReason;
+
+    @Column(name = "suspended_until")
+    private LocalDateTime suspendedUntil;   // null = permanent
+
     // Media and discovery fields
     @Column(name = "profile_photo_url")
     private String profilePhotoUrl;

@@ -25,6 +25,8 @@ export class ServiceManagementComponent implements OnInit {
   loading = false;
   error: string | null = null;
   success = '';
+  deleteMsg = '';
+  deactivateMsg = '';
   showForm = false;
   submitting = false;
   form!: FormGroup;
@@ -80,18 +82,29 @@ export class ServiceManagementComponent implements OnInit {
   toggleService(id: number, name: string, current: boolean): void {
     this.http.patch(`${API_BASE}/api/services/${id}/toggle`, {}).subscribe({
       next: () => {
-        this.success = `"${name}" ${current ? 'deactivated' : 'activated'}!`;
+        if (current) {
+          // was active → now deactivated → orange
+          this.deactivateMsg = `"${name}" deactivated.`;
+          setTimeout(() => this.deactivateMsg = '', 3000);
+        } else {
+          // was inactive → now activated → green
+          this.success = `"${name}" activated!`;
+          setTimeout(() => this.success = '', 3000);
+        }
         this.load();
-        setTimeout(() => this.success = '', 3000);
       },
-      error: () => { this.error = 'Failed to toggle service.'; }
+      error: () => { this.success = ''; this.error = 'Failed to toggle service.'; }
     });
   }
 
   deleteService(id: number, name: string): void {
     if (!window.confirm(`Delete service "${name}"? This cannot be undone.`)) return;
     this.http.delete(`${API_BASE}/api/services/${id}`).subscribe({
-      next: () => { this.load(); this.success = 'Service deleted.'; setTimeout(() => this.success = '', 3000); },
+      next: () => {
+        this.deleteMsg = `"${name}" deleted.`;
+        setTimeout(() => this.deleteMsg = '', 3000);
+        this.load();
+      },
       error: () => { this.error = 'Failed to delete service.'; }
     });
   }

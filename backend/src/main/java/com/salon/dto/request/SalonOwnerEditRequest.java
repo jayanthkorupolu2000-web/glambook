@@ -8,8 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for editing a Salon Owner's name and phone.
- * Only these two fields are allowed to be updated by Admin.
+ * Request DTO for editing a Salon Owner's name, phone and salon name.
  */
 @Data
 @Builder
@@ -23,4 +22,7 @@ public class SalonOwnerEditRequest {
     @NotBlank(message = "Please provide a valid phone")
     @Pattern(regexp = "^[6-9]\\d{9}$", message = "Please provide a valid phone")
     private String phone;
+
+    @NotBlank(message = "Please provide a salon name")
+    private String salonName;
 }

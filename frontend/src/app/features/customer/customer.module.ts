@@ -9,6 +9,7 @@ import { AppointmentHistoryComponent } from './appointment-history/appointment-h
 import { BeautyProfileComponent } from './beauty-profile/beauty-profile.component';
 import { ConsultationsComponent } from './consultations/consultations.component';
 import { CustomerAppointmentsComponent } from './customer-appointments/customer-appointments.component';
+import { CustomerComplaintsComponent } from './customer-complaints/customer-complaints.component';
 import { CustomerDashboardComponent } from './customer-dashboard.component';
 import { CustomerDashboardHomeComponent } from './customer-dashboard/customer-dashboard.component';
 import { CustomerFavoritesComponent } from './customer-favorites/customer-favorites.component';
@@ -39,7 +40,8 @@ const routes: Routes = [
       { path: 'products', component: CustomerProductsComponent },
       { path: 'orders', component: CustomerOrdersComponent },
       { path: 'loyalty', component: CustomerLoyaltyComponent },
-      { path: 'favorites', component: CustomerFavoritesComponent }
+      { path: 'favorites', component: CustomerFavoritesComponent },
+      { path: 'complaints', component: CustomerComplaintsComponent }
     ]
   }
 ];
@@ -60,7 +62,8 @@ const routes: Routes = [
     CustomerProductsComponent,
     CustomerOrdersComponent,
     CustomerLoyaltyComponent,
-    CustomerFavoritesComponent
+    CustomerFavoritesComponent,
+    CustomerComplaintsComponent
   ],
   imports: [
     CommonModule,

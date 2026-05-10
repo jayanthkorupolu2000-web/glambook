@@ -47,6 +47,7 @@ public class ServiceService {
                 .gender(service.getGender() != null ? service.getGender().name() : null)
                 .price(service.getPrice())
                 .durationMins(service.getDurationMins())
+                .isActive(Boolean.TRUE.equals(service.getIsActive()))
                 .build();
     }
 }

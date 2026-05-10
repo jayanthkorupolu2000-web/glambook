@@ -1,0 +1,186 @@
+<div class="cc-page">
+
+  <!-- Header -->
+  <div class="cc-header-row">
+    <div>
+      <h4 class="cc-title">My Complaints</h4>
+      <p class="cc-subtitle">Report issues with professionals you've booked</p>
+    </div>
+    <button class="cc-btn-new" (click)="showForm = !showForm">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+      {{ showForm ? 'Cancel' : 'New Complaint' }}
+    </button>
+  </div>
+
+  <!-- Alerts -->
+  <div *ngIf="success" class="cc-alert cc-alert-success">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+    {{ success }}
+  </div>
+  <div *ngIf="error" class="cc-alert cc-alert-danger">
+    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+    {{ error }}
+  </div>
+
+  <!-- ── New Complaint Form ── -->
+  <div *ngIf="showForm" class="cc-card mb-4">
+    <div class="cc-card-banner">
+      <div class="cc-banner-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div>
+        <div class="cc-banner-title">File a Complaint</div>
+        <div class="cc-banner-sub">Only completed appointments can be reported</div>
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="cc-form">
+
+      <!-- Professional -->
+      <div class="cc-field">
+        <label class="cc-label">Professional <span class="req">*</span></label>
+        <select class="cc-input" formControlName="professionalId"
+                [class.invalid]="f['professionalId'].touched && f['professionalId'].invalid">
+          <option [ngValue]="null">Select a professional...</option>
+          <option *ngFor="let a of completedAppointments" [value]="a.professionalId">
+            {{ a.professionalName }} — {{ a.serviceName }}
+          </option>
+        </select>
+        <span class="cc-error" *ngIf="f['professionalId'].touched && f['professionalId'].invalid">
+          Please select a professional.
+        </span>
+        <span class="cc-hint" *ngIf="completedAppointments.length === 0">
+          You need at least one completed appointment to file a complaint.
+        </span>
+      </div>
+
+      <!-- Description -->
+      <div class="cc-field">
+        <label class="cc-label">Description <span class="req">*</span></label>
+        <textarea class="cc-input cc-textarea" rows="4" formControlName="description"
+                  placeholder="Describe the issue in detail (minimum 20 characters)..."
+                  [class.invalid]="f['description'].touched && f['description'].invalid"></textarea>
+        <div class="cc-field-footer">
+          <span class="cc-error" *ngIf="f['description'].touched && f['description'].invalid">
+            Description must be at least 20 characters.
+          </span>
+          <span class="cc-char-count">{{ form.value.description?.length || 0 }}/1000</span>
+        </div>
+      </div>
+
+      <div class="cc-form-row">
+        <!-- Feedback -->
+        <div class="cc-field">
+          <label class="cc-label">Overall Feedback <span class="req">*</span></label>
+          <div class="cc-feedback-group">
+            <label *ngFor="let opt of feedbackOptions"
+                   class="cc-feedback-option"
+                   [class.selected]="form.value.feedback === opt.value">
+              <input type="radio" formControlName="feedback" [value]="opt.value" class="sr-only">
+              {{ opt.label }}
+            </label>
+          </div>
+        </div>
+
+        <!-- Rating -->
+        <div class="cc-field">
+          <label class="cc-label">Rating <span class="req">*</span></label>
+          <div class="cc-stars">
+            <button type="button" *ngFor="let s of stars(5)"
+                    class="cc-star"
+                    [class.filled]="s <= form.value.rating"
+                    (click)="setRating(s)">★</button>
+          </div>
+          <span class="cc-hint">{{ form.value.rating }}/5</span>
+        </div>
+      </div>
+
+      <div class="cc-form-actions">
+        <button type="button" class="cc-btn-cancel" (click)="showForm = false">Cancel</button>
+        <button type="submit" class="cc-btn-submit" [disabled]="submitting || completedAppointments.length === 0">
+          <span *ngIf="submitting" class="spinner-border spinner-border-sm"></span>
+          <svg *ngIf="!submitting" viewBox="0 0 20 20" fill="currentColor" style="width:15px;height:15px;">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          {{ submitting ? 'Submitting...' : 'Submit Complaint' }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- ── Complaints History ── -->
+  <div class="cc-card">
+    <div class="cc-list-header">
+      <div class="cc-card-title">Complaint History</div>
+      <span class="cc-count">{{ complaints.length }}</span>
+    </div>
+
+    <div *ngIf="loading" class="cc-loading">
+      <div class="spinner-border" style="color:#334155;width:1.4rem;height:1.4rem;border-width:2px;"></div>
+      <span>Loading...</span>
+    </div>
+
+    <div *ngIf="!loading && complaints.length === 0" class="cc-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <p>No complaints filed yet.</p>
+    </div>
+
+    <div *ngIf="!loading && complaints.length > 0" class="cc-list">
+      <div *ngFor="let c of complaints" class="cc-item">
+
+        <div class="cc-item-top">
+          <div class="cc-item-prof">
+            <div class="cc-prof-avatar">{{ c.professionalName.charAt(0) }}</div>
+            <div>
+              <div class="cc-prof-name">{{ c.professionalName }}</div>
+              <div class="cc-item-date">{{ c.createdAt | date:'dd MMM yyyy, HH:mm' }}</div>
+            </div>
+          </div>
+          <span class="cc-status-badge"
+                [style.background]="statusBg(c.status)"
+                [style.color]="statusColor(c.status)">
+            {{ c.status }}
+          </span>
+        </div>
+
+        <p class="cc-item-desc">{{ c.description }}</p>
+
+        <div class="cc-item-meta">
+          <span class="cc-feedback-tag">{{ c.feedback }}</span>
+          <span class="cc-rating-stars">
+            <span *ngFor="let s of stars(5)" [style.color]="s <= c.rating ? '#f5a623' : '#d1d5db'">★</span>
+          </span>
+        </div>
+
+        <!-- Resolution notes (if resolved) -->
+        <div *ngIf="c.resolutionNotes" class="cc-resolution">
+          <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;flex-shrink:0;">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <div>
+            <strong>Admin Resolution:</strong> {{ c.resolutionNotes }}
+          </div>
+        </div>
+
+        <!-- Owner action notes -->
+        <div *ngIf="c.ownerActionNotes" class="cc-owner-action">
+          <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;flex-shrink:0;">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+          <div>
+            <strong>Salon Owner Action:</strong> {{ c.ownerActionNotes }}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>

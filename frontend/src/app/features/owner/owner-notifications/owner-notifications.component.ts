@@ -29,12 +29,17 @@ export class OwnerNotificationsComponent implements OnInit {
     });
   }
 
-  markAllRead(): void { this.notifService.markAllAsRead(this.ownerId).subscribe(() => this.load()); }
+  markAllRead(): void {
+    this.notifService.markAllAsRead(this.ownerId).subscribe({
+      next: () => this.notifications.forEach(n => n.isRead = true)
+    });
+  }
 
   markRead(id: number): void {
-    this.notifService.markAsRead(this.ownerId, id).subscribe(() => {
-      const n = this.notifications.find(x => x.id === id);
-      if (n) n.isRead = true;
+    const n = this.notifications.find(x => x.id === id);
+    if (!n || n.isRead) return;
+    this.notifService.markAsRead(this.ownerId, id).subscribe({
+      next: () => { if (n) n.isRead = true; }
     });
   }
 

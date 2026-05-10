@@ -8,6 +8,7 @@ import { OwnerLoyaltyComponent } from './loyalty/owner-loyalty.component';
 import { OwnerComplaintsComponent } from './owner-complaints/owner-complaints.component';
 import { OwnerConsultationsComponent } from './owner-consultations/owner-consultations.component';
 import { OwnerDashboardComponent } from './owner-dashboard.component';
+import { OwnerHomeComponent } from './owner-home/owner-home.component';
 import { OwnerNotificationsComponent } from './owner-notifications/owner-notifications.component';
 import { OwnerProfileComponent } from './owner-profile/owner-profile.component';
 import { OwnerReportsComponent } from './owner-reports/owner-reports.component';
@@ -21,7 +22,8 @@ const routes: Routes = [
     path: '',
     component: OwnerDashboardComponent,
     children: [
-      { path: '', redirectTo: 'staff', pathMatch: 'full' },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'dashboard', component: OwnerHomeComponent },
       { path: 'profile', component: OwnerProfileComponent },
       { path: 'staff', component: StaffListComponent },
       { path: 'services', component: ServiceManagementComponent },
@@ -40,6 +42,7 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     OwnerDashboardComponent,
+    OwnerHomeComponent,
     OwnerProfileComponent,
     StaffListComponent,
     ServiceManagementComponent,

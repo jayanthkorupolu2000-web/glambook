@@ -1,5 +1,6 @@
 package com.salon.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class AdminNotificationResponse {
     private Long id;
     private String message;
     private Long referenceId;
+    @JsonProperty("isRead")
     private boolean isRead;
     private LocalDateTime createdAt;
 }

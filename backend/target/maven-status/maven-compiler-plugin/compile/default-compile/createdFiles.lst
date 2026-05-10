@@ -272,6 +272,7 @@ com\salon\service\ScheduleService.class
 com\salon\service\WalletService.class
 com\salon\dto\request\ReviewRequest$ReviewRequestBuilder.class
 com\salon\entity\ProductOrder.class
+com\salon\service\OtpService.class
 com\salon\entity\UserStatus.class
 com\salon\exception\GlobalExceptionHandler.class
 com\salon\controller\OwnerComplaintController.class
@@ -349,6 +350,7 @@ com\salon\entity\ResourceType.class
 com\salon\entity\Payment.class
 com\salon\entity\ServiceBeforeAfter$ServiceBeforeAfterBuilder.class
 com\salon\service\impl\ProfessionalNotificationServiceImpl.class
+com\salon\dto\request\SuspendProfessionalRequest.class
 com\salon\entity\Professional$ProfessionalBuilder.class
 com\salon\service\ReviewService.class
 com\salon\entity\SalonOwner$SalonOwnerBuilder.class

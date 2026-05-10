@@ -5,16 +5,33 @@ import { OwnerIdService } from '../../../services/owner-id.service';
 
 const API_BASE = 'http://localhost:8080';
 
+type StaffMember = Professional & {
+  status?: string;
+  suspensionReason?: string;
+  suspendedUntil?: string | null;
+};
+
 @Component({
   selector: 'app-staff-list',
-  templateUrl: './staff-list.component.html'
+  templateUrl: './staff-list.component.html',
+  styleUrls: ['./staff-list.component.scss']
 })
 export class StaffListComponent implements OnInit {
-  staff: (Professional & { status?: string })[] = [];
+  staff: StaffMember[] = [];
   loading = false;
   error: string | null = null;
+  successMsg = '';
+  suspendMsg = '';
   actionLoading: Record<number, boolean> = {};
   ownerId = 0;
+
+  // ── Suspension modal state ──────────────────────────────────────
+  suspendTarget: StaffMember | null = null;
+  suspendReason = '';
+  suspendDurationType: 'permanent' | 'days' = 'permanent';
+  suspendDays: number | null = null;
+  suspendLoading = false;
+  suspendSubmitted = false;
 
   constructor(private http: HttpClient, private ownerIdService: OwnerIdService) {}
 
@@ -28,7 +45,7 @@ export class StaffListComponent implements OnInit {
 
   loadStaff(id: number): void {
     this.loading = true;
-    this.http.get<(Professional & { status?: string })[]>(`${API_BASE}/api/owners/${id}/staff`).subscribe({
+    this.http.get<StaffMember[]>(`${API_BASE}/api/owners/${id}/staff`).subscribe({
       next: data => { this.staff = data; this.loading = false; },
       error: () => { this.error = 'Failed to load staff.'; this.loading = false; }
     });
@@ -36,37 +53,92 @@ export class StaffListComponent implements OnInit {
 
   approve(profId: number): void {
     this.actionLoading[profId] = true;
-    this.http.patch<Professional & { status?: string }>(
+    this.http.patch<StaffMember>(
       `${API_BASE}/api/owners/${this.ownerId}/staff/${profId}/approve`, {}
     ).subscribe({
       next: updated => {
         const idx = this.staff.findIndex(s => s.id === profId);
         if (idx !== -1) this.staff[idx] = { ...this.staff[idx], ...updated };
         this.actionLoading[profId] = false;
+        this.showSuccess('Professional reactivated successfully.');
       },
       error: () => this.actionLoading[profId] = false
     });
   }
 
-  reject(profId: number): void {
-    this.actionLoading[profId] = true;
-    this.http.patch<Professional & { status?: string }>(
-      `${API_BASE}/api/owners/${this.ownerId}/staff/${profId}/reject`, {}
+  // ── Open suspension modal ───────────────────────────────────────
+  openSuspendModal(member: StaffMember): void {
+    this.suspendTarget = member;
+    this.suspendReason = '';
+    this.suspendDurationType = 'permanent';
+    this.suspendDays = null;
+    this.suspendSubmitted = false;
+    this.suspendLoading = false;
+  }
+
+  closeSuspendModal(): void {
+    this.suspendTarget = null;
+  }
+
+  confirmSuspend(): void {
+    this.suspendSubmitted = true;
+    if (!this.suspendReason.trim()) return;
+    if (this.suspendDurationType === 'days' && (!this.suspendDays || this.suspendDays < 1)) return;
+
+    if (!this.suspendTarget) return;
+    this.suspendLoading = true;
+
+    const body: any = { reason: this.suspendReason.trim() };
+    if (this.suspendDurationType === 'days' && this.suspendDays) {
+      body.durationDays = this.suspendDays;
+    }
+
+    this.http.patch<StaffMember>(
+      `${API_BASE}/api/owners/${this.ownerId}/staff/${this.suspendTarget.id}/suspend`,
+      body
     ).subscribe({
       next: updated => {
-        const idx = this.staff.findIndex(s => s.id === profId);
+        const idx = this.staff.findIndex(s => s.id === this.suspendTarget!.id);
         if (idx !== -1) this.staff[idx] = { ...this.staff[idx], ...updated };
-        this.actionLoading[profId] = false;
+        this.suspendLoading = false;
+        this.closeSuspendModal();
+        this.suspendMsg = 'Professional suspended. Active appointments cancelled and notifications sent.';
+        setTimeout(() => this.suspendMsg = '', 4000);
       },
-      error: () => this.actionLoading[profId] = false
+      error: (err) => {
+        this.suspendLoading = false;
+        this.error = err?.error?.message || 'Failed to suspend professional.';
+      }
     });
+  }
+
+  // ── Computed: suspension end date preview ───────────────────────
+  get suspendEndDate(): Date | null {
+    if (!this.suspendDays || this.suspendDays < 1) return null;
+    const d = new Date();
+    d.setDate(d.getDate() + this.suspendDays);
+    return d;
+  }
+
+  clampDays(): void {
+    if (this.suspendDays === null || this.suspendDays === undefined) return;
+    if (this.suspendDays < 1) this.suspendDays = 1;
+    if (this.suspendDays > 365) this.suspendDays = 365;
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────
+  private showSuccess(msg: string): void {
+    this.successMsg = msg;
+    setTimeout(() => this.successMsg = '', 4000);
   }
 
   statusBadgeClass(status: string | undefined): string {
     const map: Record<string, string> = {
-      ACTIVE: 'bg-success', PENDING: 'bg-warning text-dark', SUSPENDED: 'bg-danger'
+      ACTIVE: 'badge bg-success',
+      PENDING: 'badge bg-warning text-dark',
+      SUSPENDED: 'badge bg-danger'
     };
-    return `badge ${map[status ?? 'PENDING'] ?? 'bg-secondary'}`;
+    return map[status ?? 'PENDING'] ?? 'badge bg-secondary';
   }
 
   starsArray(rating: number | undefined): boolean[] {

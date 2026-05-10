@@ -48,7 +48,7 @@ class SalonOwnerEditControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void editSalonOwner_validRequest_returns200() throws Exception {
-        SalonOwnerEditRequest request = new SalonOwnerEditRequest("New Name", "8888888888");
+        SalonOwnerEditRequest request = new SalonOwnerEditRequest("New Name", "8888888888", "Old Salon");
 
         SalonOwnerEditResponse response = SalonOwnerEditResponse.builder()
                 .id(1L)
@@ -80,7 +80,7 @@ class SalonOwnerEditControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void editSalonOwner_blankName_returns400() throws Exception {
-        SalonOwnerEditRequest request = new SalonOwnerEditRequest("", "8888888888");
+        SalonOwnerEditRequest request = new SalonOwnerEditRequest("", "8888888888", "Old Salon");
 
         mockMvc.perform(patch("/api/v1/admin/users/1/edit")
                         .with(csrf())
@@ -94,7 +94,7 @@ class SalonOwnerEditControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void editSalonOwner_invalidPhone_returns400() throws Exception {
-        SalonOwnerEditRequest request = new SalonOwnerEditRequest("Valid Name", "123");
+        SalonOwnerEditRequest request = new SalonOwnerEditRequest("Valid Name", "123", "Old Salon");
 
         mockMvc.perform(patch("/api/v1/admin/users/1/edit")
                         .with(csrf())
@@ -110,7 +110,7 @@ class SalonOwnerEditControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void editSalonOwner_notFound_returns404() throws Exception {
-        SalonOwnerEditRequest request = new SalonOwnerEditRequest("Name", "9000000001");
+        SalonOwnerEditRequest request = new SalonOwnerEditRequest("Name", "9000000001", "Old Salon");
 
         when(salonOwnerEditService.updateSalonOwner(eq(99L), any()))
                 .thenThrow(new ResourceNotFoundException("Salon Owner not found with id: 99"));
@@ -128,7 +128,7 @@ class SalonOwnerEditControllerTest {
     @Test
     @WithMockUser(roles = "CUSTOMER")
     void editSalonOwner_nonAdmin_returns403() throws Exception {
-        SalonOwnerEditRequest request = new SalonOwnerEditRequest("Name", "9000000001");
+        SalonOwnerEditRequest request = new SalonOwnerEditRequest("Name", "9000000001", "Old Salon");
 
         mockMvc.perform(patch("/api/v1/admin/users/1/edit")
                         .with(csrf())

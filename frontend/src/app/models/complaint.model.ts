@@ -17,6 +17,8 @@ export interface ComplaintResponse {
   rating: number;
   status: 'OPEN' | 'FORWARDED' | 'RESOLVED';
   resolutionNotes: string;
+  ownerActionNotes: string;
+  ownerActionAt: string;
   createdAt: string;
 }
 

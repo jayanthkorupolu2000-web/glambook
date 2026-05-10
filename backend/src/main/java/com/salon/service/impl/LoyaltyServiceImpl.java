@@ -251,7 +251,24 @@ public class LoyaltyServiceImpl implements LoyaltyService {
         loyalty.setTier(calculateTier(loyalty.getPoints()));
         loyalty.setUpdatedAt(LocalDateTime.now());
         loyaltyRepository.save(loyalty);
-        return getSummary(customerId);
+
+        // Record the transaction so getSummary() reflects the new total correctly
+        transactionRepository.save(LoyaltyTransaction.builder()
+                .customer(customer)
+                .type("EARN")
+                .points(pointsToAdd)
+                .description("Points added manually by salon owner")
+                .build());
+
+        // Build response with customerName included
+        LoyaltyResponse r = new LoyaltyResponse();
+        r.setId(loyalty.getId());
+        r.setCustomerId(customerId);
+        r.setCustomerName(customer.getName());
+        r.setOwnerId(ownerId);
+        r.setPoints(loyalty.getPoints());
+        r.setTier(loyalty.getTier().name());
+        return r;
     }
 
     @Override

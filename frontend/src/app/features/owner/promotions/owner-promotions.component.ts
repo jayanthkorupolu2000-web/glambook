@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PromotionResponse } from '../../../models/owner.model';
 import { AuthService } from '../../../services/auth.service';
@@ -7,7 +7,9 @@ import { OwnerPromotionService } from '../../../services/owner-promotion.service
 
 @Component({
   selector: 'app-owner-promotions',
-  templateUrl: './owner-promotions.component.html'
+  templateUrl: './owner-promotions.component.html',
+  styleUrls: ['./owner-promotions.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class OwnerPromotionsComponent implements OnInit {
   form: FormGroup;
@@ -58,8 +60,13 @@ export class OwnerPromotionsComponent implements OnInit {
     }
     this.submitting = true;
     this.error = '';
-    // Ensure discountPct is a number
-    const payload = { ...v, discountPct: Number(v.discountPct) };
+    const payload = {
+      title:       v.title,
+      description: v.description || '',
+      discountPct: parseFloat(v.discountPct),
+      startDate:   v.startDate,
+      endDate:     v.endDate
+    };
     this.promotionService.createPromotion(this.ownerId, payload).subscribe({
       next: () => {
         this.success = 'Promotion created!';

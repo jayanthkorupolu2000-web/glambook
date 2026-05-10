@@ -241,3 +241,7 @@ ALTER TABLE professional MODIFY COLUMN certifications MEDIUMTEXT NULL;
 -- ================= CONSULTATIONS — remove type, add reply fields =================
 ALTER TABLE consultations ADD COLUMN professional_reply TEXT NULL;
 ALTER TABLE consultations ADD COLUMN professional_replied_at DATETIME NULL;
+
+-- ================= PROFESSIONAL — suspension fields =================
+ALTER TABLE professional ADD COLUMN suspension_reason TEXT NULL;
+ALTER TABLE professional ADD COLUMN suspended_until DATETIME NULL;

@@ -1,5 +1,6 @@
 package com.salon.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class ServiceResponse {
     private BigDecimal price;
     private Integer durationMins;
     private BigDecimal discountPct;
+    @JsonProperty("isActive")
     private Boolean isActive;
     private boolean favorited;
     private Long professionalId;

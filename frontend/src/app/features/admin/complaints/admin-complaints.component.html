@@ -58,7 +58,7 @@
                 Forward
               </button>
               <button class="btn btn-sm btn-primary"
-                      [disabled]="c.status === 'RESOLVED'"
+                      [disabled]="c.status !== 'FORWARDED'"
                       data-bs-toggle="modal" data-bs-target="#mediateModal"
                       (click)="openMediate(c)">
                 Mediate

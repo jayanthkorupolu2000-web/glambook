@@ -9,4 +9,5 @@ public interface ComplaintIntegrationService {
     List<ComplaintResponse> getForwardedComplaintsForOwner(Long ownerId);
     List<ComplaintResponse> getAllComplaintsForOwner(Long ownerId);
     ComplaintResponse logOwnerAction(Long ownerId, Long complaintId, MediationActionRequest dto);
+    ComplaintResponse getComplaintById(Long complaintId);
 }

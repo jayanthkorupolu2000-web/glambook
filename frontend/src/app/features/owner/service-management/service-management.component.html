@@ -7,6 +7,8 @@
   </div>
 
   <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
+  <div *ngIf="deactivateMsg" class="alert py-2" style="background:#fff3cd;color:#856404;border-color:#ffc107;">⚠ {{ deactivateMsg }}</div>
+  <div *ngIf="deleteMsg" class="alert alert-danger py-2">🗑 {{ deleteMsg }}</div>
   <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
 
   <!-- Add Service Form -->
@@ -78,15 +80,21 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let svc of catGroup.services">
-              <td class="fw-semibold">{{ svc.name }}</td>
+            <tr *ngFor="let svc of catGroup.services"
+                [style.opacity]="svc.isActive === false ? '0.5' : '1'">
+              <td class="fw-semibold">
+                {{ svc.name }}
+                <span *ngIf="svc.isActive === false"
+                      class="badge ms-2"
+                      style="background:#fff3cd;color:#856404;font-size:.65rem;">INACTIVE</span>
+              </td>
               <td>{{ svc.durationMins }} min</td>
               <td>₹{{ svc.price }}</td>
               <td>
                 <button class="btn btn-sm me-1"
-                        [class]="svc.isActive !== false ? 'btn-outline-warning' : 'btn-outline-success'"
+                        [class]="svc.isActive === false ? 'btn-outline-success' : 'btn-outline-warning'"
                         (click)="toggleService(svc.id, svc.name, svc.isActive !== false)">
-                  {{ svc.isActive !== false ? 'Deactivate' : 'Activate' }}
+                  {{ svc.isActive === false ? 'Activate' : 'Deactivate' }}
                 </button>
                 <button class="btn btn-sm btn-outline-danger"
                         (click)="deleteService(svc.id, svc.name)">🗑</button>

@@ -7,8 +7,10 @@ import com.salon.entity.*;
 import com.salon.exception.ComplaintNotFoundException;
 import com.salon.exception.InvalidOperationException;
 import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.AdminNotificationRepository;
 import com.salon.repository.ComplaintRepository;
 import com.salon.repository.CustomerRepository;
+import com.salon.repository.OwnerNotificationRepository;
 import com.salon.repository.ProfessionalRepository;
 import com.salon.service.ComplaintService;
 import com.salon.service.SuspensionService;
@@ -29,6 +31,8 @@ public class ComplaintServiceImpl implements ComplaintService {
     private final CustomerRepository customerRepository;
     private final ProfessionalRepository professionalRepository;
     private final SuspensionService suspensionService;
+    private final AdminNotificationRepository adminNotificationRepository;
+    private final OwnerNotificationRepository ownerNotificationRepository;
 
     @Override
     @Transactional
@@ -55,6 +59,14 @@ public class ComplaintServiceImpl implements ComplaintService {
         Complaint saved = complaintRepository.save(complaint);
         log.info("Complaint created with id: {}", saved.getId());
 
+        // Notify admin about new complaint
+        adminNotificationRepository.save(AdminNotification.builder()
+                .message("New complaint #" + saved.getId() + " filed by " + customer.getName()
+                        + " against professional " + professional.getName()
+                        + ". Feedback: " + dto.getFeedback() + ". Rating: " + dto.getRating() + "/5.")
+                .referenceId(saved.getId())
+                .build());
+
         // Check if professional should be auto-suspended
         suspensionService.autoSuspendProfessionalIfNeeded(professional.getId());
 
@@ -64,6 +76,13 @@ public class ComplaintServiceImpl implements ComplaintService {
     @Override
     public List<ComplaintResponse> getAllComplaints() {
         return complaintRepository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ComplaintResponse> getComplaintsByCustomer(Long customerId) {
+        return complaintRepository.findByCustomerId(customerId).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
@@ -89,6 +108,22 @@ public class ComplaintServiceImpl implements ComplaintService {
         complaint.setStatus(ComplaintStatus.FORWARDED);
         Complaint updated = complaintRepository.save(complaint);
         log.info("Complaint {} forwarded to salon owner", complaintId);
+
+        // Notify the salon owner
+        SalonOwner owner = complaint.getProfessional().getSalonOwner();
+        if (owner != null) {
+            ownerNotificationRepository.save(OwnerNotification.builder()
+                    .owner(owner)
+                    .type(NotificationType.COMPLAINT_FORWARDED)
+                    .referenceId(complaintId)
+                    .message("Complaint #" + complaintId + " has been forwarded to you by admin. "
+                            + "Customer: " + complaint.getCustomer().getName()
+                            + " | Professional: " + complaint.getProfessional().getName()
+                            + " | Feedback: " + complaint.getFeedback().name()
+                            + ". Please review and take corrective action.")
+                    .build());
+        }
+
         return toResponse(updated);
     }
 
@@ -121,6 +156,8 @@ public class ComplaintServiceImpl implements ComplaintService {
         res.setRating(c.getRating());
         res.setStatus(c.getStatus().name());
         res.setResolutionNotes(c.getResolutionNotes());
+        res.setOwnerActionNotes(c.getOwnerActionNotes());
+        res.setOwnerActionAt(c.getOwnerActionAt());
         res.setCreatedAt(c.getCreatedAt());
         return res;
     }

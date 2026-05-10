@@ -55,6 +55,13 @@ public class ComplaintIntegrationServiceImpl implements ComplaintIntegrationServ
         return toResponse(complaintRepository.save(complaint));
     }
 
+    @Override
+    public ComplaintResponse getComplaintById(Long complaintId) {
+        Complaint complaint = complaintRepository.findById(complaintId)
+                .orElseThrow(() -> new ComplaintNotFoundException("Complaint not found: " + complaintId));
+        return toResponse(complaint);
+    }
+
     private ComplaintResponse toResponse(Complaint c) {
         ComplaintResponse res = new ComplaintResponse();
         res.setId(c.getId());
@@ -67,6 +74,8 @@ public class ComplaintIntegrationServiceImpl implements ComplaintIntegrationServ
         res.setRating(c.getRating());
         res.setStatus(c.getStatus().name());
         res.setResolutionNotes(c.getResolutionNotes());
+        res.setOwnerActionNotes(c.getOwnerActionNotes());
+        res.setOwnerActionAt(c.getOwnerActionAt());
         res.setCreatedAt(c.getCreatedAt());
         return res;
     }

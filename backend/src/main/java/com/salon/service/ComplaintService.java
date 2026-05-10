@@ -10,6 +10,7 @@ public interface ComplaintService {
     ComplaintResponse createComplaint(ComplaintRequest dto);
     List<ComplaintResponse> getAllComplaints();
     List<ComplaintResponse> getComplaintsByStatus(String status);
+    List<ComplaintResponse> getComplaintsByCustomer(Long customerId);
     ComplaintResponse forwardComplaint(Long complaintId);
     ComplaintResponse mediateComplaint(Long complaintId, MediationRequest dto);
 }

@@ -1,49 +1,163 @@
-<div class="container py-4">
-  <h4 class="mb-4 fw-bold" style="color: #244AFD;">Salon Profile</h4>
+<div class="profile-page">
 
+  <!-- Header -->
+  <div class="profile-header-row">
+    <h4 class="profile-title">Salon Profile</h4>
+    <button *ngIf="profile && !editMode" class="btn-edit" (click)="startEdit()">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+      </svg>
+      Edit Profile
+    </button>
+  </div>
+
+  <!-- Loading -->
   <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color: #244AFD;" role="status">
-      <span class="visually-hidden">Loading...</span>
-    </div>
+    <div class="spinner-border" style="color:#334155;" role="status"></div>
   </div>
 
   <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="successMsg" class="alert alert-success d-flex align-items-center gap-2">
+    <span>✓</span> {{ successMsg }}
+  </div>
 
-  <div *ngIf="profile && !loading" class="card shadow-sm border-0">
-    <div class="card-body p-4">
-      <div class="d-flex align-items-center mb-4">
-        <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-             style="width:56px;height:56px;background:#244AFD;color:#fff;font-size:1.5rem;font-weight:700;">
-          {{ profile.salonName.charAt(0) | uppercase }}
-        </div>
-        <div>
-          <h5 class="mb-0 fw-bold">{{ profile.salonName }}</h5>
-          <small class="text-muted">Salon Owner</small>
-          <div class="mt-1">
-            <span class="badge" style="background:#244AFD;">
-              📍 {{ profile.city }}
-            </span>
-          </div>
-        </div>
-      </div>
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label text-muted small mb-1">Owner Name</label>
-          <p class="fw-semibold mb-0">{{ profile.name }}</p>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label text-muted small mb-1">City</label>
-          <p class="fw-semibold mb-0">{{ profile.city }}</p>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label text-muted small mb-1">Email</label>
-          <p class="fw-semibold mb-0">{{ profile.email }}</p>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label text-muted small mb-1">Phone</label>
-          <p class="fw-semibold mb-0">{{ profile.phone }}</p>
+  <!-- ══════════════════════════════════════════
+       VIEW MODE
+  ══════════════════════════════════════════ -->
+  <div *ngIf="profile && !loading && !editMode" class="profile-card">
+
+    <!-- Dark banner -->
+    <div class="card-banner">
+      <div class="banner-top">
+        <div class="profile-avatar">{{ profile.salonName.charAt(0) | uppercase }}</div>
+        <div class="banner-text">
+          <div class="profile-salon-name">{{ profile.salonName }}</div>
+          <div class="profile-role">Salon Owner</div>
+          <span class="city-badge">📍 {{ profile.city }}</span>
         </div>
       </div>
     </div>
+
+    <!-- Fields grid (overlaps banner) -->
+    <div class="card-body-section">
+      <div class="fields-grid">
+
+        <div class="field-item">
+          <div class="field-label">Owner Name</div>
+          <div class="field-value">
+            <span class="field-icon">👤</span>
+            {{ profile.name }}
+          </div>
+        </div>
+
+        <div class="field-item">
+          <div class="field-label">City</div>
+          <div class="field-value">
+            <span class="field-icon">📍</span>
+            {{ profile.city }}
+          </div>
+        </div>
+
+        <div class="field-item">
+          <div class="field-label">Email</div>
+          <div class="field-value">
+            <span class="field-icon">✉️</span>
+            {{ profile.email }}
+          </div>
+        </div>
+
+        <div class="field-item">
+          <div class="field-label">Phone</div>
+          <div class="field-value">
+            <span class="field-icon">📞</span>
+            {{ profile.phone }}
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
+
+  <!-- ══════════════════════════════════════════
+       EDIT MODE
+  ══════════════════════════════════════════ -->
+  <div *ngIf="profile && !loading && editMode" class="profile-card">
+
+    <!-- Dark banner -->
+    <div class="edit-banner">
+      <div class="edit-banner-icon">
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="edit-banner-title">Edit Profile</div>
+        <div class="edit-banner-sub">Update your name, phone number and salon name</div>
+      </div>
+    </div>
+
+    <div class="edit-body">
+
+      <div *ngIf="editError" class="alert alert-danger py-2 small mb-3">{{ editError }}</div>
+
+      <div class="edit-grid">
+
+        <!-- Owner Name -->
+        <div class="edit-field">
+          <label class="edit-label">Owner Name <span class="req">*</span></label>
+          <input class="edit-input" [(ngModel)]="editName" placeholder="Your full name"
+                 [class.is-invalid]="submitted && !editName.trim()">
+          <span class="invalid-feedback" *ngIf="submitted && !editName.trim()">Name is required.</span>
+        </div>
+
+        <!-- Salon Name -->
+        <div class="edit-field">
+          <label class="edit-label">Salon Name <span class="req">*</span></label>
+          <input class="edit-input" [(ngModel)]="editSalonName" placeholder="Your salon's name"
+                 [class.is-invalid]="submitted && !editSalonName.trim()">
+          <span class="invalid-feedback" *ngIf="submitted && !editSalonName.trim()">Salon name is required.</span>
+        </div>
+
+        <!-- Phone -->
+        <div class="edit-field">
+          <label class="edit-label">Phone Number <span class="req">*</span></label>
+          <input class="edit-input" [(ngModel)]="editPhone" placeholder="10-digit mobile number"
+                 maxlength="10"
+                 [class.is-invalid]="submitted && !isValidPhone(editPhone)">
+          <span class="invalid-feedback" *ngIf="submitted && !isValidPhone(editPhone)">
+            Enter a valid 10-digit Indian mobile number.
+          </span>
+        </div>
+
+        <!-- Email (read-only) -->
+        <div class="edit-field">
+          <label class="edit-label">Email</label>
+          <input class="edit-input" [value]="profile.email" disabled>
+          <span class="field-hint">Email cannot be changed.</span>
+        </div>
+
+        <!-- City (read-only) -->
+        <div class="edit-field">
+          <label class="edit-label">City</label>
+          <input class="edit-input" [value]="profile.city" disabled>
+          <span class="field-hint">City cannot be changed.</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer actions -->
+    <div class="edit-footer">
+      <button class="btn-cancel-edit" (click)="cancelEdit()" [disabled]="saving">Cancel</button>
+      <button class="btn-save" (click)="saveProfile()" [disabled]="saving">
+        <span *ngIf="saving" class="spinner-border spinner-border-sm"></span>
+        <svg *ngIf="!saving" viewBox="0 0 20 20" fill="currentColor" style="width:15px;height:15px;">
+          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+        </svg>
+        {{ saving ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+
+  </div>
+
 </div>

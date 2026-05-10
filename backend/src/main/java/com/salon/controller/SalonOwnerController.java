@@ -1,6 +1,7 @@
 package com.salon.controller;
 
 import com.salon.dto.request.BookingAssignmentRequest;
+import com.salon.dto.request.SuspendProfessionalRequest;
 import com.salon.dto.response.AppointmentResponse;
 import com.salon.dto.response.ProfessionalResponse;
 import com.salon.dto.response.SalonOwnerResponse;
@@ -64,6 +65,16 @@ public class SalonOwnerController {
         return ResponseEntity.ok(salonOwnerService.getProfile(id));
     }
 
+    @PatchMapping("/{id}/profile")
+    @Operation(summary = "Update salon owner profile",
+               description = "Allows the salon owner to update their name, phone number and salon name",
+               security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<SalonOwnerResponse> updateProfile(
+            @PathVariable Long id,
+            @Valid @RequestBody com.salon.dto.request.SalonOwnerEditRequest request) {
+        return ResponseEntity.ok(salonOwnerService.updateProfile(id, request));
+    }
+
     @GetMapping("/{id}/staff")
     @Operation(summary = "Get staff for salon owner",
                description = "Returns all professionals assigned to this salon owner",
@@ -98,6 +109,17 @@ public class SalonOwnerController {
             @PathVariable Long ownerId,
             @PathVariable Long professionalId) {
         return ResponseEntity.ok(salonOwnerService.rejectProfessional(ownerId, professionalId));
+    }
+
+    @PatchMapping("/{ownerId}/staff/{professionalId}/suspend")
+    @Operation(summary = "Suspend a professional with reason and optional duration",
+               description = "Suspends the professional, cancels their active appointments, and sends notifications",
+               security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<ProfessionalResponse> suspendProfessional(
+            @PathVariable Long ownerId,
+            @PathVariable Long professionalId,
+            @Valid @RequestBody SuspendProfessionalRequest request) {
+        return ResponseEntity.ok(salonOwnerService.suspendProfessional(ownerId, professionalId, request));
     }
 
     @PatchMapping("/appointments/{appointmentId}/assign")

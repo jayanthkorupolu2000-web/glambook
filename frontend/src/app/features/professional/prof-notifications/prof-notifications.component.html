@@ -37,7 +37,9 @@
     <div *ngFor="let n of notifications"
          class="notif-card"
          [class.unread]="!n.isRead"
-         [class.read]="n.isRead">
+         [class.read]="n.isRead"
+         (click)="markRead(n.id)"
+         [style.cursor]="n.isRead ? 'default' : 'pointer'">
 
       <!-- Type icon -->
       <div class="notif-icon"

@@ -30,6 +30,13 @@ public class ComplaintController {
         return ResponseEntity.status(HttpStatus.CREATED).body(complaintService.createComplaint(dto));
     }
 
+    @GetMapping("/customers/{customerId}/complaints")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    @Operation(summary = "Get complaints filed by a customer")
+    public ResponseEntity<List<ComplaintResponse>> getMyComplaints(@PathVariable Long customerId) {
+        return ResponseEntity.ok(complaintService.getComplaintsByCustomer(customerId));
+    }
+
     @GetMapping("/admin/complaints")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Get all complaints", description = "Admin views all complaints, optionally filtered by status")

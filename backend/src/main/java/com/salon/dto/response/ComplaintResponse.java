@@ -15,5 +15,7 @@ public class ComplaintResponse {
     private Integer rating;
     private String status;
     private String resolutionNotes;
+    private String ownerActionNotes;
+    private LocalDateTime ownerActionAt;
     private LocalDateTime createdAt;
 }

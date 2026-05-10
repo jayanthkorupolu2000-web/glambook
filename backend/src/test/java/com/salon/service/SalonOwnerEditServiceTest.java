@@ -52,7 +52,7 @@ class SalonOwnerEditServiceTest {
     @Test
     void updateSalonOwner_success_updatesNameAndPhone() {
         // Arrange
-        SalonOwnerEditRequest request = new SalonOwnerEditRequest("New Name", "8888888888");
+        SalonOwnerEditRequest request = new SalonOwnerEditRequest("New Name", "8888888888", "Old Salon");
 
         SalonOwner savedOwner = SalonOwner.builder()
                 .id(1L)
@@ -89,7 +89,7 @@ class SalonOwnerEditServiceTest {
         when(salonOwnerRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() ->
-                service.updateSalonOwner(99L, new SalonOwnerEditRequest("Name", "9000000001")))
+                service.updateSalonOwner(99L, new SalonOwnerEditRequest("Name", "9000000001", "Old Salon")))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("99");
 
@@ -100,7 +100,7 @@ class SalonOwnerEditServiceTest {
 
     @Test
     void updateSalonOwner_doesNotMutateEmailOrCity() {
-        SalonOwnerEditRequest request = new SalonOwnerEditRequest("Updated Name", "7777777777");
+        SalonOwnerEditRequest request = new SalonOwnerEditRequest("Updated Name", "7777777777", "Old Salon");
 
         when(salonOwnerRepository.findById(1L)).thenReturn(Optional.of(existingOwner));
         when(salonOwnerRepository.save(any(SalonOwner.class))).thenAnswer(inv -> inv.getArgument(0));

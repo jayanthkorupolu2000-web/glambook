@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -22,4 +23,6 @@ public class ProfessionalResponse {
     private List<ServiceResponse> services;
     private Double rating;
     private String status;
+    private String suspensionReason;
+    private LocalDateTime suspendedUntil;
 }

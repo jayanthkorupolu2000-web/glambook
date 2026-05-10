@@ -8,7 +8,7 @@ import java.time.LocalDate;
 @Data
 public class PromotionRequest {
 
-    @NotNull(message = "Please provide a valid ownerId")
+    // Set from path variable in controller — no @NotNull needed here
     private Long ownerId;
 
     @NotBlank(message = "Please provide a valid title")

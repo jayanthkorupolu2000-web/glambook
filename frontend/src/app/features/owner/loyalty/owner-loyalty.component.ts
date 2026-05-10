@@ -33,7 +33,15 @@ export class OwnerLoyaltyComponent implements OnInit {
     this.loyaltyService.updatePoints(this.ownerId, item.customerId, item.editPoints).subscribe({
       next: updated => {
         const idx = this.loyalty.findIndex(l => l.customerId === item.customerId);
-        if (idx !== -1) this.loyalty[idx] = { ...updated, editPoints: 0 };
+        if (idx !== -1) {
+          // Preserve customerName from the existing record — backend response may not include it
+          this.loyalty[idx] = {
+            ...this.loyalty[idx],   // keep all existing fields (including customerName)
+            ...updated,             // overwrite with updated fields (points, tier etc.)
+            customerName: this.loyalty[idx].customerName, // explicitly preserve name
+            editPoints: 0
+          };
+        }
       },
       error: () => alert('Failed to update points.')
     });

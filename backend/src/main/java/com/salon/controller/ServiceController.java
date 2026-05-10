@@ -78,7 +78,8 @@ public class ServiceController {
         return ResponseEntity.ok(ServiceResponse.builder()
                 .id(saved.getId()).name(saved.getName()).category(saved.getCategory())
                 .gender(saved.getGender() != null ? saved.getGender().name() : null)
-                .price(saved.getPrice()).durationMins(saved.getDurationMins()).build());
+                .price(saved.getPrice()).durationMins(saved.getDurationMins())
+                .isActive(Boolean.TRUE.equals(saved.getIsActive())).build());
     }
 
     @DeleteMapping("/{id}")
