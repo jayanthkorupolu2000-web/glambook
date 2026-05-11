@@ -311,17 +311,23 @@
           <div class="mb-3">
             <label class="form-label fw-semibold">Card Number <span class="text-muted small">(12 digits)</span></label>
             <input type="text" class="form-control" [value]="cardNumber"
-                   maxlength="12" placeholder="xxxx xxxx xxxx" (input)="onCardNumberInput($event)">
+                   maxlength="12" placeholder="xxxx xxxx xxxx" (input)="onCardNumberInput($event)"
+                   [class.is-invalid]="paySubmitted && cardNumber.length !== 12">
+            <div class="invalid-feedback">Card number must be exactly 12 digits.</div>
           </div>
           <div class="row g-3">
             <div class="col-6">
               <label class="form-label fw-semibold">Expiry</label>
-              <input type="text" class="form-control" [(ngModel)]="cardExpiry" maxlength="5" placeholder="MM/YY">
+              <input type="text" class="form-control" [(ngModel)]="cardExpiry" maxlength="5" placeholder="MM/YY"
+                     [class.is-invalid]="paySubmitted && !isValidExpiry(cardExpiry)">
+              <div class="invalid-feedback">Enter a valid expiry (MM/YY) that hasn't passed.</div>
             </div>
             <div class="col-6">
               <label class="form-label fw-semibold">CVV</label>
               <input type="password" class="form-control" [value]="cardCvv"
-                     maxlength="3" placeholder="•••" (input)="onCvvInput($event)">
+                     maxlength="3" placeholder="•••" (input)="onCvvInput($event)"
+                     [class.is-invalid]="paySubmitted && cardCvv.length !== 3">
+              <div class="invalid-feedback">CVV must be 3 digits.</div>
             </div>
           </div>
         </div>
@@ -329,7 +335,7 @@
       <div class="modal-footer">
         <button class="btn btn-outline-secondary" (click)="closePay()">Cancel</button>
         <button class="btn text-white" style="background:#2d4a6e;"
-                (click)="confirmPay()" [disabled]="payLoading || (!fullyPaidByWallet && !cardValid)">
+                (click)="onConfirmPayClick()" [disabled]="payLoading">
           <span *ngIf="payLoading" class="spinner-border spinner-border-sm me-2"></span>
           {{ payLoading ? 'Processing...' : 'Confirm Payment' }}
           <span *ngIf="!payLoading && remainingAmount > 0"> · ₹{{ remainingAmount }}</span>

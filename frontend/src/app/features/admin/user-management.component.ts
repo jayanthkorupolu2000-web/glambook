@@ -149,6 +149,10 @@ export class UserManagementComponent implements OnInit {
     return user.id;
   }
 
+  countByRole(role: string): number {
+    return this.users.filter(u => u.role === role).length;
+  }
+
   // Convenience getters for template
   get nameCtrl() { return this.editForm.get('name')!; }
   get phoneCtrl() { return this.editForm.get('phone')!; }

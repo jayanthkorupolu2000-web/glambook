@@ -1,34 +1,82 @@
 import { Component } from '@angular/core';
 
+export interface DashCard {
+  icon: string;          // FA icon class e.g. 'fa-solid fa-users'
+  title: string;
+  desc: string;
+  route: string;
+  route2?: string;       // second route for Reports & Analytics split button
+  btn2Label?: string;    // label for second button
+  colorClass: string;    // ad-card--blue | --pink | --coral | --amber | --navy | --teal
+  tags?: { label: string; type: 'men' | 'women' }[];
+  hover: boolean;
+}
+
 @Component({
   selector: 'app-admin-dashboard',
-  template: `
-    <div class="container-fluid py-4">
-      <h1 class="fw-bold mb-4" style="color:#244AFD;">Admin Dashboard</h1>
-      <div class="row g-3">
-        <div class="col-md-4" *ngFor="let card of cards">
-          <div class="card border-0 shadow-sm h-100 text-center p-4" style="cursor:pointer;transition:transform .2s"
-               (mouseenter)="card.hover=true" (mouseleave)="card.hover=false"
-               [style.transform]="card.hover ? 'translateY(-4px)' : ''">
-            <div class="fs-1 mb-2">{{ card.icon }}</div>
-            <h6 class="fw-bold mb-1">{{ card.title }}</h6>
-            <p class="text-muted small mb-3">{{ card.desc }}</p>
-            <a [routerLink]="card.route" class="btn btn-sm text-white fw-semibold" style="background:#244AFD;">
-              Open
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  `
+  templateUrl: './admin-dashboard.component.html',
+  styleUrls: ['./admin-dashboard.component.scss']
 })
 export class AdminDashboardComponent {
-  cards = [
-    { icon: '👥', title: 'User Management',    desc: 'View all users',                    route: '/dashboard/admin/users',           hover: false },
-    { icon: '🏪', title: 'Salon Owners',        desc: 'Manage salon owners',               route: '/dashboard/admin/owners',          hover: false },
-    { icon: '📊', title: 'Reports & Analytics', desc: 'Appointments, payments & insights', route: '/dashboard/admin/reports',         hover: false },
-    { icon: '📋', title: 'Complaints',          desc: 'Review & resolve complaints',       route: '/dashboard/admin/complaints',      hover: false },
-    { icon: '🔒', title: 'Suspensions',         desc: 'Manage user suspensions',           route: '/dashboard/admin/user-management', hover: false },
-    { icon: '📜', title: 'Policies',            desc: 'Publish & manage policies',         route: '/dashboard/admin/policy',          hover: false },
+
+  cards: DashCard[] = [
+    {
+      icon: 'fa-solid fa-users',
+      title: 'User Management',
+      desc: 'View all users',
+      route: '/dashboard/admin/users',
+      colorClass: 'blue',
+      tags: [
+        { label: 'Men',   type: 'men'   },
+        { label: 'Women', type: 'women' }
+      ],
+      hover: false
+    },
+    {
+      icon: 'fa-solid fa-store',
+      title: 'Salon Owners',
+      desc: 'Manage salon owners',
+      route: '/dashboard/admin/owners',
+      colorClass: 'pink',
+      tags: [
+        { label: 'Beauty',   type: 'women' },
+        { label: 'Grooming', type: 'men'   }
+      ],
+      hover: false
+    },
+    {
+      icon: 'fa-solid fa-chart-line',
+      title: 'Reports & Analytics',
+      desc: 'Appointments, payments & insights',
+      route: '/dashboard/admin/reports',
+      route2: '/dashboard/admin/analytics',
+      btn2Label: 'Analytics',
+      colorClass: 'coral',
+      hover: false
+    },
+    {
+      icon: 'fa-solid fa-comment-exclamation',
+      title: 'Complaints',
+      desc: 'Review & resolve complaints',
+      route: '/dashboard/admin/complaints',
+      colorClass: 'amber',
+      hover: false
+    },
+    {
+      icon: 'fa-solid fa-user-lock',
+      title: 'Suspensions',
+      desc: 'Manage user suspensions',
+      route: '/dashboard/admin/user-management',
+      colorClass: 'navy',
+      hover: false
+    },
+    {
+      icon: 'fa-solid fa-file-shield',
+      title: 'Policies',
+      desc: 'Publish & manage policies',
+      route: '/dashboard/admin/policy',
+      colorClass: 'teal',
+      hover: false
+    }
   ];
 }

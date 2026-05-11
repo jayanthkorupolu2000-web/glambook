@@ -117,6 +117,22 @@ export class SalonOwnerListComponent implements OnInit {
     return map[city] ?? 'badge bg-light text-dark';
   }
 
+  /** New: CSS class for styled city badge matching dashboard palette */
+  getCityClass(city: string): string {
+    const map: Record<string, string> = {
+      'Visakhapatnam': 'so-city-badge--blue',
+      'Vijayawada':    'so-city-badge--green',
+      'Hyderabad':     'so-city-badge--teal',
+      'Ananthapur':    'so-city-badge--amber',
+      'Khammam':       'so-city-badge--navy'
+    };
+    return map[city] ?? 'so-city-badge--slate';
+  }
+
+  get uniqueCityCount(): number {
+    return new Set(this.owners.map(o => o.city)).size;
+  }
+
   trackByOwnerId(_: number, owner: SalonOwner): number {
     return owner.id;
   }

@@ -5,7 +5,8 @@ import { ComplaintService } from '../../../services/complaint.service';
 
 @Component({
   selector: 'app-admin-complaints',
-  templateUrl: './admin-complaints.component.html'
+  templateUrl: './admin-complaints.component.html',
+  styleUrls: ['./admin-complaints.component.scss']
 })
 export class AdminComplaintsComponent implements OnInit {
   complaints: ComplaintResponse[] = [];
@@ -89,5 +90,9 @@ export class AdminComplaintsComponent implements OnInit {
 
   stars(rating: number): number[] {
     return Array.from({ length: 5 }, (_, i) => i + 1);
+  }
+
+  countByStatus(status: string): number {
+    return this.complaints.filter(c => c.status === status).length;
   }
 }

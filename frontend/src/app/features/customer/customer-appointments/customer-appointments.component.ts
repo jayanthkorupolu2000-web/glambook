@@ -27,6 +27,7 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   payLoading = false;
   payError = '';
   paySuccess = '';
+  paySubmitted = false;
 
   // Wallet
   walletBalance = 0;
@@ -199,6 +200,7 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     this.paySuccess = '';
     this.useWallet = false;
     this.walletBalance = 0;
+    this.paySubmitted = false;
     this.walletLoading = true;
     this.http.get<{ balance: number; currency: string }>(`${BASE}/api/wallet/balance`).subscribe({
       next: data => { this.walletBalance = data.balance; this.walletLoading = false; },
@@ -206,7 +208,26 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     });
   }
 
-  closePay(): void { this.payingAppt = null; }
+  closePay(): void { this.payingAppt = null; this.paySubmitted = false; }
+
+  isValidExpiry(expiry: string): boolean {
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) return false;
+    const [mm, yy] = expiry.split('/').map(Number);
+    if (mm < 1 || mm > 12) return false;
+    const now = new Date();
+    const expDate = new Date(2000 + yy, mm - 1, 1);
+    return expDate >= new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  onConfirmPayClick(): void {
+    if (!this.fullyPaidByWallet && this.payMethod === 'CARD') {
+      this.paySubmitted = true;
+      if (this.cardNumber.length !== 12 || !this.isValidExpiry(this.cardExpiry) || this.cardCvv.length !== 3) {
+        return;
+      }
+    }
+    this.confirmPay();
+  }
 
   onCardNumberInput(event: Event): void {
     const val = (event.target as HTMLInputElement).value;

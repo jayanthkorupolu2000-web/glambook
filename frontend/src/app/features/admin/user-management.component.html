@@ -1,198 +1,290 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Admin — All Users (main user management page)
+     Columns: ID · Name · Email · Phone · City · Role · Additional Info · Actions
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="um-page">
 
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">User Management</h2>
-        <button class="btn btn-outline-primary" (click)="loadUsers()" [disabled]="loading">
-          <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
-          Refresh
-        </button>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="um-hero">
+    <div class="um-hero__inner">
+      <div class="um-hero__text">
+        <p class="um-hero__eyebrow">
+          <i class="fa-solid fa-shield-halved me-2"></i>Administration
+        </p>
+        <h1 class="um-hero__title">User Management</h1>
+        <p class="um-hero__sub">View, search and manage all platform users</p>
       </div>
-
-      <!-- Loading -->
-      <div *ngIf="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-2 text-muted">Loading users...</p>
-      </div>
-
-      <!-- Error -->
-      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
-        <button type="button" class="btn-close" (click)="error = null"></button>
-      </div>
-
-      <!-- Table -->
-      <div *ngIf="!loading && !error" class="card">
-        <div class="card-header bg-light">
-          <h5 class="card-title mb-0">
-            <i class="fas fa-users me-2"></i>All Users ({{ users.length }})
-          </h5>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>City</th>
-                  <th>Role</th>
-                  <th>Additional Info</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let user of users; trackBy: trackByUserId">
-                  <td class="text-muted">{{ user.id }}</td>
-                  <td><strong>{{ user.name }}</strong></td>
-                  <td>
-                    <a [href]="'mailto:' + user.email" class="text-decoration-none">{{ user.email }}</a>
-                  </td>
-                  <td>
-                    <span *ngIf="user.phone; else noPhone">{{ user.phone }}</span>
-                    <ng-template #noPhone><span class="text-muted fst-italic">Not provided</span></ng-template>
-                  </td>
-                  <td><span class="badge bg-light text-dark">{{ user.city }}</span></td>
-                  <td>
-                    <span [class]="getRoleBadgeClass(user.role)">{{ getRoleDisplayName(user.role) }}</span>
-                  </td>
-                  <td>
-                    <span *ngIf="user.additionalInfo; else dash">{{ user.additionalInfo }}</span>
-                    <ng-template #dash><span class="text-muted fst-italic">-</span></ng-template>
-                  </td>
-                  <td>
-                    <button
-                      *ngIf="user.role === 'SALON_OWNER'"
-                      class="btn btn-sm btn-outline-secondary"
-                      (click)="openEditModal(user)"
-                      title="Edit Salon Owner">
-                      <i class="fas fa-pencil-alt me-1"></i>Edit
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div *ngIf="!loading && !error && users.length === 0" class="text-center py-5">
-        <i class="fas fa-users fa-3x text-muted mb-3"></i>
-        <h4 class="text-muted">No Users Found</h4>
-      </div>
-
+      <button class="um-refresh-btn" (click)="loadUsers()" [disabled]="loading">
+        <i class="fa-solid fa-rotate-right me-2" [class.fa-spin]="loading"></i>
+        Refresh
+      </button>
     </div>
   </div>
-</div>
 
-<!-- ── Edit Salon Owner Modal ──────────────────────────────────────────────── -->
+  <!-- ── Summary chips ────────────────────────────────────── -->
+  <div class="um-summary">
+    <div class="um-chip um-chip--navy">
+      <i class="fa-solid fa-users"></i>
+      <span class="um-chip__label">All Users</span>
+      <span class="um-chip__count">{{ users.length }}</span>
+    </div>
+    <div class="um-chip um-chip--blue">
+      <i class="fa-solid fa-user"></i>
+      <span class="um-chip__label">Customers</span>
+      <span class="um-chip__count">{{ countByRole('CUSTOMER') }}</span>
+    </div>
+    <div class="um-chip um-chip--pink">
+      <i class="fa-solid fa-store"></i>
+      <span class="um-chip__label">Salon Owners</span>
+      <span class="um-chip__count">{{ countByRole('SALON_OWNER') }}</span>
+    </div>
+    <div class="um-chip um-chip--purple">
+      <i class="fa-solid fa-cut"></i>
+      <span class="um-chip__label">Professionals</span>
+      <span class="um-chip__count">{{ countByRole('PROFESSIONAL') }}</span>
+    </div>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────── -->
+  <div *ngIf="loading" class="um-loading">
+    <div class="um-spinner"></div>
+    <span>Loading users…</span>
+  </div>
+
+  <!-- ── Error ─────────────────────────────────────────────── -->
+  <div *ngIf="error" class="um-error-banner">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ error }}
+    <button class="um-error-close" (click)="error = null">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- ── Users Table ───────────────────────────────────────── -->
+  <div *ngIf="!loading && !error" class="um-table-wrap">
+
+    <div class="um-table-header um-table-header--navy">
+      <i class="fa-solid fa-users me-2"></i>
+      All Users
+      <span class="um-table-header__count">{{ users.length }}</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="um-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>City</th>
+            <th>Role</th>
+            <th>Additional Info</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users; trackBy: trackByUserId" class="um-row">
+
+            <td class="um-cell--id">{{ user.id }}</td>
+
+            <td class="um-cell--name">
+              <div class="um-user-avatar"
+                   [class.um-user-avatar--blue]="user.role === 'CUSTOMER'"
+                   [class.um-user-avatar--pink]="user.role === 'SALON_OWNER'"
+                   [class.um-user-avatar--purple]="user.role === 'PROFESSIONAL'">
+                {{ user.name.charAt(0).toUpperCase() }}
+              </div>
+              <strong>{{ user.name }}</strong>
+            </td>
+
+            <td>
+              <a [href]="'mailto:' + user.email" class="um-email-link">{{ user.email }}</a>
+            </td>
+
+            <td>
+              <span *ngIf="user.phone; else noPhone" class="um-phone">{{ user.phone }}</span>
+              <ng-template #noPhone>
+                <span class="um-not-provided">Not provided</span>
+              </ng-template>
+            </td>
+
+            <td>
+              <span class="um-city-tag">
+                <i class="fa-solid fa-location-dot me-1"></i>{{ user.city }}
+              </span>
+            </td>
+
+            <td>
+              <!-- Blue = men/customer, Pink = women/salon, Purple = professional -->
+              <span class="um-role-badge"
+                    [class.um-role-badge--blue]="user.role === 'CUSTOMER'"
+                    [class.um-role-badge--pink]="user.role === 'SALON_OWNER'"
+                    [class.um-role-badge--purple]="user.role === 'PROFESSIONAL'">
+                <i class="fa-solid me-1"
+                   [class.fa-user]="user.role === 'CUSTOMER'"
+                   [class.fa-store]="user.role === 'SALON_OWNER'"
+                   [class.fa-cut]="user.role === 'PROFESSIONAL'"></i>
+                {{ getRoleDisplayName(user.role) }}
+              </span>
+            </td>
+
+            <td>
+              <span *ngIf="user.additionalInfo; else dash" class="um-info-text">
+                {{ user.additionalInfo }}
+              </span>
+              <ng-template #dash>
+                <span class="um-not-provided">—</span>
+              </ng-template>
+            </td>
+
+            <td>
+              <button
+                *ngIf="user.role === 'SALON_OWNER'"
+                class="um-edit-btn"
+                (click)="openEditModal(user)"
+                title="Edit Salon Owner">
+                <i class="fa-solid fa-pen me-1"></i>Edit
+              </button>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="users.length === 0" class="um-empty">
+      <i class="fa-solid fa-users-slash"></i>
+      <span>No users found.</span>
+    </div>
+
+  </div><!-- /um-table-wrap -->
+
+</div><!-- /um-page -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     Edit Salon Owner Modal — all logic unchanged
+     ══════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop fade show" *ngIf="showEditModal" (click)="closeEditModal()"></div>
 
-<div class="modal fade show d-block" tabindex="-1" role="dialog" *ngIf="showEditModal" aria-modal="true">
-  <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
-    <div class="modal-content">
+<div class="modal fade show d-block" tabindex="-1" role="dialog"
+     *ngIf="showEditModal" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered" role="document"
+       (click)="$event.stopPropagation()">
+    <div class="um-modal">
 
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="fas fa-user-edit me-2 text-primary"></i>Edit Salon Owner
-        </h5>
-        <button type="button" class="btn-close" (click)="closeEditModal()" aria-label="Close"></button>
+      <!-- Modal header -->
+      <div class="um-modal__header um-modal__header--pink">
+        <div class="um-modal__header-icon">
+          <i class="fa-solid fa-user-pen"></i>
+        </div>
+        <div>
+          <h6 class="um-modal__title">Edit Salon Owner</h6>
+          <p class="um-modal__subtitle">{{ editTarget?.name }}</p>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto"
+                (click)="closeEditModal()" aria-label="Close"></button>
       </div>
 
-      <div class="modal-body">
+      <!-- Modal body -->
+      <div class="um-modal__body">
 
-        <!-- Success -->
-        <div *ngIf="editSuccess" class="alert alert-success py-2">
-          <i class="fas fa-check-circle me-2"></i>{{ editSuccess }}
+        <div *ngIf="editSuccess" class="um-modal__alert um-modal__alert--success">
+          <i class="fa-solid fa-circle-check me-2"></i>{{ editSuccess }}
         </div>
-
-        <!-- Error -->
-        <div *ngIf="editError" class="alert alert-danger py-2">
-          <i class="fas fa-exclamation-circle me-2"></i>{{ editError }}
+        <div *ngIf="editError" class="um-modal__alert um-modal__alert--danger">
+          <i class="fa-solid fa-circle-exclamation me-2"></i>{{ editError }}
         </div>
 
         <form [formGroup]="editForm" (ngSubmit)="saveEdit()" novalidate>
 
           <!-- Read-only fields -->
-          <div class="mb-3">
-            <label class="form-label text-muted small fw-semibold">EMAIL (read-only)</label>
-            <input type="text" class="form-control form-control-sm bg-light"
+          <div class="um-modal__field-group">
+            <label class="um-modal__field-label um-modal__field-label--readonly">
+              Email <span class="um-modal__readonly-tag">read-only</span>
+            </label>
+            <input type="text" class="um-modal__input um-modal__input--readonly"
                    [value]="editTarget?.email" readonly>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-6">
-              <label class="form-label text-muted small fw-semibold">CITY (read-only)</label>
-              <input type="text" class="form-control form-control-sm bg-light"
+          <div class="um-modal__row">
+            <div class="um-modal__field-group">
+              <label class="um-modal__field-label um-modal__field-label--readonly">
+                City <span class="um-modal__readonly-tag">read-only</span>
+              </label>
+              <input type="text" class="um-modal__input um-modal__input--readonly"
                      [value]="editTarget?.city" readonly>
             </div>
-            <div class="col-6">
-              <label class="form-label text-muted small fw-semibold">ROLE (read-only)</label>
-              <input type="text" class="form-control form-control-sm bg-light"
+            <div class="um-modal__field-group">
+              <label class="um-modal__field-label um-modal__field-label--readonly">
+                Role <span class="um-modal__readonly-tag">read-only</span>
+              </label>
+              <input type="text" class="um-modal__input um-modal__input--readonly"
                      value="Salon Owner" readonly>
             </div>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label text-muted small fw-semibold">ADDITIONAL INFO (read-only)</label>
-            <input type="text" class="form-control form-control-sm bg-light"
-                   [value]="editTarget?.additionalInfo ?? '-'" readonly>
+          <div class="um-modal__field-group">
+            <label class="um-modal__field-label um-modal__field-label--readonly">
+              Additional Info <span class="um-modal__readonly-tag">read-only</span>
+            </label>
+            <input type="text" class="um-modal__input um-modal__input--readonly"
+                   [value]="editTarget?.additionalInfo ?? '—'" readonly>
           </div>
 
-          <hr class="my-3">
+          <div class="um-modal__divider"></div>
 
           <!-- Editable fields -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="editName">Name <span class="text-danger">*</span></label>
+          <div class="um-modal__field-group">
+            <label class="um-modal__field-label" for="editName">
+              Name <span class="text-danger">*</span>
+            </label>
             <input
               id="editName"
               type="text"
-              class="form-control"
-              [class.is-invalid]="nameCtrl.invalid && nameCtrl.touched"
+              class="um-modal__input"
+              [class.um-modal__input--error]="nameCtrl.invalid && nameCtrl.touched"
               formControlName="name"
               placeholder="Enter name">
-            <div class="invalid-feedback" *ngIf="nameCtrl.errors?.['required']">
-              Please provide a valid name
-            </div>
-            <div class="invalid-feedback" *ngIf="nameCtrl.errors?.['minlength']">
-              Name must be at least 2 characters
+            <div *ngIf="nameCtrl.invalid && nameCtrl.touched" class="um-modal__field-error">
+              <span *ngIf="nameCtrl.errors?.['required']">Name is required.</span>
+              <span *ngIf="nameCtrl.errors?.['minlength']">At least 2 characters required.</span>
             </div>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="editPhone">Phone <span class="text-danger">*</span></label>
+          <div class="um-modal__field-group">
+            <label class="um-modal__field-label" for="editPhone">
+              Phone <span class="text-danger">*</span>
+            </label>
             <input
               id="editPhone"
               type="tel"
-              class="form-control"
-              [class.is-invalid]="phoneCtrl.invalid && phoneCtrl.touched"
+              class="um-modal__input"
+              [class.um-modal__input--error]="phoneCtrl.invalid && phoneCtrl.touched"
               formControlName="phone"
               placeholder="10-digit mobile number">
-            <div class="invalid-feedback">
-              Please provide a valid phone
+            <div *ngIf="phoneCtrl.invalid && phoneCtrl.touched" class="um-modal__field-error">
+              Please provide a valid 10-digit phone number.
             </div>
           </div>
 
         </form>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" (click)="closeEditModal()">
+      <!-- Modal footer -->
+      <div class="um-modal__footer">
+        <button class="um-modal__btn um-modal__btn--cancel" (click)="closeEditModal()">
           Cancel
         </button>
         <button
-          type="button"
-          class="btn btn-primary"
+          class="um-modal__btn um-modal__btn--pink"
           (click)="saveEdit()"
           [disabled]="editForm.invalid || editLoading">
-          <span *ngIf="editLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
-          {{ editLoading ? 'Saving...' : 'Save Changes' }}
+          <span *ngIf="editLoading" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!editLoading" class="fa-solid fa-floppy-disk me-2"></i>
+          {{ editLoading ? 'Saving…' : 'Save Changes' }}
         </button>
       </div>
 

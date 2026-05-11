@@ -1,75 +1,166 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">Policy Management</h4>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Admin — Policy Management
+     Matches dashboard palette: blush bg · navy hero · teal accent
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="pm-page">
 
-  <!-- Latest Policy Alert -->
-  <div *ngIf="latestPolicy" class="alert border-0 shadow-sm mb-4" style="background:#eef1ff;border-left:4px solid #244AFD !important;">
-    <div class="d-flex align-items-center mb-1">
-      <span class="fw-bold me-2" style="color:#244AFD;">📋 Latest Policy:</span>
-      <span class="fw-semibold">{{ latestPolicy.title }}</span>
-      <span class="ms-auto text-muted small">{{ latestPolicy.createdAt | date:'dd MMM yyyy' }}</span>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="pm-hero">
+    <div class="pm-hero__inner">
+      <div class="pm-hero__text">
+        <p class="pm-hero__eyebrow">
+          <i class="fa-solid fa-shield-halved me-2"></i>Administration
+        </p>
+        <h1 class="pm-hero__title">Policy Management</h1>
+        <p class="pm-hero__sub">Publish and manage platform terms and policies</p>
+      </div>
+      <div class="pm-hero__badge">
+        <i class="fa-solid fa-file-shield"></i>
+        <span>{{ policies.length }} Published</span>
+      </div>
     </div>
-    <p class="mb-0 text-muted small">{{ latestPolicy.content | slice:0:200 }}{{ latestPolicy.content.length > 200 ? '...' : '' }}</p>
   </div>
 
-  <!-- Publish Form -->
-  <div class="card border-0 shadow-sm p-4 mb-4">
-    <h6 class="fw-bold mb-3">Publish New Policy</h6>
-
-    <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
-    <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
-
-    <form [formGroup]="form" (ngSubmit)="publish()">
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Title</label>
-        <input type="text" class="form-control"
-               formControlName="title"
-               [class.is-invalid]="f['title'].invalid && f['title'].touched"
-               placeholder="e.g. Cancellation Policy 2026">
-        <div class="invalid-feedback">Title is required (max 255 chars).</div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Content</label>
-        <textarea class="form-control" rows="6"
-                  formControlName="content"
-                  [class.is-invalid]="f['content'].invalid && f['content'].touched"
-                  placeholder="Write the full policy content here (minimum 50 characters)..."></textarea>
-        <div class="invalid-feedback">Content is required (min 50 characters).</div>
-        <div class="form-text text-muted">{{ f['content'].value?.length || 0 }} characters</div>
-      </div>
-
-      <button type="submit" class="btn text-white fw-semibold px-4"
-              style="background:#244AFD;"
-              [disabled]="form.invalid || submitting">
-        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
-        Publish Policy
-      </button>
-    </form>
+  <!-- ── Summary chips ────────────────────────────────────── -->
+  <div class="pm-summary">
+    <div class="pm-chip pm-chip--teal">
+      <i class="fa-solid fa-file-shield"></i>
+      <span class="pm-chip__label">Total Policies</span>
+      <span class="pm-chip__count">{{ policies.length }}</span>
+    </div>
+    <div class="pm-chip pm-chip--navy" *ngIf="latestPolicy">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span class="pm-chip__label">Latest</span>
+      <span class="pm-chip__text">{{ latestPolicy.title | slice:0:24 }}{{ latestPolicy.title.length > 24 ? '…' : '' }}</span>
+    </div>
   </div>
 
-  <!-- All Policies Table -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-header bg-light fw-bold">All Published Policies ({{ policies.length }})</div>
-    <div *ngIf="loading" class="text-center py-3">
-      <div class="spinner-border spinner-border-sm" style="color:#244AFD;"></div>
+  <!-- ── Latest Policy Alert ──────────────────────────────── -->
+  <div *ngIf="latestPolicy" class="pm-latest-alert">
+    <div class="pm-latest-alert__header">
+      <i class="fa-solid fa-file-lines me-2"></i>
+      <span class="pm-latest-alert__label">Latest Policy:</span>
+      <strong class="pm-latest-alert__title">{{ latestPolicy.title }}</strong>
+      <span class="pm-latest-alert__date ms-auto">
+        {{ latestPolicy.createdAt | date:'dd MMM yyyy' }}
+      </span>
     </div>
+    <p class="pm-latest-alert__preview">
+      {{ latestPolicy.content | slice:0:200 }}{{ latestPolicy.content.length > 200 ? '…' : '' }}
+    </p>
+  </div>
+
+  <!-- ── Publish Form ──────────────────────────────────────── -->
+  <div class="pm-form-card">
+
+    <div class="pm-form-card__header">
+      <i class="fa-solid fa-pen-to-square me-2"></i>Publish New Policy
+    </div>
+
+    <div class="pm-form-card__body">
+
+      <div *ngIf="success" class="pm-alert pm-alert--success">
+        <i class="fa-solid fa-circle-check me-2"></i>{{ success }}
+      </div>
+      <div *ngIf="error" class="pm-alert pm-alert--danger">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>{{ error }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="publish()" novalidate>
+
+        <div class="pm-field">
+          <label class="pm-label">
+            Title <span class="text-danger">*</span>
+          </label>
+          <input type="text" class="pm-input"
+                 formControlName="title"
+                 [class.pm-input--error]="f['title'].invalid && f['title'].touched"
+                 placeholder="e.g. Cancellation Policy 2026">
+          <div *ngIf="f['title'].invalid && f['title'].touched" class="pm-field-error">
+            Title is required (max 255 characters).
+          </div>
+        </div>
+
+        <div class="pm-field">
+          <label class="pm-label">
+            Content <span class="text-danger">*</span>
+          </label>
+          <textarea class="pm-textarea"
+                    rows="7"
+                    formControlName="content"
+                    [class.pm-input--error]="f['content'].invalid && f['content'].touched"
+                    placeholder="Write the full policy content here (minimum 50 characters)…"></textarea>
+          <div *ngIf="f['content'].invalid && f['content'].touched" class="pm-field-error">
+            Content is required (minimum 50 characters).
+          </div>
+          <div class="pm-char-count">
+            <span [class.pm-char-count--ok]="(f['content'].value?.length || 0) >= 50">
+              {{ f['content'].value?.length || 0 }} characters
+            </span>
+            <span class="pm-char-count__min">min 50</span>
+          </div>
+        </div>
+
+        <button type="submit" class="pm-publish-btn"
+                [disabled]="form.invalid || submitting">
+          <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!submitting" class="fa-solid fa-paper-plane me-2"></i>
+          {{ submitting ? 'Publishing…' : 'Publish Policy' }}
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ── All Policies Table ────────────────────────────────── -->
+  <div class="pm-table-wrap">
+
+    <div class="pm-table-header">
+      <i class="fa-solid fa-list me-2"></i>
+      All Published Policies
+      <span class="pm-table-header__count">{{ policies.length }}</span>
+    </div>
+
+    <div *ngIf="loading" class="pm-loading">
+      <div class="pm-spinner"></div>
+      <span>Loading policies…</span>
+    </div>
+
     <div class="table-responsive" *ngIf="!loading">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr><th>Title</th><th>Published By</th><th>Date</th><th>Preview</th></tr>
+      <table class="pm-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Published By</th>
+            <th>Date</th>
+            <th>Preview</th>
+          </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of policies">
-            <td class="fw-semibold">{{ p.title }}</td>
-            <td>{{ p.publishedBy }}</td>
-            <td class="text-muted small">{{ p.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
-            <td class="text-muted small">{{ p.content | slice:0:80 }}...</td>
+          <tr *ngFor="let p of policies" class="pm-row">
+            <td class="pm-cell--title">
+              <i class="fa-solid fa-file-lines me-2"></i>{{ p.title }}
+            </td>
+            <td>
+              <span class="pm-publisher">
+                <div class="pm-publisher-avatar">{{ p.publishedBy?.charAt(0)?.toUpperCase() || 'A' }}</div>
+                {{ p.publishedBy }}
+              </span>
+            </td>
+            <td class="pm-cell--date">{{ p.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
+            <td class="pm-cell--preview">{{ p.content | slice:0:80 }}…</td>
           </tr>
           <tr *ngIf="policies.length === 0">
-            <td colspan="4" class="text-center text-muted py-3">No policies published yet.</td>
+            <td colspan="4" class="pm-empty">
+              <i class="fa-solid fa-file-circle-xmark"></i>
+              <span>No policies published yet.</span>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
-</div>
+
+  </div><!-- /pm-table-wrap -->
+
+</div><!-- /pm-page -->

@@ -1,79 +1,121 @@
-<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
-  <div class="card shadow-sm p-4" style="width: 100%; max-width: 460px;">
-    <div class="text-center mb-4">
-      <h2 class="fw-bold" style="color: #244AFD;">Create Account</h2>
-      <p class="text-muted small">Join us to book salon appointments</p>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Customer Register
+     ═══════════════════════════════════════════════════════════ -->
+<div class="gb-auth-page min-vh-100 d-flex align-items-center justify-content-center py-4">
+
+  <div class="gb-card gb-card--opaque">
+
+    <div class="gb-card__header">
+      <div class="gb-avatar">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h1 class="gb-card__title">Join GlamBook</h1>
+      <p class="gb-card__subtitle">Create your account and start booking today</p>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="gb-role-badge">
+      <i class="fa-solid fa-user me-1"></i> New Customer
+    </div>
 
-      <!-- Name -->
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Full Name</label>
-        <input type="text" class="form-control"
-               [class.is-invalid]="f['name'].invalid && (f['name'].touched || f['name'].dirty)"
-               formControlName="name" placeholder="Enter your name">
-        <div class="invalid-feedback">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate autocomplete="off">
+
+      <div class="gb-field">
+        <label class="gb-label">
+          <i class="fa-regular fa-user"></i> Full Name
+        </label>
+        <input
+          type="text"
+          class="gb-input"
+          [class.gb-input--error]="f['name'].invalid && (f['name'].touched || f['name'].dirty)"
+          formControlName="name"
+          placeholder="Enter your full name"
+        />
+        <div class="gb-error" *ngIf="f['name'].invalid && (f['name'].touched || f['name'].dirty)">
+          <i class="fa-solid fa-circle-exclamation"></i>
           <span *ngIf="f['name'].errors?.['required']">Name is required.</span>
           <span *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters.</span>
         </div>
       </div>
 
-      <!-- Email -->
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Email Address</label>
-        <input type="email" class="form-control"
-               [class.is-invalid]="f['email'].invalid && (f['email'].touched || f['email'].dirty)"
-               formControlName="email" placeholder="you@example.com">
-        <div class="invalid-feedback">
+      <div class="gb-field">
+        <label class="gb-label">
+          <i class="fa-regular fa-envelope"></i> Email Address
+        </label>
+        <input
+          type="email"
+          class="gb-input"
+          [class.gb-input--error]="f['email'].invalid && (f['email'].touched || f['email'].dirty)"
+          formControlName="email"
+          placeholder="you@example.com"
+        />
+        <div class="gb-error" *ngIf="f['email'].invalid && (f['email'].touched || f['email'].dirty)">
+          <i class="fa-solid fa-circle-exclamation"></i>
           <span *ngIf="f['email'].errors?.['required']">Email is required.</span>
           <span *ngIf="f['email'].errors?.['email']">Enter a valid email address.</span>
         </div>
       </div>
 
-      <!-- Password -->
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Password</label>
-        <input type="password" class="form-control"
-               [class.is-invalid]="f['password'].invalid && (f['password'].touched || f['password'].dirty)"
-               formControlName="password" placeholder="Min 8 chars, 1 uppercase, 1 number">
-        <div class="invalid-feedback">
+      <div class="gb-field">
+        <label class="gb-label">
+          <i class="fa-solid fa-lock"></i> Password
+        </label>
+        <input
+          type="password"
+          class="gb-input"
+          [class.gb-input--error]="f['password'].invalid && (f['password'].touched || f['password'].dirty)"
+          formControlName="password"
+          placeholder="Min 8 chars, 1 uppercase, 1 number"
+        />
+        <div class="gb-error" *ngIf="f['password'].invalid && (f['password'].touched || f['password'].dirty)">
+          <i class="fa-solid fa-circle-exclamation"></i>
           <span *ngIf="f['password'].errors?.['required']">Password is required.</span>
-          <span *ngIf="f['password'].errors?.['minlength']">Password must be at least 8 characters.</span>
-          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noUppercase']">Must contain at least one uppercase letter.</span>
-          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noNumber']">Must contain at least one number.</span>
+          <span *ngIf="f['password'].errors?.['minlength']">At least 8 characters required.</span>
+          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noUppercase']">Must include an uppercase letter.</span>
+          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noNumber']">Must include a number.</span>
         </div>
       </div>
 
-      <!-- City -->
-      <div class="mb-4">
-        <label class="form-label fw-semibold">City</label>
-        <select class="form-select"
-                [class.is-invalid]="f['city'].invalid && (f['city'].touched || f['city'].dirty)"
-                formControlName="city">
-          <option value="">Select your city</option>
+      <div class="gb-field">
+        <label class="gb-label">
+          <i class="fa-solid fa-location-dot"></i> City
+        </label>
+        <select
+          class="gb-input gb-select"
+          [class.gb-input--error]="f['city'].invalid && (f['city'].touched || f['city'].dirty)"
+          formControlName="city"
+        >
+          <option value="" disabled selected>Select your city</option>
           <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
         </select>
-        <div class="invalid-feedback">
+        <div class="gb-error" *ngIf="f['city'].invalid && (f['city'].touched || f['city'].dirty)">
+          <i class="fa-solid fa-circle-exclamation"></i>
           <span *ngIf="f['city'].errors?.['required']">City is required.</span>
           <span *ngIf="f['city'].errors?.['invalidCity']">Please select a valid city.</span>
         </div>
       </div>
 
-      <!-- Server error -->
-      <div *ngIf="errorMessage" class="alert alert-danger py-2 small">{{ errorMessage }}</div>
+      <div *ngIf="errorMessage" class="gb-server-error">
+        <i class="fa-solid fa-triangle-exclamation"></i>{{ errorMessage }}
+      </div>
 
-      <button type="submit" class="btn w-100 text-white fw-semibold"
-              style="background-color: #244AFD;"
-              [disabled]="form.invalid || loading">
+      <button type="submit" class="gb-btn w-100" [disabled]="form.invalid || loading">
         <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
-        {{ loading ? 'Creating account...' : 'Create Account' }}
+        <i *ngIf="!loading" class="fa-solid fa-user-plus me-2"></i>
+        {{ loading ? 'Creating account…' : 'Create Account' }}
       </button>
+
     </form>
 
-    <p class="text-center mt-3 small text-muted">
+    <div class="gb-card__footer">
       Already have an account?
-      <a routerLink="/auth/customer/login" style="color: #244AFD;">Sign in</a>
-    </p>
+      <a routerLink="/auth/customer/login" class="gb-link">Sign in</a>
+    </div>
+
+    <div class="gb-back-link">
+      <a routerLink="/auth" class="gb-link gb-link--back">
+        <i class="fa-solid fa-arrow-left me-1"></i>All login options
+      </a>
+    </div>
+
   </div>
 </div>

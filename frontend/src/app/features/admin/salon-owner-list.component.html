@@ -1,178 +1,253 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-12">
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Admin — Salon Owner Management
+     Matches dashboard palette: blush bg · navy hero · pink=women/beauty
+     All backend logic (loadOwners, openEditModal, saveEdit) preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="so-page">
 
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="mb-0">Salon Owner Management</h2>
-        <button class="btn btn-outline-primary" (click)="loadOwners()" [disabled]="loading">
-          <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
-          Refresh
-        </button>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="so-hero">
+    <div class="so-hero__inner">
+      <div class="so-hero__text">
+        <p class="so-hero__eyebrow">
+          <i class="fa-solid fa-shield-halved me-2"></i>Administration
+        </p>
+        <h1 class="so-hero__title">Salon Owner Management</h1>
+        <p class="so-hero__sub">Manage registered salon owners and their salons</p>
       </div>
-
-      <!-- Loading -->
-      <div *ngIf="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-2 text-muted">Loading salon owners...</p>
-      </div>
-
-      <!-- Error -->
-      <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
-        <button type="button" class="btn-close" (click)="error = null"></button>
-      </div>
-
-      <!-- Table -->
-      <div *ngIf="!loading && !error" class="card">
-        <div class="card-header bg-light">
-          <h5 class="card-title mb-0">
-            <i class="fas fa-store me-2"></i>
-            Salon Owners ({{ owners.length }})
-          </h5>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Owner Name</th>
-                  <th>Salon Name</th>
-                  <th>City</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let owner of owners; trackBy: trackByOwnerId">
-                  <td class="text-muted">{{ owner.id }}</td>
-                  <td><strong>{{ owner.name }}</strong></td>
-                  <td><span class="text-primary fw-medium">{{ owner.salonName }}</span></td>
-                  <td>
-                    <span [class]="getCityBadgeClass(owner.city)">{{ owner.city }}</span>
-                  </td>
-                  <td>
-                    <a [href]="'mailto:' + owner.email" class="text-decoration-none">{{ owner.email }}</a>
-                  </td>
-                  <td>
-                    <span *ngIf="owner.phone; else noPhone">
-                      <i class="fas fa-phone me-1"></i>{{ owner.phone }}
-                    </span>
-                    <ng-template #noPhone>
-                      <span class="text-muted fst-italic">Not provided</span>
-                    </ng-template>
-                  </td>
-                  <td>
-                    <button class="btn btn-sm btn-outline-secondary" (click)="openEditModal(owner)" title="Edit">
-                      <i class="fas fa-pencil-alt me-1"></i>Edit
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div *ngIf="!loading && !error && owners.length === 0" class="text-center py-5">
-        <i class="fas fa-store fa-3x text-muted mb-3"></i>
-        <h4 class="text-muted">No Salon Owners Found</h4>
-      </div>
-
+      <button class="so-refresh-btn" (click)="loadOwners()" [disabled]="loading">
+        <i class="fa-solid fa-rotate-right me-2" [class.fa-spin]="loading"></i>
+        Refresh
+      </button>
     </div>
   </div>
-</div>
 
-<!-- ── Edit Modal ──────────────────────────────────────────────────────────── -->
+  <!-- ── Summary chips ────────────────────────────────────── -->
+  <div class="so-summary">
+    <div class="so-chip so-chip--pink">
+      <i class="fa-solid fa-store"></i>
+      <span class="so-chip__label">Total Owners</span>
+      <span class="so-chip__count">{{ owners.length }}</span>
+    </div>
+    <div class="so-chip so-chip--blue">
+      <i class="fa-solid fa-city"></i>
+      <span class="so-chip__label">Cities</span>
+      <span class="so-chip__count">{{ uniqueCityCount }}</span>
+    </div>
+    <div class="so-chip so-chip--teal">
+      <i class="fa-solid fa-scissors"></i>
+      <span class="so-chip__label">Active Salons</span>
+      <span class="so-chip__count">{{ owners.length }}</span>
+    </div>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────── -->
+  <div *ngIf="loading" class="so-loading">
+    <div class="so-spinner"></div>
+    <span>Loading salon owners…</span>
+  </div>
+
+  <!-- ── Error ─────────────────────────────────────────────── -->
+  <div *ngIf="error" class="so-error-banner">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ error }}
+    <button class="so-error-close" (click)="error = null">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- ── Owners Table ──────────────────────────────────────── -->
+  <div *ngIf="!loading && !error" class="so-table-wrap">
+
+    <div class="so-table-header">
+      <i class="fa-solid fa-store me-2"></i>
+      Salon Owners
+      <span class="so-table-header__count">{{ owners.length }}</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="so-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Owner Name</th>
+            <th>Salon Name</th>
+            <th>City</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let owner of owners; trackBy: trackByOwnerId" class="so-row">
+
+            <td class="so-cell--id">{{ owner.id }}</td>
+
+            <td class="so-cell--name">
+              <div class="so-avatar">
+                {{ owner.name.charAt(0).toUpperCase() }}
+              </div>
+              <strong>{{ owner.name }}</strong>
+            </td>
+
+            <td>
+              <span class="so-salon-name">
+                <i class="fa-solid fa-scissors me-1"></i>{{ owner.salonName }}
+              </span>
+            </td>
+
+            <td>
+              <!-- City badge — colour driven by getCityBadgeClass() logic preserved -->
+              <span class="so-city-badge" [class]="getCityClass(owner.city)">
+                {{ owner.city }}
+              </span>
+            </td>
+
+            <td>
+              <a [href]="'mailto:' + owner.email" class="so-email-link">
+                {{ owner.email }}
+              </a>
+            </td>
+
+            <td>
+              <span *ngIf="owner.phone; else noPhone" class="so-phone">
+                <i class="fa-solid fa-phone me-1"></i>{{ owner.phone }}
+              </span>
+              <ng-template #noPhone>
+                <span class="so-not-provided">Not provided</span>
+              </ng-template>
+            </td>
+
+            <td>
+              <button class="so-edit-btn" (click)="openEditModal(owner)" title="Edit">
+                <i class="fa-solid fa-pen me-1"></i>Edit
+              </button>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="owners.length === 0" class="so-empty">
+      <i class="fa-solid fa-store-slash"></i>
+      <span>No salon owners found.</span>
+    </div>
+
+  </div><!-- /so-table-wrap -->
+
+</div><!-- /so-page -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     Edit Salon Owner Modal — all logic unchanged
+     ══════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop fade show" *ngIf="showEditModal" (click)="closeEditModal()"></div>
 
-<div class="modal fade show d-block" tabindex="-1" role="dialog" *ngIf="showEditModal" aria-modal="true">
-  <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
-    <div class="modal-content">
+<div class="modal fade show d-block" tabindex="-1" role="dialog"
+     *ngIf="showEditModal" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered" role="document"
+       (click)="$event.stopPropagation()">
+    <div class="so-modal">
 
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="fas fa-store me-2 text-primary"></i>Edit Salon Owner
-        </h5>
-        <button type="button" class="btn-close" (click)="closeEditModal()" aria-label="Close"></button>
+      <!-- Header -->
+      <div class="so-modal__header">
+        <div class="so-modal__header-icon">
+          <i class="fa-solid fa-store"></i>
+        </div>
+        <div>
+          <h6 class="so-modal__title">Edit Salon Owner</h6>
+          <p class="so-modal__subtitle">{{ editTarget?.salonName }}</p>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto"
+                (click)="closeEditModal()" aria-label="Close"></button>
       </div>
 
-      <div class="modal-body">
+      <!-- Body -->
+      <div class="so-modal__body">
 
-        <div *ngIf="editSuccess" class="alert alert-success py-2">
-          <i class="fas fa-check-circle me-2"></i>{{ editSuccess }}
+        <div *ngIf="editSuccess" class="so-modal__alert so-modal__alert--success">
+          <i class="fa-solid fa-circle-check me-2"></i>{{ editSuccess }}
         </div>
-        <div *ngIf="editError" class="alert alert-danger py-2">
-          <i class="fas fa-exclamation-circle me-2"></i>{{ editError }}
+        <div *ngIf="editError" class="so-modal__alert so-modal__alert--danger">
+          <i class="fa-solid fa-circle-exclamation me-2"></i>{{ editError }}
         </div>
 
         <form [formGroup]="editForm" (ngSubmit)="saveEdit()" novalidate>
 
-          <!-- Read-only -->
-          <div class="row mb-3">
-            <div class="col-6">
-              <label class="form-label text-muted small fw-semibold">EMAIL (read-only)</label>
-              <input type="text" class="form-control form-control-sm bg-light"
+          <!-- Read-only fields -->
+          <div class="so-modal__row">
+            <div class="so-modal__field-group">
+              <label class="so-modal__field-label so-modal__field-label--readonly">
+                Email <span class="so-modal__readonly-tag">read-only</span>
+              </label>
+              <input type="text" class="so-modal__input so-modal__input--readonly"
                      [value]="editTarget?.email" readonly>
             </div>
-            <div class="col-6">
-              <label class="form-label text-muted small fw-semibold">CITY (read-only)</label>
-              <input type="text" class="form-control form-control-sm bg-light"
+            <div class="so-modal__field-group">
+              <label class="so-modal__field-label so-modal__field-label--readonly">
+                City <span class="so-modal__readonly-tag">read-only</span>
+              </label>
+              <input type="text" class="so-modal__input so-modal__input--readonly"
                      [value]="editTarget?.city" readonly>
             </div>
           </div>
 
-          <hr class="my-3">
+          <div class="so-modal__divider"></div>
 
-          <!-- Editable: Owner Name -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="ownerName">
+          <!-- Owner Name -->
+          <div class="so-modal__field-group">
+            <label class="so-modal__field-label" for="ownerName">
               Owner Name <span class="text-danger">*</span>
             </label>
-            <input id="ownerName" type="text" class="form-control"
-                   [class.is-invalid]="ownerNameCtrl.invalid && ownerNameCtrl.touched"
+            <input id="ownerName" type="text" class="so-modal__input"
+                   [class.so-modal__input--error]="ownerNameCtrl.invalid && ownerNameCtrl.touched"
                    formControlName="ownerName" placeholder="Enter owner name">
-            <div class="invalid-feedback">Please provide a valid ownerName</div>
+            <div *ngIf="ownerNameCtrl.invalid && ownerNameCtrl.touched" class="so-modal__field-error">
+              Please provide a valid owner name.
+            </div>
           </div>
 
-          <!-- Editable: Salon Name -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="salonName">
+          <!-- Salon Name -->
+          <div class="so-modal__field-group">
+            <label class="so-modal__field-label" for="salonName">
               Salon Name <span class="text-danger">*</span>
             </label>
-            <input id="salonName" type="text" class="form-control"
-                   [class.is-invalid]="salonNameCtrl.invalid && salonNameCtrl.touched"
+            <input id="salonName" type="text" class="so-modal__input"
+                   [class.so-modal__input--error]="salonNameCtrl.invalid && salonNameCtrl.touched"
                    formControlName="salonName" placeholder="Enter salon name">
-            <div class="invalid-feedback">Please provide a valid salonName</div>
+            <div *ngIf="salonNameCtrl.invalid && salonNameCtrl.touched" class="so-modal__field-error">
+              Please provide a valid salon name.
+            </div>
           </div>
 
-          <!-- Editable: Phone -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold" for="phone">
+          <!-- Phone -->
+          <div class="so-modal__field-group">
+            <label class="so-modal__field-label" for="phone">
               Phone <span class="text-danger">*</span>
             </label>
-            <input id="phone" type="tel" class="form-control"
-                   [class.is-invalid]="phoneCtrl.invalid && phoneCtrl.touched"
+            <input id="phone" type="tel" class="so-modal__input"
+                   [class.so-modal__input--error]="phoneCtrl.invalid && phoneCtrl.touched"
                    formControlName="phone" placeholder="10-digit mobile number">
-            <div class="invalid-feedback">Please provide a valid phone</div>
+            <div *ngIf="phoneCtrl.invalid && phoneCtrl.touched" class="so-modal__field-error">
+              Please provide a valid 10-digit phone number.
+            </div>
           </div>
 
         </form>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" (click)="closeEditModal()">
+      <!-- Footer -->
+      <div class="so-modal__footer">
+        <button class="so-modal__btn so-modal__btn--cancel" (click)="closeEditModal()">
           Cancel
         </button>
-        <button type="button" class="btn btn-primary"
+        <button class="so-modal__btn so-modal__btn--pink"
                 (click)="saveEdit()"
                 [disabled]="editForm.invalid || editLoading">
-          <span *ngIf="editLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
-          {{ editLoading ? 'Saving...' : 'Save Changes' }}
+          <span *ngIf="editLoading" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!editLoading" class="fa-solid fa-floppy-disk me-2"></i>
+          {{ editLoading ? 'Saving…' : 'Save Changes' }}
         </button>
       </div>
 

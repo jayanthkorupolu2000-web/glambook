@@ -1,34 +1,85 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">Complaint Management</h4>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Admin — Complaint Management
+     Matches dashboard palette: blush bg · navy hero · amber=complaints
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="cm-page">
 
-  <!-- Filters -->
-  <div class="row g-2 mb-3">
-    <div class="col-md-3">
-      <select class="form-select" [formControl]="statusFilter">
-        <option value="">All Statuses</option>
-        <option value="OPEN">Open</option>
-        <option value="FORWARDED">Forwarded</option>
-        <option value="RESOLVED">Resolved</option>
-      </select>
-    </div>
-    <div class="col-md-4">
-      <input class="form-control" placeholder="Search by professional name..." [formControl]="searchText">
-    </div>
-    <div class="col-auto">
-      <button class="btn btn-outline-primary" (click)="load()">Refresh</button>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="cm-hero">
+    <div class="cm-hero__inner">
+      <div class="cm-hero__text">
+        <p class="cm-hero__eyebrow">
+          <i class="fa-solid fa-shield-halved me-2"></i>Administration
+        </p>
+        <h1 class="cm-hero__title">Complaint Management</h1>
+        <p class="cm-hero__sub">Review, forward and resolve user-submitted complaints</p>
+      </div>
+      <button class="cm-refresh-btn" (click)="load()">
+        <i class="fa-solid fa-rotate-right me-2"></i>Refresh
+      </button>
     </div>
   </div>
 
-  <div *ngIf="loading" class="text-center py-4">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <!-- ── Summary chips ────────────────────────────────────── -->
+  <div class="cm-summary">
+    <div class="cm-chip cm-chip--amber">
+      <i class="fa-solid fa-comment-exclamation"></i>
+      <span class="cm-chip__label">Total</span>
+      <span class="cm-chip__count">{{ complaints.length }}</span>
+    </div>
+    <div class="cm-chip cm-chip--red">
+      <i class="fa-solid fa-circle-dot"></i>
+      <span class="cm-chip__label">Open</span>
+      <span class="cm-chip__count">{{ countByStatus('OPEN') }}</span>
+    </div>
+    <div class="cm-chip cm-chip--blue">
+      <i class="fa-solid fa-share"></i>
+      <span class="cm-chip__label">Forwarded</span>
+      <span class="cm-chip__count">{{ countByStatus('FORWARDED') }}</span>
+    </div>
+    <div class="cm-chip cm-chip--green">
+      <i class="fa-solid fa-circle-check"></i>
+      <span class="cm-chip__label">Resolved</span>
+      <span class="cm-chip__count">{{ countByStatus('RESOLVED') }}</span>
+    </div>
   </div>
 
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <!-- ── Filters ───────────────────────────────────────────── -->
+  <div class="cm-filters">
+    <select class="cm-select" [formControl]="statusFilter">
+      <option value="">All Statuses</option>
+      <option value="OPEN">Open</option>
+      <option value="FORWARDED">Forwarded</option>
+      <option value="RESOLVED">Resolved</option>
+    </select>
+    <div class="cm-search-wrap">
+      <i class="fa-solid fa-magnifying-glass cm-search-icon"></i>
+      <input class="cm-search" placeholder="Search by professional name…" [formControl]="searchText">
+    </div>
+  </div>
 
-  <div *ngIf="!loading" class="card border-0 shadow-sm">
+  <!-- ── Loading / Error ──────────────────────────────────── -->
+  <div *ngIf="loading" class="cm-loading">
+    <div class="cm-spinner"></div>
+    <span>Loading complaints…</span>
+  </div>
+  <div *ngIf="error" class="cm-error-banner">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ error }}
+  </div>
+
+  <!-- ── Table ─────────────────────────────────────────────── -->
+  <div *ngIf="!loading" class="cm-table-wrap">
+
+    <div class="cm-table-header">
+      <i class="fa-solid fa-comment-exclamation me-2"></i>
+      Complaints
+      <span class="cm-table-header__count">{{ filtered.length }}</span>
+    </div>
+
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+      <table class="cm-table">
+        <thead>
           <tr>
             <th>#</th>
             <th>Customer</th>
@@ -41,66 +92,128 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let c of filtered">
-            <td class="text-muted">{{ c.id }}</td>
-            <td>{{ c.customerName }}</td>
-            <td>{{ c.professionalName }}</td>
-            <td><span class="badge bg-secondary">{{ c.feedback }}</span></td>
+          <tr *ngFor="let c of filtered" class="cm-row">
+            <td class="cm-cell--id">{{ c.id }}</td>
+
             <td>
-              <span *ngFor="let s of stars(5)" [style.color]="s <= c.rating ? '#f5a623' : '#ccc'">★</span>
+              <div class="cm-cell--name">
+                <div class="cm-avatar cm-avatar--blue">{{ c.customerName.charAt(0).toUpperCase() }}</div>
+                <span>{{ c.customerName }}</span>
+              </div>
             </td>
-            <td><span [class]="statusBadge(c.status)">{{ c.status }}</span></td>
-            <td class="text-muted small">{{ c.createdAt | date:'dd MMM yyyy' }}</td>
+
             <td>
-              <button class="btn btn-sm btn-warning me-1"
-                      [disabled]="c.status !== 'OPEN'"
-                      (click)="forward(c.id)">
-                Forward
-              </button>
-              <button class="btn btn-sm btn-primary"
-                      [disabled]="c.status !== 'FORWARDED'"
-                      data-bs-toggle="modal" data-bs-target="#mediateModal"
-                      (click)="openMediate(c)">
-                Mediate
-              </button>
+              <div class="cm-cell--name">
+                <div class="cm-avatar cm-avatar--pink">{{ c.professionalName.charAt(0).toUpperCase() }}</div>
+                <span>{{ c.professionalName }}</span>
+              </div>
+            </td>
+
+            <td>
+              <span class="cm-feedback-badge">{{ c.feedback }}</span>
+            </td>
+
+            <td>
+              <div class="cm-stars">
+                <span *ngFor="let s of stars(5)"
+                      [style.color]="s <= c.rating ? '#f5a623' : '#e2e8f0'">★</span>
+              </div>
+            </td>
+
+            <td>
+              <span class="cm-status-badge"
+                    [class.cm-status-badge--open]="c.status === 'OPEN'"
+                    [class.cm-status-badge--forwarded]="c.status === 'FORWARDED'"
+                    [class.cm-status-badge--resolved]="c.status === 'RESOLVED'">
+                <i class="fa-solid me-1"
+                   [class.fa-circle-dot]="c.status === 'OPEN'"
+                   [class.fa-share]="c.status === 'FORWARDED'"
+                   [class.fa-circle-check]="c.status === 'RESOLVED'"></i>
+                {{ c.status }}
+              </span>
+            </td>
+
+            <td class="cm-cell--date">{{ c.createdAt | date:'dd MMM yyyy' }}</td>
+
+            <td>
+              <div class="cm-action-row">
+                <button class="cm-action-btn cm-action-btn--forward"
+                        [disabled]="c.status !== 'OPEN'"
+                        (click)="forward(c.id)">
+                  <i class="fa-solid fa-share me-1"></i>Forward
+                </button>
+                <button class="cm-action-btn cm-action-btn--mediate"
+                        [disabled]="c.status !== 'FORWARDED'"
+                        data-bs-toggle="modal" data-bs-target="#mediateModal"
+                        (click)="openMediate(c)">
+                  <i class="fa-solid fa-gavel me-1"></i>Mediate
+                </button>
+              </div>
             </td>
           </tr>
+
           <tr *ngIf="filtered.length === 0">
-            <td colspan="8" class="text-center text-muted py-4">No complaints found.</td>
+            <td colspan="8" class="cm-empty">
+              <i class="fa-solid fa-comment-slash"></i>
+              <span>No complaints found.</span>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-</div>
 
-<!-- Mediation Modal -->
+</div><!-- /cm-page -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     Mediation Modal — all logic unchanged
+     ══════════════════════════════════════════════════════════ -->
 <div class="modal fade" id="mediateModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold" style="color:#244AFD;">Resolve Complaint #{{ selectedComplaint?.id }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="cm-modal">
+
+      <div class="cm-modal__header">
+        <div class="cm-modal__header-icon">
+          <i class="fa-solid fa-gavel"></i>
+        </div>
+        <div>
+          <h6 class="cm-modal__title">Resolve Complaint #{{ selectedComplaint?.id }}</h6>
+          <p class="cm-modal__subtitle">
+            {{ selectedComplaint?.customerName }} → {{ selectedComplaint?.professionalName }}
+          </p>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <p class="text-muted small mb-2">
-          <strong>Customer:</strong> {{ selectedComplaint?.customerName }} &nbsp;|&nbsp;
-          <strong>Professional:</strong> {{ selectedComplaint?.professionalName }}
-        </p>
-        <p class="mb-3">{{ selectedComplaint?.description }}</p>
-        <label class="form-label fw-semibold">Resolution Notes</label>
-        <textarea class="form-control" rows="4" [(ngModel)]="resolutionNotes"
-                  placeholder="Describe how this complaint was resolved..."></textarea>
+
+      <div class="cm-modal__body">
+        <div class="cm-modal__complaint-desc" *ngIf="selectedComplaint?.description">
+          <i class="fa-solid fa-quote-left cm-modal__quote-icon"></i>
+          {{ selectedComplaint?.description }}
+        </div>
+
+        <label class="cm-modal__field-label">
+          Resolution Notes <span class="text-danger">*</span>
+        </label>
+        <textarea class="cm-modal__textarea" rows="4"
+                  [(ngModel)]="resolutionNotes"
+                  placeholder="Describe how this complaint was resolved…"></textarea>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-primary" data-bs-dismiss="modal"
+
+      <div class="cm-modal__footer">
+        <button class="cm-modal__btn cm-modal__btn--cancel" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button class="cm-modal__btn cm-modal__btn--resolve"
+                data-bs-dismiss="modal"
                 [disabled]="!resolutionNotes.trim() || mediating"
                 (click)="submitMediation()">
-          <span *ngIf="mediating" class="spinner-border spinner-border-sm me-1"></span>
+          <span *ngIf="mediating" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!mediating" class="fa-solid fa-circle-check me-2"></i>
           Resolve
         </button>
       </div>
+
     </div>
   </div>
 </div>

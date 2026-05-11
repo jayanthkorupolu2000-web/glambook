@@ -6,7 +6,8 @@ import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-admin-policy',
-  templateUrl: './admin-policy.component.html'
+  templateUrl: './admin-policy.component.html',
+  styleUrls: ['./admin-policy.component.scss']
 })
 export class AdminPolicyComponent implements OnInit {
   form: FormGroup;

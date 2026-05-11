@@ -1,0 +1,369 @@
+/* ═══════════════════════════════════════════════════════════
+   GLAMBOOK · Admin Dashboard Styles
+   Palette (from SimplyBook reference):
+     Blush bg   : #fdf2f4
+     Deep navy  : #0d1b3e
+     Coral/pink : #e8476a  (women / beauty CTA)
+     Sky blue   : #1e6fd9  (men / grooming)
+     Amber      : #d97706
+     Teal       : #0d9488
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Page shell ─────────────────────────────────────────────── */
+.ad-page {
+  min-height: 100vh;
+  background: #fdf2f4;           /* soft blush — matches reference */
+  padding: 0 0 3rem;
+  font-family: 'DM Sans', 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ── Hero header ────────────────────────────────────────────── */
+.ad-hero {
+  background: linear-gradient(135deg, #0d1b3e 0%, #1a3a6e 60%, #e8476a 100%);
+  padding: 2.5rem 2rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.ad-hero::after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  top: -60px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(232, 71, 106, 0.18);
+  pointer-events: none;
+}
+
+.ad-hero__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.ad-hero__eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 0.4rem;
+}
+
+.ad-hero__title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+  line-height: 1.15;
+}
+
+.ad-hero__sub {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 480px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.ad-hero__badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+
+  i { font-size: 1.8rem; }
+}
+
+/* ── Stats strip ────────────────────────────────────────────── */
+.ad-stats {
+  max-width: 1200px;
+  margin: -1.25rem auto 0;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.ad-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 20px rgba(13, 27, 62, 0.10);
+  border-left: 4px solid transparent;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(13, 27, 62, 0.14);
+  }
+}
+
+.ad-stat__icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.ad-stat__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.ad-stat__value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0d1b3e;
+  line-height: 1.1;
+}
+
+/* Stat colour variants */
+.ad-stat--blue  { border-left-color: #1e6fd9; .ad-stat__icon { color: #1e6fd9; } }
+.ad-stat--pink  { border-left-color: #e8476a; .ad-stat__icon { color: #e8476a; } }
+.ad-stat--coral { border-left-color: #f97316; .ad-stat__icon { color: #f97316; } }
+.ad-stat--navy  { border-left-color: #0d1b3e; .ad-stat__icon { color: #0d1b3e; } }
+
+/* ── Section label ──────────────────────────────────────────── */
+.ad-section-label {
+  max-width: 1200px;
+  margin: 2rem auto 1rem;
+  padding: 0 1.5rem;
+
+  span {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: #64748b;
+    position: relative;
+    padding-right: 1rem;
+
+    &::after {
+      content: '';
+      position: absolute;
+      right: -120px;
+      top: 50%;
+      width: 110px;
+      height: 1px;
+      background: #e2e8f0;
+    }
+  }
+}
+
+/* ── Card grid ──────────────────────────────────────────────── */
+.ad-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+/* ── Base card ──────────────────────────────────────────────── */
+.ad-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 2px 12px rgba(13, 27, 62, 0.07);
+  border: 1px solid #f1f5f9;
+  transition: transform 0.20s ease, box-shadow 0.20s ease;
+  position: relative;
+  overflow: hidden;
+
+  /* Subtle top accent bar */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(13, 27, 62, 0.13);
+  }
+}
+
+/* ── Icon wrap ──────────────────────────────────────────────── */
+.ad-card__icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+/* ── Card body ──────────────────────────────────────────────── */
+.ad-card__body {
+  flex: 1;
+  margin-bottom: 1.25rem;
+}
+
+.ad-card__title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0d1b3e;
+  margin-bottom: 0.3rem;
+  letter-spacing: -0.01em;
+}
+
+.ad-card__desc {
+  font-size: 0.83rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Gender tags ────────────────────────────────────────────── */
+.ad-card__gender-tags {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.ad-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+}
+
+/* Blue = men */
+.ad-tag--men {
+  background: rgba(30, 111, 217, 0.10);
+  color: #1e6fd9;
+  border: 1px solid rgba(30, 111, 217, 0.22);
+}
+
+/* Pink = women */
+.ad-tag--women {
+  background: rgba(232, 71, 106, 0.10);
+  color: #e8476a;
+  border: 1px solid rgba(232, 71, 106, 0.22);
+}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.ad-card__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.62rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #ffffff;
+  transition: filter 0.18s ease, transform 0.15s ease, box-shadow 0.18s ease;
+  border: none;
+
+  &:hover {
+    filter: brightness(1.10);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    color: #ffffff;
+  }
+}
+
+.ad-card__btn-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+
+  .ad-card__btn { flex: 1; }
+}
+
+/* ── Per-colour card variants ───────────────────────────────── */
+
+/* Blue — men / user management */
+.ad-card--blue::before        { background: #1e6fd9; }
+.ad-card__icon-wrap--blue     { background: rgba(30,111,217,0.12); color: #1e6fd9; }
+.ad-card__btn--blue           { background: #1e6fd9; box-shadow: 0 4px 14px rgba(30,111,217,0.35); }
+
+/* Pink — women / salon beauty */
+.ad-card--pink::before        { background: #e8476a; }
+.ad-card__icon-wrap--pink     { background: rgba(232,71,106,0.12); color: #e8476a; }
+.ad-card__btn--pink           { background: #e8476a; box-shadow: 0 4px 14px rgba(232,71,106,0.35); }
+
+/* Coral — reports */
+.ad-card--coral::before       { background: #f97316; }
+.ad-card__icon-wrap--coral    { background: rgba(249,115,22,0.12); color: #f97316; }
+.ad-card__btn--coral          { background: #f97316; box-shadow: 0 4px 14px rgba(249,115,22,0.35); }
+
+/* Amber — complaints */
+.ad-card--amber::before       { background: #d97706; }
+.ad-card__icon-wrap--amber    { background: rgba(217,119,6,0.12); color: #d97706; }
+.ad-card__btn--amber          { background: #d97706; box-shadow: 0 4px 14px rgba(217,119,6,0.35); }
+
+/* Navy — suspensions */
+.ad-card--navy::before        { background: #0d1b3e; }
+.ad-card__icon-wrap--navy     { background: rgba(13,27,62,0.10); color: #0d1b3e; }
+.ad-card__btn--navy           { background: #0d1b3e; box-shadow: 0 4px 14px rgba(13,27,62,0.30); }
+
+/* Teal — policies */
+.ad-card--teal::before        { background: #0d9488; }
+.ad-card__icon-wrap--teal     { background: rgba(13,148,136,0.12); color: #0d9488; }
+.ad-card__btn--teal           { background: #0d9488; box-shadow: 0 4px 14px rgba(13,148,136,0.35); }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .ad-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ad-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .ad-hero__title  { font-size: 1.5rem; }
+  .ad-hero__badge  { display: none; }
+
+  .ad-stats {
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: -0.75rem;
+  }
+
+  .ad-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ad-card__btn-row {
+    flex-direction: column;
+  }
+}

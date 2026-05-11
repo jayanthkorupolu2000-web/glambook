@@ -1,0 +1,135 @@
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Admin Dashboard
+     Data-driven via cards[] array in component.ts
+     Palette: blush bg · deep navy · coral=women · blue=men
+     ═══════════════════════════════════════════════════════════ -->
+<div class="ad-page">
+
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="ad-hero">
+    <div class="ad-hero__inner">
+      <div class="ad-hero__text">
+        <p class="ad-hero__eyebrow">
+          <i class="fa-solid fa-shield-halved me-2"></i>Administration
+        </p>
+        <h1 class="ad-hero__title">Admin Dashboard</h1>
+        <p class="ad-hero__sub">
+          Manage users, salons, reports, complaints and platform policies
+          from one central place.
+        </p>
+      </div>
+      <div class="ad-hero__badge">
+        <i class="fa-solid fa-scissors"></i>
+        <span>GlamBook</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Stats strip ──────────────────────────────────────── -->
+  <div class="ad-stats">
+    <div class="ad-stat ad-stat--blue">
+      <i class="fa-solid fa-users ad-stat__icon"></i>
+      <div>
+        <div class="ad-stat__label">Total Users</div>
+        <div class="ad-stat__value">—</div>
+      </div>
+    </div>
+    <div class="ad-stat ad-stat--pink">
+      <i class="fa-solid fa-store ad-stat__icon"></i>
+      <div>
+        <div class="ad-stat__label">Salon Owners</div>
+        <div class="ad-stat__value">—</div>
+      </div>
+    </div>
+    <div class="ad-stat ad-stat--coral">
+      <i class="fa-solid fa-calendar-check ad-stat__icon"></i>
+      <div>
+        <div class="ad-stat__label">Appointments</div>
+        <div class="ad-stat__value">—</div>
+      </div>
+    </div>
+    <div class="ad-stat ad-stat--navy">
+      <i class="fa-solid fa-triangle-exclamation ad-stat__icon"></i>
+      <div>
+        <div class="ad-stat__label">Open Complaints</div>
+        <div class="ad-stat__value">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Section label ────────────────────────────────────── -->
+  <div class="ad-section-label">
+    <span>Quick Access</span>
+  </div>
+
+  <!-- ── Card grid — driven by cards[] array ──────────────── -->
+  <div class="ad-grid">
+
+    <div
+      *ngFor="let card of cards"
+      class="ad-card"
+      [class]="'ad-card ad-card--' + card.colorClass"
+      (mouseenter)="card.hover = true"
+      (mouseleave)="card.hover = false"
+      [class.ad-card--hovered]="card.hover"
+    >
+      <!-- Icon -->
+      <div class="ad-card__icon-wrap" [class]="'ad-card__icon-wrap ad-card__icon-wrap--' + card.colorClass">
+        <i [class]="card.icon"></i>
+      </div>
+
+      <!-- Body -->
+      <div class="ad-card__body">
+        <h3 class="ad-card__title">{{ card.title }}</h3>
+        <p class="ad-card__desc">{{ card.desc }}</p>
+
+        <!-- Gender tags (only on cards that have them) -->
+        <div *ngIf="card.tags?.length" class="ad-card__gender-tags">
+          <span
+            *ngFor="let tag of card.tags"
+            class="ad-tag"
+            [class.ad-tag--men]="tag.type === 'men'"
+            [class.ad-tag--women]="tag.type === 'women'"
+          >
+            <i class="fa-solid me-1"
+               [class.fa-mars]="tag.type === 'men'"
+               [class.fa-venus]="tag.type === 'women'"></i>
+            {{ tag.label }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Single button -->
+      <ng-container *ngIf="!card.route2; else splitBtns">
+        <a
+          [routerLink]="card.route"
+          class="ad-card__btn"
+          [class]="'ad-card__btn ad-card__btn--' + card.colorClass"
+        >
+          <i class="fa-solid fa-arrow-right me-2"></i>Open
+        </a>
+      </ng-container>
+
+      <!-- Split buttons (Reports & Analytics) -->
+      <ng-template #splitBtns>
+        <div class="ad-card__btn-row">
+          <a
+            [routerLink]="card.route"
+            class="ad-card__btn"
+            [class]="'ad-card__btn ad-card__btn--' + card.colorClass"
+          >
+            <i class="fa-solid fa-file-chart-column me-2"></i>Reports
+          </a>
+          <a
+            [routerLink]="card.route2"
+            class="ad-card__btn ad-card__btn--navy"
+          >
+            <i class="fa-solid fa-chart-bar me-2"></i>{{ card.btn2Label }}
+          </a>
+        </div>
+      </ng-template>
+
+    </div><!-- /ngFor card -->
+
+  </div><!-- /ad-grid -->
+</div><!-- /ad-page -->

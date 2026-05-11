@@ -1,32 +1,91 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">User Management</h4>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Admin — User Management
+     Matches dashboard palette: blush bg · navy hero · blue=men · pink=women
+     All backend logic (loadUsers, openConfirm, executeAction) preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="um-page">
 
-  <!-- Tab Toggle -->
-  <ul class="nav nav-tabs mb-4">
-    <li class="nav-item">
-      <button class="nav-link fw-semibold" [class.active]="activeTab === 'customers'"
-              (click)="activeTab = 'customers'">
-        Customers ({{ customers.length }})
-      </button>
-    </li>
-    <li class="nav-item">
-      <button class="nav-link fw-semibold" [class.active]="activeTab === 'professionals'"
-              (click)="activeTab = 'professionals'">
-        Professionals ({{ professionals.length }})
-      </button>
-    </li>
-  </ul>
-
-  <div *ngIf="loading" class="text-center py-4">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <!-- ── Hero header (matches dashboard) ──────────────────── -->
+  <div class="um-hero">
+    <div class="um-hero__inner">
+      <div class="um-hero__text">
+        <p class="um-hero__eyebrow">
+          <i class="fa-solid fa-shield-halved me-2"></i>Administration
+        </p>
+        <h1 class="um-hero__title">User Management</h1>
+        <p class="um-hero__sub">View, search and manage all platform users</p>
+      </div>
+      <div class="um-hero__actions">
+        <button class="um-refresh-btn" (click)="loadUsers()">
+          <i class="fa-solid fa-rotate-right me-2"></i>Refresh
+        </button>
+      </div>
+    </div>
   </div>
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
 
-  <!-- Customers Table -->
-  <div *ngIf="activeTab === 'customers' && !loading" class="card border-0 shadow-sm">
+  <!-- ── Summary chips ────────────────────────────────────── -->
+  <div class="um-summary">
+    <div class="um-chip um-chip--blue">
+      <i class="fa-solid fa-mars me-2"></i>
+      <span class="um-chip__label">Customers</span>
+      <span class="um-chip__count">{{ customers.length }}</span>
+    </div>
+    <div class="um-chip um-chip--pink">
+      <i class="fa-solid fa-cut me-2"></i>
+      <span class="um-chip__label">Professionals</span>
+      <span class="um-chip__count">{{ professionals.length }}</span>
+    </div>
+    <div class="um-chip um-chip--green">
+      <i class="fa-solid fa-circle-check me-2"></i>
+      <span class="um-chip__label">Active</span>
+      <span class="um-chip__count">{{ activeCount }}</span>
+    </div>
+    <div class="um-chip um-chip--red">
+      <i class="fa-solid fa-ban me-2"></i>
+      <span class="um-chip__label">Suspended</span>
+      <span class="um-chip__count">{{ suspendedCount }}</span>
+    </div>
+  </div>
+
+  <!-- ── Loading / Error ──────────────────────────────────── -->
+  <div *ngIf="loading" class="um-loading">
+    <div class="um-spinner"></div>
+    <span>Loading users…</span>
+  </div>
+  <div *ngIf="error" class="um-error-banner">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ error }}
+  </div>
+
+  <!-- ── Tab bar ───────────────────────────────────────────── -->
+  <div *ngIf="!loading" class="um-tabs">
+    <button
+      class="um-tab"
+      [class.um-tab--active-blue]="activeTab === 'customers'"
+      (click)="activeTab = 'customers'">
+      <i class="fa-solid fa-users me-2"></i>
+      Customers
+      <span class="um-tab__badge um-tab__badge--blue">{{ customers.length }}</span>
+    </button>
+    <button
+      class="um-tab"
+      [class.um-tab--active-pink]="activeTab === 'professionals'"
+      (click)="activeTab = 'professionals'">
+      <i class="fa-solid fa-cut me-2"></i>
+      Professionals
+      <span class="um-tab__badge um-tab__badge--pink">{{ professionals.length }}</span>
+    </button>
+  </div>
+
+  <!-- ── Customers Table ───────────────────────────────────── -->
+  <div *ngIf="activeTab === 'customers' && !loading" class="um-table-wrap">
+    <div class="um-table-header um-table-header--blue">
+      <i class="fa-solid fa-users me-2"></i>
+      All Customers
+      <span class="um-table-header__count">{{ customers.length }}</span>
+    </div>
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+      <table class="um-table">
+        <thead>
           <tr>
             <th>ID</th>
             <th>Name</th>
@@ -37,33 +96,71 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let c of customers">
-            <td class="text-muted">{{ c.id }}</td>
-            <td>{{ c.name }}</td>
-            <td>{{ c.city }}</td>
-            <td><span [class]="statusBadge(c.status)">{{ c.status }}</span></td>
-            <td>{{ c.cancelCount }}</td>
+          <tr *ngFor="let c of customers" class="um-row">
+            <td class="um-cell--id">{{ c.id }}</td>
+            <td class="um-cell--name">
+              <div class="um-user-avatar um-user-avatar--blue">
+                {{ c.name.charAt(0).toUpperCase() }}
+              </div>
+              <span>{{ c.name }}</span>
+            </td>
             <td>
-              <button [class]="actionClass(c.status)"
-                      data-bs-toggle="modal" data-bs-target="#confirmModal"
-                      (click)="openConfirm(c.id, 'CUSTOMER', c.status, c.name)">
+              <span class="um-city-tag">
+                <i class="fa-solid fa-location-dot me-1"></i>{{ c.city }}
+              </span>
+            </td>
+            <td>
+              <span class="um-status-badge"
+                    [class.um-status-badge--active]="c.status === 'ACTIVE'"
+                    [class.um-status-badge--suspended]="c.status !== 'ACTIVE'">
+                <i class="fa-solid me-1"
+                   [class.fa-circle-check]="c.status === 'ACTIVE'"
+                   [class.fa-ban]="c.status !== 'ACTIVE'"></i>
+                {{ c.status }}
+              </span>
+            </td>
+            <td>
+              <span class="um-cancel-count"
+                    [class.um-cancel-count--warn]="c.cancelCount > 2">
+                {{ c.cancelCount }}
+              </span>
+            </td>
+            <td>
+              <button
+                class="um-action-btn"
+                [class.um-action-btn--suspend]="c.status === 'ACTIVE'"
+                [class.um-action-btn--reactivate]="c.status !== 'ACTIVE'"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmModal"
+                (click)="openConfirm(c.id, 'CUSTOMER', c.status, c.name)">
+                <i class="fa-solid me-1"
+                   [class.fa-user-slash]="c.status === 'ACTIVE'"
+                   [class.fa-user-check]="c.status !== 'ACTIVE'"></i>
                 {{ actionLabel(c.status) }}
               </button>
             </td>
           </tr>
           <tr *ngIf="customers.length === 0">
-            <td colspan="6" class="text-center text-muted py-3">No customers found.</td>
+            <td colspan="6" class="um-empty">
+              <i class="fa-solid fa-users-slash"></i>
+              <span>No customers found.</span>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Professionals Table -->
-  <div *ngIf="activeTab === 'professionals' && !loading" class="card border-0 shadow-sm">
+  <!-- ── Professionals Table ───────────────────────────────── -->
+  <div *ngIf="activeTab === 'professionals' && !loading" class="um-table-wrap">
+    <div class="um-table-header um-table-header--pink">
+      <i class="fa-solid fa-cut me-2"></i>
+      All Professionals
+      <span class="um-table-header__count">{{ professionals.length }}</span>
+    </div>
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+      <table class="um-table">
+        <thead>
           <tr>
             <th>ID</th>
             <th>Name</th>
@@ -74,78 +171,132 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of professionals">
-            <td class="text-muted">{{ p.id }}</td>
-            <td>{{ p.name }}</td>
-            <td>{{ p.city }}</td>
-            <td>{{ p.specialization }}</td>
-            <td><span [class]="statusBadge(p.status)">{{ p.status }}</span></td>
+          <tr *ngFor="let p of professionals" class="um-row">
+            <td class="um-cell--id">{{ p.id }}</td>
+            <td class="um-cell--name">
+              <div class="um-user-avatar um-user-avatar--pink">
+                {{ p.name.charAt(0).toUpperCase() }}
+              </div>
+              <span>{{ p.name }}</span>
+            </td>
             <td>
-              <button [class]="actionClass(p.status)"
-                      data-bs-toggle="modal" data-bs-target="#confirmModal"
-                      (click)="openConfirm(p.id, 'PROFESSIONAL', p.status, p.name)">
+              <span class="um-city-tag">
+                <i class="fa-solid fa-location-dot me-1"></i>{{ p.city }}
+              </span>
+            </td>
+            <td>
+              <span class="um-spec-tag">{{ p.specialization }}</span>
+            </td>
+            <td>
+              <span class="um-status-badge"
+                    [class.um-status-badge--active]="p.status === 'ACTIVE'"
+                    [class.um-status-badge--suspended]="p.status !== 'ACTIVE'">
+                <i class="fa-solid me-1"
+                   [class.fa-circle-check]="p.status === 'ACTIVE'"
+                   [class.fa-ban]="p.status !== 'ACTIVE'"></i>
+                {{ p.status }}
+              </span>
+            </td>
+            <td>
+              <button
+                class="um-action-btn"
+                [class.um-action-btn--suspend]="p.status === 'ACTIVE'"
+                [class.um-action-btn--reactivate]="p.status !== 'ACTIVE'"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmModal"
+                (click)="openConfirm(p.id, 'PROFESSIONAL', p.status, p.name)">
+                <i class="fa-solid me-1"
+                   [class.fa-user-slash]="p.status === 'ACTIVE'"
+                   [class.fa-user-check]="p.status !== 'ACTIVE'"></i>
                 {{ actionLabel(p.status) }}
               </button>
             </td>
           </tr>
           <tr *ngIf="professionals.length === 0">
-            <td colspan="6" class="text-center text-muted py-3">No professionals found.</td>
+            <td colspan="6" class="um-empty">
+              <i class="fa-solid fa-scissors"></i>
+              <span>No professionals found.</span>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-</div>
 
-<!-- Confirm Modal -->
+</div><!-- /um-page -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     Confirm Modal — all logic unchanged
+     ══════════════════════════════════════════════════════════ -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header"
-           [style.background]="pendingNewStatus === 'SUSPENDED' ? 'linear-gradient(135deg,#dc2626,#991b1b)' : 'linear-gradient(135deg,#16a34a,#15803d)'">
-        <h6 class="modal-title fw-bold text-white">
-          {{ pendingNewStatus === 'SUSPENDED' ? '⚠ Suspend User' : '✓ Reactivate User' }}
-        </h6>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content um-modal">
 
-        <p class="mb-3">
+      <div class="um-modal__header"
+           [class.um-modal__header--danger]="pendingNewStatus === 'SUSPENDED'"
+           [class.um-modal__header--success]="pendingNewStatus !== 'SUSPENDED'">
+        <div class="um-modal__header-icon">
+          <i class="fa-solid"
+             [class.fa-user-slash]="pendingNewStatus === 'SUSPENDED'"
+             [class.fa-user-check]="pendingNewStatus !== 'SUSPENDED'"></i>
+        </div>
+        <div>
+          <h6 class="um-modal__title">
+            {{ pendingNewStatus === 'SUSPENDED' ? 'Suspend User' : 'Reactivate User' }}
+          </h6>
+          <p class="um-modal__subtitle">{{ pendingName }}</p>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body um-modal__body">
+        <p class="um-modal__question">
           Are you sure you want to
           <strong>{{ pendingNewStatus === 'SUSPENDED' ? 'suspend' : 'reactivate' }}</strong>
-          <strong>{{ pendingName }}</strong>?
+          <strong class="um-modal__name">{{ pendingName }}</strong>?
         </p>
 
-        <!-- Reason — only shown when suspending -->
-        <div *ngIf="pendingNewStatus === 'SUSPENDED'">
-          <label class="form-label fw-semibold small">
+        <!-- Reason textarea — only when suspending (logic unchanged) -->
+        <div *ngIf="pendingNewStatus === 'SUSPENDED'" class="um-modal__reason">
+          <label class="um-modal__reason-label">
             Reason for Suspension <span class="text-danger">*</span>
           </label>
-          <textarea class="form-control" rows="3" [(ngModel)]="suspendReason"
-                    placeholder="e.g. Multiple same-day cancellations, policy violations..."
-                    [class.is-invalid]="reasonSubmitted && !suspendReason.trim()">
+          <textarea
+            class="um-modal__textarea"
+            rows="3"
+            [(ngModel)]="suspendReason"
+            placeholder="e.g. Multiple same-day cancellations, policy violations…"
+            [class.um-modal__textarea--error]="reasonSubmitted && !suspendReason.trim()">
           </textarea>
-          <div class="invalid-feedback">Please provide a reason for suspension.</div>
-          <small class="text-muted">This reason will be recorded for audit purposes.</small>
+          <div *ngIf="reasonSubmitted && !suspendReason.trim()" class="um-modal__field-error">
+            Please provide a reason for suspension.
+          </div>
+          <small class="um-modal__hint">This reason will be recorded for audit purposes.</small>
         </div>
+      </div>
 
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-        <button *ngIf="pendingNewStatus === 'SUSPENDED'"
-                class="btn btn-danger btn-sm"
-                [disabled]="!suspendReason.trim()"
-                data-bs-dismiss="modal"
-                (click)="executeAction()">
-          Confirm Suspension
+      <div class="um-modal__footer">
+        <button class="um-modal__btn um-modal__btn--cancel" data-bs-dismiss="modal">
+          Cancel
         </button>
-        <button *ngIf="pendingNewStatus !== 'SUSPENDED'"
-                class="btn btn-success btn-sm"
-                data-bs-dismiss="modal"
-                (click)="executeAction()">
-          Confirm Reactivation
+        <button
+          *ngIf="pendingNewStatus === 'SUSPENDED'"
+          class="um-modal__btn um-modal__btn--danger"
+          [disabled]="!suspendReason.trim()"
+          data-bs-dismiss="modal"
+          (click)="executeAction()">
+          <i class="fa-solid fa-user-slash me-2"></i>Confirm Suspension
+        </button>
+        <button
+          *ngIf="pendingNewStatus !== 'SUSPENDED'"
+          class="um-modal__btn um-modal__btn--success"
+          data-bs-dismiss="modal"
+          (click)="executeAction()">
+          <i class="fa-solid fa-user-check me-2"></i>Confirm Reactivation
         </button>
       </div>
+
     </div>
   </div>
 </div>

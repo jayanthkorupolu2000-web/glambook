@@ -2,11 +2,13 @@ package com.salon.service.impl;
 
 import com.salon.dto.response.UserStatusResponse;
 import com.salon.entity.ComplaintStatus;
+import com.salon.entity.CustomerNotificationType;
 import com.salon.entity.UserStatus;
 import com.salon.exception.ResourceNotFoundException;
 import com.salon.repository.ComplaintRepository;
 import com.salon.repository.CustomerRepository;
 import com.salon.repository.ProfessionalRepository;
+import com.salon.service.CustomerNotificationService;
 import com.salon.service.SuspensionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ public class SuspensionServiceImpl implements SuspensionService {
     private final ProfessionalRepository professionalRepository;
     private final CustomerRepository customerRepository;
     private final ComplaintRepository complaintRepository;
+    private final CustomerNotificationService customerNotificationService;
 
     private static final int AUTO_SUSPEND_THRESHOLD = 5;
 
@@ -80,15 +83,30 @@ public class SuspensionServiceImpl implements SuspensionService {
         if ("CUSTOMER".equalsIgnoreCase(userType)) {
             var customer = customerRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException("Customer not found with id: " + userId));
+            boolean wasSuspended = UserStatus.SUSPENDED.equals(customer.getStatus());
             customer.setStatus(newStatus);
             if (newStatus == UserStatus.SUSPENDED) {
                 customer.setSuspensionReason(reason != null && !reason.isBlank()
                         ? reason
                         : "Your account has been suspended by the admin. Please contact support to resolve this.");
             } else {
-                customer.setSuspensionReason(null); // clear on reactivation
+                customer.setSuspensionReason(null);
             }
             customerRepository.save(customer);
+
+            // Send notification to customer
+            if (newStatus == UserStatus.SUSPENDED) {
+                String msg = "🚫 Your account has been suspended by the admin."
+                        + (reason != null && !reason.isBlank() ? " Reason: " + reason : "")
+                        + " You cannot book appointments until your account is reactivated. Please contact support.";
+                customerNotificationService.createNotification(
+                        userId, CustomerNotificationType.BOOKING_CANCELLED, null, msg);
+            } else if (newStatus == UserStatus.ACTIVE && wasSuspended) {
+                customerNotificationService.createNotification(
+                        userId, CustomerNotificationType.BOOKING_CONFIRMED, null,
+                        "✅ Your account has been reactivated by the admin. You can now book appointments again. Welcome back!");
+            }
+
             return new UserStatusResponse(customer.getId(), customer.getName(), "CUSTOMER", newStatus.name());
 
         } else if ("PROFESSIONAL".equalsIgnoreCase(userType)) {

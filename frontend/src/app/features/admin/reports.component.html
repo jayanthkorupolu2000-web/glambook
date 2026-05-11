@@ -1,241 +1,259 @@
-<div class="container-fluid py-4" style="max-width:1200px;">
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Admin — Reports
+     Matches dashboard palette: blush bg · navy hero · coral accent
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="rp-page">
 
-  <!-- ── Header ── -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h2 class="fw-bold mb-0" style="color:#244AFD;">📊 Reports & Analytics</h2>
-      <p class="text-muted small mb-0">System-wide performance across all salons and professionals</p>
-    </div>
-    <button class="btn fw-semibold text-white" style="background:#244AFD;"
-            (click)="load()" [disabled]="loading">
-      <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
-      🔄 Refresh
-    </button>
-  </div>
-
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-
-  <!-- ── KPI Summary Cards ── -->
-  <div *ngIf="summary" class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm p-3 text-center h-100">
-        <div style="font-size:1.8rem;">🏪</div>
-        <div class="fw-bold fs-4 mt-1" style="color:#244AFD;">{{ summary.totalSalons }}</div>
-        <div class="text-muted small">Total Salons</div>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="rp-hero">
+    <div class="rp-hero__inner">
+      <div class="rp-hero__text">
+        <p class="rp-hero__eyebrow">
+          <i class="fa-solid fa-shield-halved me-2"></i>Administration
+        </p>
+        <h1 class="rp-hero__title">Reports</h1>
+        <p class="rp-hero__sub">Salon-wise performance — revenue, appointments and professionals</p>
       </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm p-3 text-center h-100">
-        <div style="font-size:1.8rem;">✂️</div>
-        <div class="fw-bold fs-4 mt-1" style="color:#1a9e5c;">{{ summary.totalProfessionals }}</div>
-        <div class="text-muted small">Professionals</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm p-3 text-center h-100">
-        <div style="font-size:1.8rem;">📅</div>
-        <div class="fw-bold fs-4 mt-1" style="color:#c77c00;">{{ summary.totalAppointments }}</div>
-        <div class="text-muted small">Total Appointments</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm p-3 text-center h-100">
-        <div style="font-size:1.8rem;">💰</div>
-        <div class="fw-bold fs-4 mt-1" style="color:#1a9e5c;">₹{{ summary.totalRevenue | number:'1.0-0' }}</div>
-        <div class="text-muted small">Total Revenue</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm p-3 text-center h-100">
-        <div style="font-size:1.8rem;">👥</div>
-        <div class="fw-bold fs-4 mt-1" style="color:#244AFD;">{{ summary.totalCustomers }}</div>
-        <div class="text-muted small">Total Customers</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm p-3 text-center h-100">
-        <div style="font-size:1.8rem;">🚫</div>
-        <div class="fw-bold fs-4 mt-1" style="color:#c0392b;">{{ summary.suspendedCustomers }}</div>
-        <div class="text-muted small">Suspended Customers</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm p-3 text-center h-100">
-        <div style="font-size:1.8rem;">💳</div>
-        <div class="fw-bold fs-4 mt-1" style="color:#1a9e5c;">{{ summary.totalPayments }}</div>
-        <div class="text-muted small">Total Payments</div>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card border-0 shadow-sm p-3 text-center h-100">
-        <div style="font-size:1.8rem;">✅</div>
-        <div class="fw-bold fs-4 mt-1" style="color:#1a9e5c;">{{ summary.paymentSuccessRate }}%</div>
-        <div class="text-muted small">Payment Success Rate</div>
-      </div>
+      <button class="rp-refresh-btn" (click)="load()" [disabled]="loading">
+        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+        <i *ngIf="!loading" class="fa-solid fa-rotate-right me-2"></i>
+        Refresh
+      </button>
     </div>
   </div>
 
-  <!-- ── Salon Analytics Section ── -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
-      <h5 class="fw-bold mb-0" style="color:#244AFD;">🏪 Salon Performance Breakdown</h5>
-      <div class="d-flex gap-2 flex-wrap">
-        <!-- Search -->
-        <input type="text" class="form-control form-control-sm" style="width:200px;"
-               placeholder="Search salon / city..." [(ngModel)]="searchQuery"
-               (input)="applyFilter()">
-        <!-- Sort -->
-        <select class="form-select form-select-sm" style="width:160px;"
-                [(ngModel)]="sortBy" (change)="applyFilter()">
+  <!-- ── Error ─────────────────────────────────────────────── -->
+  <div *ngIf="error" class="rp-error-banner">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ error }}
+  </div>
+
+  <!-- ── KPI Cards ─────────────────────────────────────────── -->
+  <div *ngIf="summary" class="rp-kpi-grid">
+
+    <div class="rp-kpi-card rp-kpi-card--navy">
+      <div class="rp-kpi-card__icon">
+        <i class="fa-solid fa-store"></i>
+      </div>
+      <div class="rp-kpi-card__val">{{ summary.totalSalons }}</div>
+      <div class="rp-kpi-card__lbl">Total Salons</div>
+    </div>
+
+    <div class="rp-kpi-card rp-kpi-card--teal">
+      <div class="rp-kpi-card__icon">
+        <i class="fa-solid fa-cut"></i>
+      </div>
+      <div class="rp-kpi-card__val">{{ summary.totalProfessionals }}</div>
+      <div class="rp-kpi-card__lbl">Professionals</div>
+    </div>
+
+    <div class="rp-kpi-card rp-kpi-card--amber">
+      <div class="rp-kpi-card__icon">
+        <i class="fa-solid fa-calendar-check"></i>
+      </div>
+      <div class="rp-kpi-card__val">{{ summary.totalAppointments }}</div>
+      <div class="rp-kpi-card__lbl">Total Appointments</div>
+    </div>
+
+    <div class="rp-kpi-card rp-kpi-card--green">
+      <div class="rp-kpi-card__icon">
+        <i class="fa-solid fa-indian-rupee-sign"></i>
+      </div>
+      <div class="rp-kpi-card__val">₹{{ summary.totalRevenue | number:'1.0-0' }}</div>
+      <div class="rp-kpi-card__lbl">Total Revenue</div>
+    </div>
+
+    <div class="rp-kpi-card rp-kpi-card--blue">
+      <div class="rp-kpi-card__icon">
+        <i class="fa-solid fa-users"></i>
+      </div>
+      <div class="rp-kpi-card__val">{{ summary.totalCustomers }}</div>
+      <div class="rp-kpi-card__lbl">Total Customers</div>
+    </div>
+
+    <div class="rp-kpi-card rp-kpi-card--red">
+      <div class="rp-kpi-card__icon">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <div class="rp-kpi-card__val">{{ summary.suspendedCustomers }}</div>
+      <div class="rp-kpi-card__lbl">Suspended Customers</div>
+    </div>
+
+    <div class="rp-kpi-card rp-kpi-card--pink">
+      <div class="rp-kpi-card__icon">
+        <i class="fa-solid fa-credit-card"></i>
+      </div>
+      <div class="rp-kpi-card__val">{{ summary.totalPayments }}</div>
+      <div class="rp-kpi-card__lbl">Total Payments</div>
+    </div>
+
+    <div class="rp-kpi-card rp-kpi-card--green">
+      <div class="rp-kpi-card__icon">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div class="rp-kpi-card__val">{{ summary.paymentSuccessRate }}%</div>
+      <div class="rp-kpi-card__lbl">Payment Success Rate</div>
+    </div>
+
+  </div>
+
+  <!-- ── Salon Performance Breakdown ──────────────────────── -->
+  <div class="rp-salon-card">
+
+    <div class="rp-salon-card__header">
+      <div class="rp-salon-card__title">
+        <i class="fa-solid fa-chart-bar me-2"></i>Salon Performance Breakdown
+      </div>
+      <div class="rp-filters">
+        <select class="rp-select" [(ngModel)]="filterCity" (change)="onReportCityChange()">
+          <option value="">📍 All Cities</option>
+          <option *ngFor="let c of reportCities" [value]="c">📍 {{ c }}</option>
+        </select>
+        <select class="rp-select" [(ngModel)]="filterSalonId" (change)="applyFilter()">
+          <option value="">🏪 All Salons</option>
+          <option *ngFor="let s of reportFilteredSalons" [value]="s.ownerId">🏪 {{ s.salonName }}</option>
+        </select>
+        <select class="rp-select" [(ngModel)]="sortBy" (change)="applyFilter()">
           <option value="revenue">Sort: Revenue ↓</option>
           <option value="appointments">Sort: Appointments ↓</option>
           <option value="rating">Sort: Rating ↓</option>
         </select>
+        <button *ngIf="filterCity || filterSalonId" class="rp-clear-btn"
+                (click)="filterCity=''; filterSalonId=''; onReportCityChange()">
+          <i class="fa-solid fa-xmark me-1"></i>Clear
+        </button>
       </div>
     </div>
 
-    <div *ngIf="loading" class="text-center py-5">
-      <div class="spinner-border" style="color:#244AFD;"></div>
+    <!-- Loading -->
+    <div *ngIf="loading" class="rp-loading">
+      <div class="rp-spinner"></div>
+      <span>Loading reports…</span>
     </div>
 
-    <div *ngIf="!loading && filteredSalons.length === 0" class="text-center text-muted py-5">
-      <div style="font-size:2.5rem;">🏪</div>
-      <p class="mt-2">No salons found.</p>
+    <!-- Empty -->
+    <div *ngIf="!loading && filteredSalons.length === 0" class="rp-empty">
+      <i class="fa-solid fa-store-slash"></i>
+      <p>No salons found.</p>
     </div>
 
-    <!-- Salon Cards -->
-    <div class="card-body p-3">
-      <div *ngFor="let s of filteredSalons" class="mb-3">
+    <!-- Salon rows -->
+    <div *ngIf="!loading && filteredSalons.length > 0" class="rp-salon-body">
+      <div *ngFor="let s of filteredSalons" class="rp-salon-row">
 
-        <!-- Salon Header Row -->
-        <div class="card border-0" style="background:#f8f9fa;border-radius:10px;">
-          <div class="card-body p-3">
-            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
-
-              <!-- Salon Info -->
-              <div class="d-flex align-items-center gap-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
-                     style="width:44px;height:44px;background:#244AFD;font-size:1.1rem;flex-shrink:0;">
-                  {{ s.salonName?.charAt(0) || 'S' }}
-                </div>
-                <div>
-                  <div class="fw-bold" style="color:#1a1a2e;">{{ s.salonName }}</div>
-                  <div class="text-muted small">{{ s.ownerName }} · 📍 {{ s.city }}</div>
-                </div>
-              </div>
-
-              <!-- KPI chips -->
-              <div class="d-flex flex-wrap gap-2 align-items-center">
-                <span class="badge rounded-pill px-3 py-2" style="background:#e8f5e9;color:#1a9e5c;font-size:.8rem;">
-                  💰 ₹{{ s.totalRevenue | number:'1.0-0' }}
+        <!-- Row header -->
+        <div class="rp-salon-row__header">
+          <div class="rp-salon-info">
+            <div class="rp-salon-avatar">{{ s.salonName?.charAt(0) || 'S' }}</div>
+            <div>
+              <div class="rp-salon-name">{{ s.salonName }}</div>
+              <div class="rp-salon-meta">
+                {{ s.ownerName }}
+                <span class="rp-salon-city">
+                  <i class="fa-solid fa-location-dot me-1"></i>{{ s.city }}
                 </span>
-                <span class="badge rounded-pill px-3 py-2" style="background:#f0f4ff;color:#244AFD;font-size:.8rem;">
-                  📅 {{ s.totalAppointments }} appts
-                </span>
-                <span class="badge rounded-pill px-3 py-2" style="background:#fff8e1;color:#c77c00;font-size:.8rem;">
-                  ⭐ {{ s.averageRating | number:'1.1-1' }} ({{ s.totalReviews }} reviews)
-                </span>
-                <span class="badge rounded-pill px-3 py-2" style="background:#f3e5f5;color:#6a1b9a;font-size:.8rem;">
-                  ✂️ {{ s.professionalsCount }} professionals
-                </span>
-                <!-- Expand toggle -->
-                <button class="btn btn-sm fw-semibold"
-                        style="background:#244AFD;color:#fff;border-radius:8px;"
-                        (click)="toggleSalon(s.ownerId)">
-                  {{ expandedSalonId === s.ownerId ? '▲ Hide' : '▼ Details' }}
-                </button>
-              </div>
-            </div>
-
-            <!-- Completion rate bar -->
-            <div class="mt-3">
-              <div class="d-flex justify-content-between small text-muted mb-1">
-                <span>Completion Rate</span>
-                <span class="fw-semibold">{{ completionRate(s) }}%
-                  ({{ s.completedAppointments }} completed · {{ s.cancelledAppointments }} cancelled)
-                </span>
-              </div>
-              <div class="progress" style="height:6px;border-radius:4px;">
-                <div class="progress-bar" role="progressbar"
-                     [style.width]="completionRate(s) + '%'"
-                     style="background:#1a9e5c;border-radius:4px;"></div>
               </div>
             </div>
           </div>
 
-          <!-- ── Professional Breakdown (expandable) ── -->
-          <div *ngIf="expandedSalonId === s.ownerId" class="border-top mx-3 mb-3 pt-3">
-            <div class="fw-semibold small mb-2" style="color:#244AFD;">✂️ Professionals</div>
-
-            <div *ngIf="s.professionals?.length === 0" class="text-muted small">
-              No professionals registered.
-            </div>
-
-            <div class="table-responsive">
-              <table *ngIf="s.professionals?.length > 0" class="table table-sm table-hover align-middle mb-0"
-                     style="font-size:.85rem;">
-                <thead style="background:#f0f4ff;">
-                  <tr>
-                    <th class="fw-semibold" style="color:#244AFD;">Professional</th>
-                    <th class="fw-semibold text-center" style="color:#244AFD;">Status</th>
-                    <th class="fw-semibold text-center" style="color:#244AFD;">Appointments</th>
-                    <th class="fw-semibold text-center" style="color:#244AFD;">Completed</th>
-                    <th class="fw-semibold text-center" style="color:#244AFD;">Cancelled</th>
-                    <th class="fw-semibold text-center" style="color:#244AFD;">Revenue</th>
-                    <th class="fw-semibold text-center" style="color:#244AFD;">Rating</th>
-                    <th class="fw-semibold text-center" style="color:#244AFD;">Completion %</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let p of s.professionals">
-                    <td>
-                      <div class="fw-semibold">{{ p.name }}</div>
-                      <div class="text-muted" style="font-size:.75rem;">{{ p.specialization }}</div>
-                    </td>
-                    <td class="text-center">
-                      <span class="badge rounded-pill"
-                            [style.background]="p.status === 'ACTIVE' ? '#e8f5e9' : '#fdecea'"
-                            [style.color]="p.status === 'ACTIVE' ? '#1a9e5c' : '#c0392b'">
-                        {{ p.status }}
-                      </span>
-                    </td>
-                    <td class="text-center fw-semibold">{{ p.totalAppointments }}</td>
-                    <td class="text-center" style="color:#1a9e5c;">{{ p.completedAppointments }}</td>
-                    <td class="text-center" style="color:#c0392b;">{{ p.cancelledAppointments }}</td>
-                    <td class="text-center fw-semibold" style="color:#1a9e5c;">
-                      ₹{{ p.revenue | number:'1.0-0' }}
-                    </td>
-                    <td class="text-center">
-                      <div class="d-flex align-items-center justify-content-center gap-1">
-                        <span *ngFor="let s of stars(5)"
-                              [style.color]="s <= p.averageRating ? '#f5a623' : '#ddd'"
-                              style="font-size:.9rem;">★</span>
-                        <span class="text-muted ms-1" style="font-size:.75rem;">
-                          {{ p.averageRating | number:'1.1-1' }}
-                          <span *ngIf="p.totalReviews > 0">({{ p.totalReviews }})</span>
-                        </span>
-                      </div>
-                    </td>
-                    <td class="text-center">
-                      <div class="d-flex align-items-center gap-1">
-                        <div class="progress flex-fill" style="height:5px;border-radius:3px;min-width:50px;">
-                          <div class="progress-bar" [style.width]="profCompletionRate(p) + '%'"
-                               style="background:#1a9e5c;border-radius:3px;"></div>
-                        </div>
-                        <span class="fw-semibold" style="font-size:.75rem;min-width:30px;">
-                          {{ profCompletionRate(p) }}%
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+          <div class="rp-chips">
+            <span class="rp-chip rp-chip--green">
+              <i class="fa-solid fa-indian-rupee-sign me-1"></i>₹{{ s.totalRevenue | number:'1.0-0' }}
+            </span>
+            <span class="rp-chip rp-chip--blue">
+              <i class="fa-solid fa-calendar me-1"></i>{{ s.totalAppointments }} appts
+            </span>
+            <span class="rp-chip rp-chip--amber">
+              <i class="fa-solid fa-star me-1"></i>{{ s.averageRating | number:'1.1-1' }} ({{ s.totalReviews }} reviews)
+            </span>
+            <span class="rp-chip rp-chip--purple">
+              <i class="fa-solid fa-cut me-1"></i>{{ s.professionalsCount }} professionals
+            </span>
+            <button class="rp-details-btn" (click)="toggleSalon(s.ownerId)">
+              <i class="fa-solid me-1"
+                 [class.fa-chevron-up]="expandedSalonId === s.ownerId"
+                 [class.fa-chevron-down]="expandedSalonId !== s.ownerId"></i>
+              {{ expandedSalonId === s.ownerId ? 'Hide' : 'Details' }}
+            </button>
           </div>
-
         </div>
-      </div>
-    </div>
-  </div>
 
-</div>
+        <!-- Completion bar -->
+        <div class="rp-progress-wrap">
+          <div class="rp-progress-label">
+            <span>Completion Rate</span>
+            <span>{{ completionRate(s) }}% · {{ s.completedAppointments }} completed · {{ s.cancelledAppointments }} cancelled</span>
+          </div>
+          <div class="rp-progress-track">
+            <div class="rp-progress-fill" [style.width.%]="completionRate(s)"></div>
+          </div>
+        </div>
+
+        <!-- Professional breakdown (expanded) -->
+        <div *ngIf="expandedSalonId === s.ownerId" class="rp-prof-section">
+          <div class="rp-prof-title">
+            <i class="fa-solid fa-cut me-2"></i>Professionals
+          </div>
+
+          <div *ngIf="!s.professionals?.length" class="rp-prof-empty">
+            No professionals registered.
+          </div>
+
+          <div class="table-responsive" *ngIf="s.professionals?.length > 0">
+            <table class="rp-prof-table">
+              <thead>
+                <tr>
+                  <th>Professional</th>
+                  <th class="text-center">Status</th>
+                  <th class="text-center">Appts</th>
+                  <th class="text-center">Done</th>
+                  <th class="text-center">Cancelled</th>
+                  <th class="text-center">Revenue</th>
+                  <th class="text-center">Rating</th>
+                  <th class="text-center">Completion</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of s.professionals" class="rp-prof-row">
+                  <td>
+                    <div class="rp-prof-name">{{ p.name }}</div>
+                    <div class="rp-prof-spec">{{ p.specialization }}</div>
+                  </td>
+                  <td class="text-center">
+                    <span class="rp-status-badge"
+                          [class.rp-status-badge--active]="p.status === 'ACTIVE'"
+                          [class.rp-status-badge--inactive]="p.status !== 'ACTIVE'">
+                      {{ p.status }}
+                    </span>
+                  </td>
+                  <td class="text-center rp-num">{{ p.totalAppointments }}</td>
+                  <td class="text-center rp-num rp-num--green">{{ p.completedAppointments }}</td>
+                  <td class="text-center rp-num rp-num--red">{{ p.cancelledAppointments }}</td>
+                  <td class="text-center rp-num rp-num--green">₹{{ p.revenue | number:'1.0-0' }}</td>
+                  <td class="text-center">
+                    <div class="rp-stars">
+                      <span *ngFor="let st of stars(5)"
+                            [style.color]="st <= p.averageRating ? '#f5a623' : '#e2e8f0'">★</span>
+                      <span class="rp-stars__num">{{ p.averageRating | number:'1.1-1' }}</span>
+                    </div>
+                  </td>
+                  <td class="text-center">
+                    <div class="rp-mini-progress">
+                      <div class="rp-mini-progress__track">
+                        <div class="rp-mini-progress__fill" [style.width]="profCompletionRate(p) + '%'"></div>
+                      </div>
+                      <span class="rp-mini-progress__pct">{{ profCompletionRate(p) }}%</span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /salon row -->
+    </div><!-- /salon body -->
+
+  </div><!-- /salon card -->
+
+</div><!-- /rp-page -->

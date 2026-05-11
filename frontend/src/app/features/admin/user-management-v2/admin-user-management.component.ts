@@ -22,7 +22,8 @@ interface ProfessionalWithStatus {
 
 @Component({
   selector: 'app-admin-user-management',
-  templateUrl: './admin-user-management.component.html'
+  templateUrl: './admin-user-management.component.html',
+  styleUrls: ['./admin-user-management.component.scss']
 })
 export class AdminUserManagementComponent implements OnInit {
   activeTab: 'customers' | 'professionals' = 'customers';
@@ -104,5 +105,13 @@ export class AdminUserManagementComponent implements OnInit {
 
   actionClass(status: string): string {
     return status === 'ACTIVE' ? 'btn btn-sm btn-danger' : 'btn btn-sm btn-success';
+  }
+
+  get activeCount(): number {
+    return [...this.customers, ...this.professionals].filter(u => u.status === 'ACTIVE').length;
+  }
+
+  get suspendedCount(): number {
+    return [...this.customers, ...this.professionals].filter(u => u.status !== 'ACTIVE').length;
   }
 }

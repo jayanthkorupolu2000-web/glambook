@@ -20,6 +20,12 @@ export class ReportsComponent implements OnInit {
   searchQuery = '';
   sortBy: 'revenue' | 'appointments' | 'rating' = 'revenue';
 
+  // City/Salon dropdowns for reports
+  filterCity = '';
+  filterSalonId = '';
+  reportCities: string[] = [];
+  reportFilteredSalons: any[] = [];
+
   // Expanded salon (for professional breakdown)
   expandedSalonId: number | null = null;
 
@@ -41,6 +47,9 @@ export class ReportsComponent implements OnInit {
     this.http.get<any[]>(`${API}/salons`).subscribe({
       next: data => {
         this.salons = Array.isArray(data) ? data : [];
+        // Build city list for dropdown
+        this.reportCities = [...new Set(this.salons.map(s => s.city).filter(Boolean))].sort();
+        this.reportFilteredSalons = [...this.salons];
         this.applyFilter();
         this.loading = false;
       },
@@ -51,8 +60,19 @@ export class ReportsComponent implements OnInit {
     });
   }
 
+  onReportCityChange(): void {
+    this.filterSalonId = '';
+    this.reportFilteredSalons = this.filterCity
+      ? this.salons.filter(s => s.city === this.filterCity)
+      : [...this.salons];
+    this.applyFilter();
+  }
+
   applyFilter(): void {
     let list = [...this.salons];
+
+    if (this.filterCity) list = list.filter(s => s.city === this.filterCity);
+    if (this.filterSalonId) list = list.filter(s => String(s.ownerId) === String(this.filterSalonId));
 
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();

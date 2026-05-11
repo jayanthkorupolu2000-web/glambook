@@ -1,70 +1,445 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">Salon Reports</h4>
+<div class="or-page">
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <!-- ── Header ── -->
+  <div class="or-header">
+    <div>
+      <h4 class="or-title">📊 Salon Reports</h4>
+      <p class="or-subtitle">Performance overview for your salon</p>
+    </div>
+    <div *ngIf="report" class="or-generated">
+      🕐 Generated: {{ report.reportGeneratedAt | date:'dd MMM yyyy, HH:mm' }}
+    </div>
   </div>
 
-  <div *ngIf="report && !loading">
-    <!-- Metric Cards -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <div class="card border-0 shadow-sm text-center p-3">
-          <div class="fs-2 fw-bold" style="color:#244AFD;">{{ report.totalAppointments }}</div>
-          <div class="text-muted small">Total Appointments</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border-0 shadow-sm text-center p-3">
-          <div class="fs-2 fw-bold text-success">₹{{ report.totalRevenue | number:'1.0-0' }}</div>
-          <div class="text-muted small">Total Revenue</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border-0 shadow-sm text-center p-3">
-          <div class="fs-2 fw-bold text-warning">{{ report.averageRating | number:'1.1-1' }}★</div>
-          <div class="text-muted small">Avg Rating</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card border-0 shadow-sm text-center p-3">
-          <div class="fs-2 fw-bold text-danger">{{ report.openComplaints }}</div>
-          <div class="text-muted small">Open Complaints</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Details -->
-    <div class="row g-3">
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm p-3">
-          <h6 class="fw-bold mb-3">Appointment Breakdown</h6>
-          <table class="table table-sm mb-0">
-            <tbody>
-              <tr><td>Completed</td><td class="fw-bold text-success">{{ report.completedAppointments }}</td></tr>
-              <tr><td>Cancelled</td><td class="fw-bold text-danger">{{ report.cancelledAppointments }}</td></tr>
-              <tr><td>Pending</td><td class="fw-bold text-warning">{{ report.totalAppointments - report.completedAppointments - report.cancelledAppointments }}</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card border-0 shadow-sm p-3">
-          <h6 class="fw-bold mb-3">Staff & Complaints</h6>
-          <table class="table table-sm mb-0">
-            <tbody>
-              <tr><td>Active Professionals</td><td class="fw-bold">{{ report.professionalsCount }}</td></tr>
-              <tr><td>Pending Approvals</td><td class="fw-bold text-warning">{{ report.pendingApprovals }}</td></tr>
-              <tr><td>Forwarded Complaints</td><td class="fw-bold text-info">{{ report.forwardedComplaints }}</td></tr>
-              <tr><td>Resolved Complaints</td><td class="fw-bold text-success">{{ report.resolvedComplaints }}</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <p class="text-muted small mt-3 text-end">
-      Report generated: {{ report.reportGeneratedAt | date:'dd MMM yyyy, HH:mm' }}
-    </p>
+  <!-- Loading -->
+  <div *ngIf="loading" class="or-loading">
+    <div class="spinner-border" style="color:#334155;width:1.6rem;height:1.6rem;border-width:2px;"></div>
+    <span>Loading report...</span>
   </div>
+
+  <ng-container *ngIf="report && !loading">
+
+    <!-- ── KPI Strip ── -->
+    <div class="or-kpi-strip">
+
+      <div class="or-kpi">
+        <div class="or-kpi-icon" style="background:#eef2f8;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+        <div>
+          <div class="or-kpi-val" style="color:#334155;">{{ report.totalAppointments }}</div>
+          <div class="or-kpi-lbl">Total Appointments</div>
+        </div>
+      </div>
+
+      <div class="or-kpi">
+        <div class="or-kpi-icon" style="background:#e6f9f0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#1a9e5c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="or-kpi-val" style="color:#1a9e5c;">₹{{ report.totalRevenue | number:'1.0-0' }}</div>
+          <div class="or-kpi-lbl">Total Revenue</div>
+        </div>
+      </div>
+
+      <div class="or-kpi">
+        <div class="or-kpi-icon" style="background:#fff8e1;">
+          <svg viewBox="0 0 24 24" fill="#c77c00" stroke="none">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="or-kpi-val" style="color:#c77c00;">{{ report.averageRating | number:'1.1-1' }}★</div>
+          <div class="or-kpi-lbl">Avg Rating</div>
+        </div>
+      </div>
+
+      <div class="or-kpi" [class.or-kpi-danger]="report.openComplaints > 0">
+        <div class="or-kpi-icon" [style.background]="report.openComplaints > 0 ? '#fdecea' : '#f4f6fb'">
+          <svg viewBox="0 0 24 24" fill="none"
+               [attr.stroke]="report.openComplaints > 0 ? '#c0392b' : '#8a90a0'"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div>
+          <div class="or-kpi-val" [style.color]="report.openComplaints > 0 ? '#c0392b' : '#1e2340'">
+            {{ report.openComplaints }}
+          </div>
+          <div class="or-kpi-lbl">Open Complaints</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Row 1: Appointment Donut + Bar Chart ── -->
+    <div class="or-row">
+
+      <!-- Appointment Donut -->
+      <div class="or-card">
+        <div class="or-card-title">📅 Appointment Breakdown</div>
+        <div class="or-donut-wrap">
+          <svg viewBox="0 0 110 110" class="or-donut-svg">
+            <circle cx="55" cy="55" r="48" fill="none" stroke="#f1f5f9" stroke-width="14"/>
+            <!-- Completed -->
+            <circle cx="55" cy="55" r="48" fill="none" stroke="#1a9e5c" stroke-width="14"
+                    [attr.stroke-dasharray]="donutDash(apptDonut.completed, apptDonut.total)"
+                    [attr.stroke-dashoffset]="0"
+                    style="transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dasharray .6s ease;"/>
+            <!-- Cancelled -->
+            <circle cx="55" cy="55" r="48" fill="none" stroke="#dc2626" stroke-width="14"
+                    [attr.stroke-dasharray]="donutDash(apptDonut.cancelled, apptDonut.total)"
+                    [attr.stroke-dashoffset]="donutOffset(apptDonut.completed, apptDonut.total)"
+                    style="transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dasharray .6s ease;"/>
+            <!-- Pending -->
+            <circle cx="55" cy="55" r="48" fill="none" stroke="#f59e0b" stroke-width="14"
+                    [attr.stroke-dasharray]="donutDash(apptDonut.pending, apptDonut.total)"
+                    [attr.stroke-dashoffset]="donutOffset(apptDonut.completed + apptDonut.cancelled, apptDonut.total)"
+                    style="transform:rotate(-90deg);transform-origin:55px 55px;transition:stroke-dasharray .6s ease;"/>
+            <text x="55" y="51" text-anchor="middle" font-size="18" font-weight="800" fill="#1e293b">{{ apptDonut.total }}</text>
+            <text x="55" y="64" text-anchor="middle" font-size="8" fill="#94a3b8">total</text>
+          </svg>
+
+          <div class="or-donut-legend">
+            <div class="or-legend-row">
+              <span class="or-legend-dot" style="background:#1a9e5c;"></span>
+              <span class="or-legend-lbl">Completed</span>
+              <span class="or-legend-val" style="color:#1a9e5c;">{{ apptDonut.completed }}</span>
+            </div>
+            <div class="or-legend-row">
+              <span class="or-legend-dot" style="background:#dc2626;"></span>
+              <span class="or-legend-lbl">Cancelled</span>
+              <span class="or-legend-val" style="color:#dc2626;">{{ apptDonut.cancelled }}</span>
+            </div>
+            <div class="or-legend-row">
+              <span class="or-legend-dot" style="background:#f59e0b;"></span>
+              <span class="or-legend-lbl">Pending</span>
+              <span class="or-legend-val" style="color:#f59e0b;">{{ apptDonut.pending }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Completion rate bar -->
+        <div class="or-completion">
+          <div class="or-completion-label">
+            <span>Completion Rate</span>
+            <span class="or-completion-pct">{{ completionRate }}%</span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#1a9e5c,#34d399);"
+                 [style.width.%]="completionRate"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue & Staff Bar Chart -->
+      <div class="or-card">
+        <div class="or-card-title">📈 Performance Bars</div>
+
+        <!-- Revenue bar -->
+        <div class="or-bar-section">
+          <div class="or-bar-label">
+            <span>Revenue</span>
+            <span class="or-bar-value" style="color:#1a9e5c;">₹{{ report.totalRevenue | number:'1.0-0' }}</span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#1a9e5c,#34d399);"
+                 [style.width.%]="revenueBarPct"></div>
+          </div>
+        </div>
+
+        <!-- Completion bar -->
+        <div class="or-bar-section">
+          <div class="or-bar-label">
+            <span>Completion Rate</span>
+            <span class="or-bar-value" style="color:#334155;">{{ completionRate }}%</span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#334155,#475569);"
+                 [style.width.%]="completionRate"></div>
+          </div>
+        </div>
+
+        <!-- Rating bar -->
+        <div class="or-bar-section">
+          <div class="or-bar-label">
+            <span>Avg Rating</span>
+            <span class="or-bar-value" style="color:#c77c00;">{{ report.averageRating | number:'1.1-1' }} / 5</span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#f59e0b,#fcd34d);"
+                 [style.width.%]="ratingPct(report.averageRating)"></div>
+          </div>
+        </div>
+
+        <!-- Staff bar -->
+        <div class="or-bar-section">
+          <div class="or-bar-label">
+            <span>Active Staff</span>
+            <span class="or-bar-value" style="color:#334155;">{{ report.professionalsCount }}</span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#334155,#64748b);"
+                 [style.width.%]="report.professionalsCount > 0 ? Math.min(100, report.professionalsCount * 10) : 0"></div>
+          </div>
+        </div>
+
+        <!-- Rating stars visual -->
+        <div class="or-stars-row">
+          <span *ngFor="let s of stars(5)"
+                [style.color]="s <= report.averageRating ? '#f5a623' : '#e2e8f0'"
+                style="font-size:1.5rem;">★</span>
+          <span class="or-stars-label">{{ report.averageRating | number:'1.1-1' }} out of 5</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Row 2: Complaints Pie + Staff Summary ── -->
+    <div class="or-row">
+
+      <!-- Complaints Pie -->
+      <div class="or-card">
+        <div class="or-card-title">⚠️ Complaints Overview</div>
+
+        <div class="or-donut-wrap">
+          <svg viewBox="0 0 110 110" class="or-donut-svg">
+            <circle cx="55" cy="55" r="48" fill="none" stroke="#f1f5f9" stroke-width="14"/>
+            <!-- Open -->
+            <circle cx="55" cy="55" r="48" fill="none" stroke="#dc2626" stroke-width="14"
+                    [attr.stroke-dasharray]="donutDash(report.openComplaints, complaintTotal)"
+                    stroke-dashoffset="0"
+                    style="transform:rotate(-90deg);transform-origin:55px 55px;"/>
+            <!-- Forwarded -->
+            <circle cx="55" cy="55" r="48" fill="none" stroke="#1565c0" stroke-width="14"
+                    [attr.stroke-dasharray]="donutDash(report.forwardedComplaints, complaintTotal)"
+                    [attr.stroke-dashoffset]="donutOffset(report.openComplaints, complaintTotal)"
+                    style="transform:rotate(-90deg);transform-origin:55px 55px;"/>
+            <!-- Resolved -->
+            <circle cx="55" cy="55" r="48" fill="none" stroke="#1a9e5c" stroke-width="14"
+                    [attr.stroke-dasharray]="donutDash(report.resolvedComplaints, complaintTotal)"
+                    [attr.stroke-dashoffset]="donutOffset(report.openComplaints + report.forwardedComplaints, complaintTotal)"
+                    style="transform:rotate(-90deg);transform-origin:55px 55px;"/>
+            <text x="55" y="51" text-anchor="middle" font-size="18" font-weight="800" fill="#1e293b">{{ complaintTotal }}</text>
+            <text x="55" y="64" text-anchor="middle" font-size="8" fill="#94a3b8">total</text>
+          </svg>
+
+          <div class="or-donut-legend">
+            <div class="or-legend-row">
+              <span class="or-legend-dot" style="background:#dc2626;"></span>
+              <span class="or-legend-lbl">Open</span>
+              <span class="or-legend-val" style="color:#dc2626;">{{ report.openComplaints }}</span>
+            </div>
+            <div class="or-legend-row">
+              <span class="or-legend-dot" style="background:#1565c0;"></span>
+              <span class="or-legend-lbl">Forwarded</span>
+              <span class="or-legend-val" style="color:#1565c0;">{{ report.forwardedComplaints }}</span>
+            </div>
+            <div class="or-legend-row">
+              <span class="or-legend-dot" style="background:#1a9e5c;"></span>
+              <span class="or-legend-lbl">Resolved</span>
+              <span class="or-legend-val" style="color:#1a9e5c;">{{ report.resolvedComplaints }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="complaintTotal === 0" class="or-no-complaints">
+          ✅ No complaints — great work!
+        </div>
+      </div>
+
+      <!-- Staff Summary -->
+      <div class="or-card">
+        <div class="or-card-title">👥 Staff Summary</div>
+
+        <div class="or-staff-grid">
+          <div class="or-staff-tile" style="border-color:#334155;">
+            <div class="or-staff-val" style="color:#334155;">{{ report.professionalsCount }}</div>
+            <div class="or-staff-lbl">Active Staff</div>
+          </div>
+          <div class="or-staff-tile" style="border-color:#f59e0b;">
+            <div class="or-staff-val" style="color:#f59e0b;">{{ report.pendingApprovals }}</div>
+            <div class="or-staff-lbl">Pending Approvals</div>
+          </div>
+          <div class="or-staff-tile" style="border-color:#1565c0;">
+            <div class="or-staff-val" style="color:#1565c0;">{{ report.forwardedComplaints }}</div>
+            <div class="or-staff-lbl">Forwarded Complaints</div>
+          </div>
+          <div class="or-staff-tile" style="border-color:#1a9e5c;">
+            <div class="or-staff-val" style="color:#1a9e5c;">{{ report.resolvedComplaints }}</div>
+            <div class="or-staff-lbl">Resolved Complaints</div>
+          </div>
+        </div>
+
+        <!-- Mini line graph with proper axes -->
+        <div class="or-card-title" style="margin-top:1.25rem;">📉 Appointment Trend (This Week)</div>
+        <svg viewBox="0 0 300 130" class="or-line-svg" style="height:130px;">
+          <!-- Y-axis grid lines + labels -->
+          <ng-container *ngFor="let tick of yTicks">
+            <line [attr.x1]="40" [attr.y1]="tick.y" [attr.x2]="290" [attr.y2]="tick.y"
+                  stroke="#f1f5f9" stroke-width="1"/>
+            <text [attr.x]="35" [attr.y]="tick.y + 4" text-anchor="end"
+                  font-size="8" fill="#94a3b8">{{ tick.label }}</text>
+          </ng-container>
+
+          <!-- X-axis baseline -->
+          <line x1="40" y1="100" x2="290" y2="100" stroke="#e2e8f0" stroke-width="1.5"/>
+          <!-- Y-axis line -->
+          <line x1="40" y1="10" x2="40" y2="100" stroke="#e2e8f0" stroke-width="1.5"/>
+
+          <!-- Area fill -->
+          <path [attr.d]="linePath(true)" fill="rgba(51,65,85,.07)"/>
+          <!-- Line -->
+          <path [attr.d]="linePath(false)" fill="none" stroke="#334155" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- Dots + value labels -->
+          <ng-container *ngFor="let pt of linePoints; let i = index">
+            <circle [attr.cx]="pt.x" [attr.cy]="pt.y" r="4"
+                    fill="#334155" stroke="#fff" stroke-width="2"/>
+            <text [attr.x]="pt.x" [attr.y]="pt.y - 8" text-anchor="middle"
+                  font-size="8" font-weight="700" fill="#334155">{{ pt.val }}</text>
+          </ng-container>
+
+          <!-- X-axis day labels -->
+          <ng-container *ngFor="let pt of linePoints; let i = index">
+            <text [attr.x]="pt.x" y="113" text-anchor="middle"
+                  font-size="8" fill="#94a3b8" font-weight="600">{{ lineLabels[i] }}</text>
+          </ng-container>
+
+          <!-- Axis titles -->
+          <text x="165" y="128" text-anchor="middle" font-size="7" fill="#94a3b8">Day of Week</text>
+          <text x="8" y="55" text-anchor="middle" font-size="7" fill="#94a3b8"
+                transform="rotate(-90,8,55)">Appts</text>
+        </svg>
+      </div>
+
+    </div>
+
+    <!-- ── Row 3: Revenue Insight + Appointment Summary Table ── -->
+    <div class="or-row">
+
+      <!-- Revenue insight card -->
+      <div class="or-card">
+        <div class="or-card-title">💰 Revenue Insight</div>
+
+        <div class="or-bar-section">
+          <div class="or-bar-label">
+            <span>Total Revenue</span>
+            <span class="or-bar-value" style="color:#1a9e5c;">₹{{ report.totalRevenue | number:'1.0-0' }}</span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#1a9e5c,#34d399);"
+                 [style.width.%]="revenueBarPct"></div>
+          </div>
+          <div style="font-size:.7rem;color:#94a3b8;margin-top:.3rem;">Based on ₹10,000 reference scale</div>
+        </div>
+
+        <div class="or-bar-section">
+          <div class="or-bar-label">
+            <span>Avg Revenue / Appointment</span>
+            <span class="or-bar-value" style="color:#334155;">
+              ₹{{ report.totalAppointments > 0 ? (report.totalRevenue / report.totalAppointments | number:'1.0-0') : 0 }}
+            </span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#334155,#64748b);"
+                 [style.width.%]="report.totalAppointments > 0 ? Math.min(100, (report.totalRevenue / report.totalAppointments) / 20) : 0">
+            </div>
+          </div>
+        </div>
+
+        <div class="or-bar-section">
+          <div class="or-bar-label">
+            <span>Completed Appointments</span>
+            <span class="or-bar-value" style="color:#1a9e5c;">{{ report.completedAppointments }}</span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#1a9e5c,#34d399);"
+                 [style.width.%]="completionRate"></div>
+          </div>
+        </div>
+
+        <div class="or-bar-section">
+          <div class="or-bar-label">
+            <span>Cancelled Appointments</span>
+            <span class="or-bar-value" style="color:#dc2626;">{{ report.cancelledAppointments }}</span>
+          </div>
+          <div class="or-bar-track">
+            <div class="or-bar-fill" style="background:linear-gradient(90deg,#dc2626,#f87171);"
+                 [style.width.%]="report.totalAppointments > 0 ? (report.cancelledAppointments / report.totalAppointments * 100) : 0">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full summary table -->
+      <div class="or-card">
+        <div class="or-card-title">📋 Full Summary</div>
+        <table class="or-summary-table">
+          <tbody>
+            <tr>
+              <td>Total Appointments</td>
+              <td style="color:#334155;">{{ report.totalAppointments }}</td>
+            </tr>
+            <tr>
+              <td>Completed</td>
+              <td style="color:#1a9e5c;">{{ report.completedAppointments }}</td>
+            </tr>
+            <tr>
+              <td>Cancelled</td>
+              <td style="color:#dc2626;">{{ report.cancelledAppointments }}</td>
+            </tr>
+            <tr>
+              <td>Pending</td>
+              <td style="color:#f59e0b;">{{ apptDonut.pending }}</td>
+            </tr>
+            <tr>
+              <td>Total Revenue</td>
+              <td style="color:#1a9e5c;">₹{{ report.totalRevenue | number:'1.0-0' }}</td>
+            </tr>
+            <tr>
+              <td>Average Rating</td>
+              <td style="color:#c77c00;">{{ report.averageRating | number:'1.1-1' }} ★</td>
+            </tr>
+            <tr>
+              <td>Active Professionals</td>
+              <td style="color:#334155;">{{ report.professionalsCount }}</td>
+            </tr>
+            <tr>
+              <td>Pending Approvals</td>
+              <td style="color:#f59e0b;">{{ report.pendingApprovals }}</td>
+            </tr>
+            <tr>
+              <td>Open Complaints</td>
+              <td [style.color]="report.openComplaints > 0 ? '#dc2626' : '#1a9e5c'">
+                {{ report.openComplaints }}
+              </td>
+            </tr>
+            <tr>
+              <td>Forwarded Complaints</td>
+              <td style="color:#1565c0;">{{ report.forwardedComplaints }}</td>
+            </tr>
+            <tr>
+              <td>Resolved Complaints</td>
+              <td style="color:#1a9e5c;">{{ report.resolvedComplaints }}</td>
+            </tr>
+            <tr>
+              <td>Completion Rate</td>
+              <td style="color:#1a9e5c;">{{ completionRate }}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </ng-container>
 </div>

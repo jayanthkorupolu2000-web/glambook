@@ -1,5 +1,6 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap');
 
 /* ── Design Tokens ─────────────────────────────────────────── */
 :root {
@@ -12,8 +13,6 @@
   --color-text-primary:   #1E293B;
   --color-text-secondary: #64748B;
   --color-text-on-dark:   #FFFFFF;
-
-  /* Legacy alias kept for any inline style="color:#244AFD" references */
   --primary: #475569;
 }
 
@@ -21,10 +20,9 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-text-primary);
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  font-family: 'DM Sans', 'Inter', 'Segoe UI', system-ui, sans-serif;
 }
 
-/* ── Headings ──────────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-primary);
 }
@@ -60,7 +58,6 @@ nav.navbar {
   border-color: var(--color-primary-hover) !important;
 }
 
-/* All buttons get 8px radius */
 .btn {
   border-radius: 8px !important;
 }
@@ -73,7 +70,7 @@ nav.navbar {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }
 
-/* ── Inline color overrides (replaces hardcoded #244AFD) ───── */
+/* ── Inline color overrides ────────────────────────────────── */
 [style*="color:#244AFD"],
 [style*="color: #244AFD"] {
   color: var(--color-primary) !important;
@@ -86,7 +83,7 @@ nav.navbar {
   background-color: var(--color-primary) !important;
 }
 
-/* ── Sidebar active state ──────────────────────────────────── */
+/* ── Sidebar ───────────────────────────────────────────────── */
 .sidebar .nav-link.active,
 button.nav-link[style*="background:#244AFD"],
 button.nav-link[style*="background: #244AFD"] {
@@ -126,7 +123,7 @@ button.nav-link[style*="background: #244AFD"] {
   border-left: 4px solid var(--color-primary);
 }
 
-/* ── Page background ───────────────────────────────────────── */
+/* ── Page background (non-auth pages) ─────────────────────── */
 .min-vh-100,
 .container {
   background-color: var(--color-bg);
@@ -134,4 +131,546 @@ button.nav-link[style*="background: #244AFD"] {
 
 .container-fluid:not(.navbar .container-fluid) {
   background-color: var(--color-bg);
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   GLAMBOOK AUTH  ·  Background-image glassmorphism
+   All roles: customer, owner, professional, admin
+   Text colour matches navbar: #334155
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Full-page wrapper — fixed to viewport, zero scroll ────── */
+.gb-auth-page {
+  position: fixed !important;   /* locks to viewport — no page scroll */
+  inset: 0;                     /* top/right/bottom/left: 0 */
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+
+  /* Background image — cover fills viewport perfectly */
+  background-image: url('/assets/Backgrounds/Login Background.avif');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: #1a1a1a;   /* fallback while image loads */
+
+  /* Centre the card both axes */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  isolation: isolate;
+}
+
+/* Subtle dark overlay for contrast without hiding the image */
+.gb-auth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Neutralise Bootstrap's .min-vh-100 rules on this element */
+.gb-auth-page.min-vh-100 {
+  min-height: unset !important;
+  background-color: transparent !important;
+}
+
+/* Also neutralise Bootstrap's .py-4 padding on register pages */
+.gb-auth-page.py-4 {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* ── Glass card ────────────────────────────────────────────── */
+.gb-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 460px;
+
+  /* Card scrolls internally when content is taller than viewport.
+     The PAGE never scrolls. */
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(51, 65, 85, 0.35) transparent;
+
+  margin: 0 1rem;
+  padding: 2rem 2.25rem;
+  border-radius: 24px;
+
+  /* Pure transparent glass — NO backdrop-filter blur */
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.28),
+    0 1px 0 rgba(255, 255, 255, 0.28) inset;
+}
+
+.gb-card::-webkit-scrollbar { width: 4px; }
+.gb-card::-webkit-scrollbar-track { background: transparent; }
+.gb-card::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.35);
+  border-radius: 4px;
+}
+
+/* Wider variant for the landing role-selector */
+.gb-card--wide {
+  max-width: 520px;
+}
+
+/* ── Card header ───────────────────────────────────────────── */
+.gb-card__header {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Title — bold, dark, white halo so it reads on any background */
+.gb-card__title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.25rem;
+  text-shadow:
+    0 0 8px rgba(255,255,255,0.90),
+    0 1px 3px rgba(255,255,255,0.80);
+}
+
+/* Subtitle — dark with white halo */
+.gb-card__subtitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0;
+  text-shadow: 0 0 6px rgba(255,255,255,0.85);
+}
+
+/* ── Avatar icon ring ──────────────────────────────────────── */
+.gb-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}
+
+/* ── Role badge — dark text, white-tinted pill ─────────────── */
+.gb-role-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.70rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.80rem;
+  border-radius: 999px;
+  margin-bottom: 1.25rem;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.70);
+}
+
+/* ── Form fields ───────────────────────────────────────────── */
+.gb-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.85rem;
+}
+
+/* Labels — dark + white halo, always readable */
+.gb-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1e293b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-shadow: 0 0 6px rgba(255,255,255,0.90);
+}
+
+/* ── Inputs & selects ──────────────────────────────────────── */
+.gb-input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  /* Use background-color (not shorthand) so .gb-select can safely
+     add a background-image on top without the two fighting */
+  background-color: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.50);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.10);
+  color: #1e293b;
+  font-size: 0.92rem;
+  outline: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.gb-input::placeholder {
+  color: rgba(30, 41, 59, 0.55);
+}
+
+.gb-input:focus {
+  border-color: rgba(51, 65, 85, 0.60);
+  background-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.13), 0 1px 6px rgba(0, 0, 0, 0.10);
+}
+
+.gb-input--error {
+  border-color: rgba(220, 38, 38, 0.65) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+}
+
+/* Select — chevron image layered over the transparent background-color.
+   Must use the multi-value background shorthand so both coexist cleanly. */
+.gb-select {
+  /* image layer (chevron) + color layer (transparent glass) */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23334155' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat right 0.9rem center / 12px 8px,
+    rgba(255, 255, 255, 0.22);
+  padding-right: 2.4rem;
+  cursor: pointer;
+}
+
+.gb-select option {
+  background: #f8fafc;
+  color: #334155;
+}
+
+/* ── Inline validation error ───────────────────────────────── */
+.gb-error {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #7f1d1d;                        /* deep red — readable on any bg */
+  margin-top: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 6px;
+  /* Pill background: white tint so the text lifts off the image */
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(220, 38, 38, 0.30);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
+  /* Keep it left-aligned under the field */
+  align-self: flex-start;
+}
+
+/* ── Server error alert ────────────────────────────────────── */
+.gb-server-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  color: #991b1b;
+  font-size: 0.83rem;
+  margin-bottom: 0.85rem;
+}
+
+/* ── Loading hint ──────────────────────────────────────────── */
+.gb-loading-hint {
+  font-size: 0.78rem;
+  color: #334155;
+  opacity: 0.70;
+  margin-bottom: 0.35rem;
+}
+
+/* ── Selected service chip ─────────────────────────────────── */
+.gb-service-chip {
+  margin-top: 0.45rem;
+  padding: 0.45rem 0.80rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #334155;
+  font-size: 0.80rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ── Submit button — solid navbar colour ───────────────────── */
+.gb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.72rem 1.5rem;
+  border-radius: 14px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  cursor: pointer;
+  background: #334155;
+  box-shadow: 0 4px 14px rgba(51, 65, 85, 0.40);
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.gb-btn:hover:not(:disabled) {
+  background: #1e293b;
+  box-shadow: 0 6px 20px rgba(51, 65, 85, 0.50);
+  transform: translateY(-2px);
+}
+
+.gb-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(51, 65, 85, 0.35);
+}
+
+.gb-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Card footer & links — dark + white halo ───────────────── */
+.gb-card__footer {
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  text-shadow: 0 0 6px rgba(255,255,255,0.85);
+}
+
+.gb-back-link {
+  text-align: center;
+  margin-top: 0.65rem;
+}
+
+.gb-link {
+  font-weight: 700;
+  text-decoration: none;
+  color: #1e293b;
+  transition: color 0.2s ease;
+  text-shadow: 0 0 5px rgba(255,255,255,0.80);
+}
+
+.gb-link:hover {
+  color: #0f172a;
+  text-decoration: underline;
+}
+
+.gb-link--back {
+  font-size: 0.80rem;
+  font-weight: 600;
+  color: #1e293b;
+  opacity: 0.80;
+  text-shadow: 0 0 5px rgba(255,255,255,0.80);
+}
+
+.gb-link--back:hover {
+  opacity: 1;
+  text-decoration: none;
+}
+
+/* ── Landing page: role grid ───────────────────────────────── */
+.gb-role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.gb-role-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0.75rem;
+  border-radius: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.20);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+  transition: background 0.2s ease, border-color 0.2s ease,
+              transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.gb-role-tile:hover {
+  background: rgba(255, 255, 255, 0.34);
+  border-color: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.20);
+  transform: translateY(-2px);
+}
+
+.gb-role-tile__icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.4rem;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.70);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+}
+
+.gb-role-tile__label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.1rem;
+  text-shadow: 0 0 5px rgba(255,255,255,0.80);
+}
+
+.gb-role-tile__hint {
+  font-size: 0.72rem;
+  color: #1e293b;
+  opacity: 0.75;
+  text-shadow: 0 0 4px rgba(255,255,255,0.70);
+}
+
+/* ── Divider ───────────────────────────────────────────────── */
+.gb-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  color: #1e293b;
+  font-size: 0.80rem;
+  font-weight: 600;
+  text-shadow: 0 0 5px rgba(255,255,255,0.80);
+}
+
+.gb-divider::before,
+.gb-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(51, 65, 85, 0.30);
+}
+
+/* ── Register row (landing) ────────────────────────────────── */
+.gb-register-row {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.gb-outline-btn {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.60rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.40);
+  border: 1px solid rgba(51, 65, 85, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  text-shadow: 0 0 4px rgba(255,255,255,0.70);
+  transition: background 0.2s ease, border-color 0.2s ease,
+              transform 0.15s ease, box-shadow 0.18s ease;
+}
+
+.gb-outline-btn:hover {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(51, 65, 85, 0.60);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+  color: #0f172a;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .gb-card {
+    padding: 1.5rem 1.1rem;
+    border-radius: 18px;
+    margin: 0 0.75rem;
+    max-height: calc(100vh - 1.5rem);
+  }
+
+  .gb-card__title {
+    font-size: 1.3rem;
+  }
+
+  .gb-role-grid {
+    gap: 0.5rem;
+  }
+
+  .gb-role-tile {
+    padding: 0.85rem 0.5rem;
+  }
+
+  .gb-register-row {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 360px) {
+  .gb-role-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   gb-card--opaque  ·  True glass — background visible through form
+   Card is semi-transparent; text is dark (#334155) for readability.
+   Applied to: customer-register (trial)
+   ══════════════════════════════════════════════════════════════ */
+
+.gb-card--opaque {
+  /* Slightly more white than the base card, but still clearly see-through */
+  background: rgba(255, 255, 255, 0.28) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.20),
+    0 1px 0 rgba(255, 255, 255, 0.50) inset !important;
+}
+
+/* Inputs — slightly more opaque than card so they're legible,
+   but still transparent enough to see the background through */
+.gb-card--opaque .gb-input {
+  background-color: rgba(255, 255, 255, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  color: #1e293b !important;
+}
+
+.gb-card--opaque .gb-input::placeholder {
+  color: rgba(30, 41, 59, 0.50) !important;
+}
+
+.gb-card--opaque .gb-input:focus {
+  background-color: rgba(255, 255, 255, 0.50) !important;
+  border-color: rgba(51, 65, 85, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(51, 65, 85, 0.12) !important;
+}
+
+/* Select inside opaque card — fix the tiling chevron bug */
+.gb-card--opaque .gb-select {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23334155' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat right 0.9rem center / 12px 8px,
+    rgba(255, 255, 255, 0.35) !important;
 }
