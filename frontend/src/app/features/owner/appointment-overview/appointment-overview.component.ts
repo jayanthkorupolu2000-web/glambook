@@ -8,7 +8,8 @@ const API_BASE = 'http://localhost:8080';
 
 @Component({
   selector: 'app-appointment-overview',
-  templateUrl: './appointment-overview.component.html'
+  templateUrl: './appointment-overview.component.html',
+  styleUrls: ['./appointment-overview.component.scss']
 })
 export class AppointmentOverviewComponent implements OnInit {
   appointments: AppointmentResponse[] = [];

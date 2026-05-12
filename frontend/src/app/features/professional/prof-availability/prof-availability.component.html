@@ -1,12 +1,17 @@
 <div class="avail-page">
 
-  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <!-- ── Hero Header ─────────────────────────────────────────────────────── -->
   <div class="avail-header">
-    <div>
-      <h4 class="page-title">My Availability</h4>
-      <p class="page-subtitle">Set working hours and breaks. Customers can only book Working slots.</p>
+    <div class="avail-header__inner">
+      <div>
+        <div class="avail-header__eyebrow">Professional</div>
+        <h4 class="page-title">My Availability</h4>
+        <p class="page-subtitle">Set working hours and breaks. Customers can only book Working slots.</p>
+      </div>
     </div>
   </div>
+
+  <div class="avail-content">
 
   <!-- ── Alerts ──────────────────────────────────────────────────────────── -->
   <div *ngIf="success" class="avail-alert success">
@@ -212,5 +217,7 @@
 
     </div>
   </div>
+
+  </div><!-- /.avail-content -->
 
 </div>

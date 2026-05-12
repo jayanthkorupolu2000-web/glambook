@@ -1,0 +1,227 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Customer Shell Layout — Sidebar + Router Outlet
+   Palette mirrors GlamBook Admin Dashboard
+═══════════════════════════════════════════════════════════════════ */
+
+:host {
+  --primary:    #1e6fd9;
+  --navy:       #0d1b3e;
+  --coral:      #e8476a;
+  --border:     #f1f5f9;
+  --border-mid: #e2e8f0;
+  --bg-card:    #ffffff;
+  --text-main:  #0d1b3e;
+  --text-muted: #64748b;
+}
+
+/* ── Shell wrapper ────────────────────────────────────────────────── */
+.cd-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #fdf2f4;
+  font-family: 'DM Sans', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  position: relative;
+}
+
+/* ── Sidebar ──────────────────────────────────────────────────────── */
+.cd-sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  flex-shrink: 0;
+  box-shadow: 2px 0 12px rgba(13,27,62,0.06);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.28s cubic-bezier(0.4,0,0.2,1),
+              padding 0.28s cubic-bezier(0.4,0,0.2,1),
+              opacity 0.20s ease;
+}
+
+.cd-sidebar:not(.cd-sidebar--open) {
+  width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  opacity: 0;
+  pointer-events: none;
+  border-right: none;
+  box-shadow: none;
+}
+
+/* Brand */
+.cd-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+}
+.cd-sidebar__brand-icon {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--primary) 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1rem; flex-shrink: 0;
+}
+
+/* Profile */
+.cd-sidebar__profile {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.4rem; padding: 1rem 0.5rem 1.25rem;
+  border-bottom: 1px solid var(--border); margin-bottom: 1rem;
+}
+.cd-sidebar__avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--primary) 100%);
+  color: #fff; font-size: 1.3rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(13,27,62,0.25);
+}
+.cd-sidebar__name {
+  font-size: 0.9rem; font-weight: 700; color: var(--text-main); text-align: center;
+}
+.cd-sidebar__city {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  font-size: 0.72rem; font-weight: 600; color: var(--text-muted);
+  background: #f8fafc; border: 1px solid var(--border-mid);
+  border-radius: 999px; padding: 0.18rem 0.6rem;
+}
+.cd-sidebar__city svg { width: 10px; height: 10px; }
+
+/* Nav */
+.cd-sidebar__nav {
+  display: flex; flex-direction: column; gap: 0.2rem;
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+}
+
+.sidebar-nav-btn {
+  width: 100%; text-align: left; background: transparent; border: none;
+  border-radius: 10px; padding: 0.55rem 0.75rem;
+  display: flex; align-items: center; gap: 0.65rem;
+  font-size: 0.84rem; font-weight: 600; color: var(--text-muted);
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+
+  &:hover { background: rgba(30,111,217,0.07); color: var(--primary); }
+}
+
+.sidebar-nav-active {
+  background: linear-gradient(135deg, var(--navy) 0%, #1a3a6e 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(13,27,62,0.25);
+  span { color: #fff !important; }
+}
+
+.sidebar-nav-btn__icon { font-size: 1rem; flex-shrink: 0; }
+.sidebar-nav-btn__label { flex: 1; }
+
+.sidebar-notif-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--coral); color: #fff;
+  font-size: 0.65rem; font-weight: 800;
+  min-width: 18px; height: 18px; border-radius: 9px; padding: 0 0.3rem;
+}
+
+/* ── Main area ────────────────────────────────────────────────────── */
+.cd-shell__main {
+  flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ── Top bar (hamburger strip above all child content) ────────────── */
+.cd-topbar {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  background: var(--navy);
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+/* ── Hamburger ────────────────────────────────────────────────────── */
+.cd-hamburger {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.12);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 5px; cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  backdrop-filter: blur(4px);
+  flex-shrink: 0;
+
+  span {
+    display: block; width: 17px; height: 2px;
+    background: #fff; border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.25s ease, width 0.25s ease;
+    transform-origin: center;
+  }
+
+  &:hover {
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.45);
+  }
+
+  &.cd-hamburger--open {
+    span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    span:nth-child(2) { opacity: 0; width: 0; }
+    span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  }
+}
+
+/* ── Mobile overlay ───────────────────────────────────────────────── */
+.cd-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(13,27,62,0.45);
+  z-index: 299;
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+  pointer-events: none;
+}
+.cd-overlay--visible { opacity: 1; pointer-events: all; }
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cd-overlay { display: block; }
+
+  .cd-sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 300;
+    height: 100vh;
+    width: 240px;
+    margin-left: 0 !important;
+    transform: translateX(-100%);
+    opacity: 0;
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+    box-shadow: 4px 0 24px rgba(13,27,62,0.18);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
+  }
+
+  .cd-sidebar.cd-sidebar--open {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+}

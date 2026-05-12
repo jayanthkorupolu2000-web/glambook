@@ -44,10 +44,10 @@ export class ProfScheduleComponent implements OnInit {
 
   statusClass(slot: ScheduleSlot): string {
     switch (slot.slotStatus) {
-      case 'AVAILABLE':   return 'badge bg-success';
-      case 'UNAVAILABLE': return slot.past ? 'badge bg-danger' : 'badge bg-secondary';
-      case 'COMPLETED':   return 'badge bg-info text-dark';
-      default:            return 'badge bg-light text-dark';
+      case 'AVAILABLE':   return 'badge-available';
+      case 'UNAVAILABLE': return slot.past ? 'badge-past' : 'badge-booked';
+      case 'COMPLETED':   return 'badge-completed';
+      default:            return 'badge-booked';
     }
   }
 

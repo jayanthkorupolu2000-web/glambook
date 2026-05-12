@@ -1,8 +1,11 @@
 <div class="reviews-page">
 
-  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
   <div class="page-header">
-    <h4 class="page-title">My Reviews</h4>
+    <div class="page-header-left">
+      <div class="page-header-eyebrow">Professional</div>
+      <h4 class="page-title">My Reviews</h4>
+    </div>
 
     <div class="rating-summary">
       <!-- Stars + score -->
@@ -22,6 +25,8 @@
       </select>
     </div>
   </div>
+
+  <div class="reviews-content">
 
   <!-- ── Loading ──────────────────────────────────────────────────────────── -->
   <div *ngIf="loading" class="loading-wrap">
@@ -180,6 +185,8 @@
     </div>
 
   </div>
+
+  </div><!-- /.reviews-content -->
 
 </div>
 

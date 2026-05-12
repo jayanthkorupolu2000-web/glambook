@@ -1,16 +1,21 @@
 <div class="cc-page">
 
-  <!-- Header -->
-  <div class="cc-header-row">
-    <div>
-      <h4 class="cc-title">My Complaints</h4>
-      <p class="cc-subtitle">Report issues with professionals you've booked</p>
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <div class="cc-hero">
+    <div class="cc-hero__left">
+      <div class="cc-hero__eyebrow">Customer</div>
+      <h4 class="cc-hero__title">My Complaints</h4>
+      <p class="cc-hero__sub">Report issues with professionals you've booked</p>
     </div>
     <button class="cc-btn-new" (click)="showForm = !showForm">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
-      {{ showForm ? 'Cancel' : 'New Complaint' }}
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+      </svg>
+      {{ showForm ? 'Cancel' : '+ New Complaint' }}
     </button>
   </div>
+
+  <div class="cc-content">
 
   <!-- Alerts -->
   <div *ngIf="success" class="cc-alert cc-alert-success">
@@ -181,6 +186,6 @@
 
       </div>
     </div>
-  </div>
+  </div><!-- /.cc-content -->
 
 </div>

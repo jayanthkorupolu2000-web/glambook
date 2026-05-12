@@ -1,121 +1,117 @@
-<div class="dash-page">
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Professional Dashboard
+     Palette: blush bg · navy hero · role-specific accent colours
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="pd-page">
 
-  <!-- ── Welcome ──────────────────────────────────────────────────────────── -->
-  <div class="welcome-header">
-    <h4 class="welcome-title">Welcome back, {{ profName }}!</h4>
-    <p class="welcome-sub">Here's your performance overview for today.</p>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="pd-hero">
+    <div class="pd-hero__inner">
+      <div class="pd-hero__text">
+        <p class="pd-hero__eyebrow">
+          <i class="fa-solid fa-scissors me-2"></i>Professional Portal
+        </p>
+        <h1 class="pd-hero__title">Welcome back, {{ profName }}!</h1>
+        <p class="pd-hero__sub">Here's your performance overview for today.</p>
+      </div>
+      <div class="pd-hero__badge">
+        <i class="fa-solid fa-scissors"></i>
+        <span>GlamBook</span>
+      </div>
+    </div>
   </div>
 
-  <!-- ── Loading ──────────────────────────────────────────────────────────── -->
-  <div *ngIf="loading" class="loading-wrap">
-    <div class="spinner"></div>
+  <!-- ── Loading ───────────────────────────────────────────── -->
+  <div *ngIf="loading" class="pd-loading">
+    <div class="pd-spinner"></div>
     <span>Loading dashboard…</span>
   </div>
 
   <div *ngIf="!loading">
 
-    <!-- ── KPI Strip ──────────────────────────────────────────────────────── -->
-    <div class="kpi-strip">
+    <!-- ── KPI Strip ─────────────────────────────────────────── -->
+    <div class="pd-kpi-strip">
 
       <!-- Earnings -->
-      <div class="kpi-tile">
-        <div class="kpi-icon-box" style="background:#e6f9f0;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#1a9e5c" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
-          </svg>
+      <div class="pd-kpi pd-kpi--green">
+        <div class="pd-kpi__icon">
+          <i class="fa-solid fa-indian-rupee-sign"></i>
         </div>
         <div>
-          <div class="kpi-val" style="color:#1a9e5c;">₹{{ analytics?.totalEarnings || 0 | number:'1.0-0' }}</div>
-          <div class="kpi-lbl">Total Earnings</div>
+          <div class="pd-kpi__val">₹{{ analytics?.totalEarnings || 0 | number:'1.0-0' }}</div>
+          <div class="pd-kpi__lbl">Total Earnings</div>
         </div>
       </div>
 
       <!-- Rating -->
-      <div class="kpi-tile">
-        <div class="kpi-icon-box" style="background:#fff8e1;">
-          <svg viewBox="0 0 24 24" fill="#c77c00" stroke="none">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-          </svg>
+      <div class="pd-kpi pd-kpi--amber">
+        <div class="pd-kpi__icon">
+          <i class="fa-solid fa-star"></i>
         </div>
         <div>
-          <div class="kpi-val" style="color:#c77c00;">{{ analytics?.averageRating || 0 | number:'1.1-1' }}★</div>
-          <div class="kpi-lbl">Avg Rating · {{ analytics?.totalReviews || 0 }} reviews</div>
+          <div class="pd-kpi__val">{{ analytics?.averageRating || 0 | number:'1.1-1' }}★</div>
+          <div class="pd-kpi__lbl">Avg Rating · {{ analytics?.totalReviews || 0 }} reviews</div>
         </div>
       </div>
 
       <!-- Completed -->
-      <div class="kpi-tile">
-        <div class="kpi-icon-box" style="background:#eef2f8;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#2d4a6e" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
+      <div class="pd-kpi pd-kpi--blue">
+        <div class="pd-kpi__icon">
+          <i class="fa-solid fa-circle-check"></i>
         </div>
         <div>
-          <div class="kpi-val">{{ analytics?.completedAppointments || 0 }}</div>
-          <div class="kpi-lbl">Completed</div>
+          <div class="pd-kpi__val">{{ analytics?.completedAppointments || 0 }}</div>
+          <div class="pd-kpi__lbl">Completed</div>
         </div>
       </div>
 
       <!-- Complaints -->
-      <div class="kpi-tile" [class.danger-tile]="complaintsCount > 0">
-        <div class="kpi-icon-box"
-             [style.background]="complaintsCount > 0 ? '#fdecea' : '#f4f6fb'">
-          <svg viewBox="0 0 24 24" fill="none"
-               [attr.stroke]="complaintsCount > 0 ? '#c0392b' : '#8a90a0'"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-          </svg>
+      <div class="pd-kpi" [class.pd-kpi--red]="complaintsCount > 0" [class.pd-kpi--slate]="complaintsCount === 0">
+        <div class="pd-kpi__icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
         <div>
-          <div class="kpi-val" [style.color]="complaintsCount > 0 ? '#c0392b' : '#1e2340'">
-            {{ complaintsCount }}
+          <div class="pd-kpi__val">{{ complaintsCount }}</div>
+          <div class="pd-kpi__lbl">Open Complaints</div>
+          <div *ngIf="complaintsCount >= 4" class="pd-suspension-chip">
+            <i class="fa-solid fa-circle-exclamation me-1"></i>Suspension Risk
           </div>
-          <div class="kpi-lbl">Open Complaints</div>
-          <div *ngIf="complaintsCount >= 4" class="suspension-chip">⚠ Suspension Risk</div>
         </div>
       </div>
 
       <!-- Notifications -->
-      <div class="kpi-tile">
-        <div class="kpi-icon-box" style="background:#fff3e0;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#e65c00" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-          </svg>
+      <div class="pd-kpi" [class.pd-kpi--coral]="unreadCount > 0" [class.pd-kpi--slate]="unreadCount === 0">
+        <div class="pd-kpi__icon">
+          <i class="fa-solid fa-bell"></i>
         </div>
         <div>
-          <div class="kpi-val" [style.color]="unreadCount > 0 ? '#e65c00' : '#1e2340'">{{ unreadCount }}</div>
-          <div class="kpi-lbl">Unread Notifications</div>
+          <div class="pd-kpi__val">{{ unreadCount }}</div>
+          <div class="pd-kpi__lbl">Unread Notifications</div>
         </div>
       </div>
 
     </div>
 
-    <!-- ── Quick Actions ──────────────────────────────────────────────────── -->
-    <div class="section-label">Quick Actions</div>
-    <div class="action-grid">
+    <!-- ── Quick Actions ─────────────────────────────────────── -->
+    <div class="pd-section-label">Quick Actions</div>
+
+    <div class="pd-action-grid">
       <div *ngFor="let a of quickActions"
-           class="action-tile"
+           class="pd-action-tile"
            (click)="navigate(a.route)"
            (mouseenter)="a.hover=true"
            (mouseleave)="a.hover=false">
-        <div class="action-icon" [style.background]="a.bg">
+        <div class="pd-action-tile__icon" [style.background]="a.bg">
           <svg viewBox="0 0 24 24" fill="none" [attr.stroke]="a.color" stroke-width="1.8"
                stroke-linecap="round" stroke-linejoin="round">
             <path [attr.d]="a.svgPath"/>
             <path *ngIf="a.svgPath2" [attr.d]="a.svgPath2"/>
           </svg>
         </div>
-        <div class="action-label">{{ a.label }}</div>
+        <div class="pd-action-tile__label">{{ a.label }}</div>
       </div>
     </div>
-
-
 
   </div>
 </div>

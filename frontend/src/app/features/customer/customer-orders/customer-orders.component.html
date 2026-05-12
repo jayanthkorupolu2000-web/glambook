@@ -1,141 +1,156 @@
-<div class="container py-4" style="max-width:720px;">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">📦 My Orders</h4>
+<div class="orders-page">
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <div class="orders-hero">
+    <div class="orders-hero__inner">
+      <div class="orders-hero__eyebrow">Customer</div>
+      <h4 class="orders-hero__title">My Orders</h4>
+      <p class="orders-hero__sub">Track your product orders and leave reviews after delivery.</p>
+    </div>
   </div>
 
-  <div *ngIf="!loading">
-    <div *ngFor="let o of orders" class="card border-0 shadow-sm mb-3">
-      <div class="card-body">
+  <div class="orders-content">
 
-        <!-- ── Order header ── -->
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div class="d-flex align-items-center gap-2">
-            <div style="font-size:2rem;">🧴</div>
-            <div>
-              <div class="fw-bold">{{ o.productName }}</div>
-              <div class="text-muted small">Qty: {{ o.quantity }} · ₹{{ o.unitPrice }} / unit</div>
-            </div>
-          </div>
-          <div class="d-flex align-items-center gap-2">
-            <span [class]="statusBadge(o.status)">{{ o.status }}</span>
-            <!-- Favorite toggle (only for delivered) -->
-            <button *ngIf="o.status === 'DELIVERED' && o.productId"
-                    class="btn btn-sm p-0" title="Toggle favorite"
-                    (click)="toggleFavorite(o.productId)"
-                    [disabled]="togglingFav[o.productId]"
-                    style="font-size:1.3rem;line-height:1;background:none;border:none;">
-              {{ togglingFav[o.productId] ? '…' : (favorited[o.productId] ? '❤️' : '🤍') }}
-            </button>
-          </div>
-        </div>
+    <!-- Loading -->
+    <div *ngIf="loading" class="orders-loading">
+      <div class="orders-spinner"></div>
+      <span>Loading orders…</span>
+    </div>
 
-        <!-- ── Date + total ── -->
-        <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-          <div class="text-muted small">
-            <span>📅 {{ o.orderDate | date:'dd MMM yyyy, hh:mm a' }}</span>
-            <span *ngIf="o.trackingNumber" class="ms-3">🚚 {{ o.trackingNumber }}</span>
-          </div>
-          <span class="fw-bold" style="color:#244AFD;">₹{{ o.totalPrice }}</span>
-        </div>
+    <div *ngIf="!loading">
 
-        <!-- ── Review section (DELIVERED only) ── -->
-        <ng-container *ngIf="o.status === 'DELIVERED' && o.productId">
+      <!-- Empty -->
+      <div *ngIf="orders.length === 0" class="orders-empty">
+        <div class="orders-empty__icon">📦</div>
+        <div class="orders-empty__text">No orders yet. Browse our products!</div>
+      </div>
 
-          <!-- Success toast -->
-          <div *ngIf="reviewSuccess[o.productId]"
-               class="alert alert-success py-2 small mt-2 mb-0">
-            {{ reviewSuccess[o.productId] }}
-          </div>
+      <!-- Order cards -->
+      <div *ngFor="let o of orders" class="order-card">
+        <div class="order-card__body">
 
-          <!-- Existing review display -->
-          <div *ngIf="existingReview[o.productId]"
-               class="mt-3 p-3 rounded" style="background:#f0f4ff;border-left:3px solid #244AFD;">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-              <span class="fw-semibold small" style="color:#244AFD;">Your Review</span>
-              <div class="d-flex align-items-center gap-2">
-                <div>
-                  <span *ngFor="let s of stars(5)"
-                        [style.color]="s <= existingReview[o.productId].rating ? '#f5a623' : '#ccc'"
-                        style="font-size:1rem;">★</span>
-                  <span class="text-muted small ms-1">{{ existingReview[o.productId].rating }}/5</span>
-                </div>
-                <button class="btn btn-sm fw-semibold"
-                        style="background:#f0f4ff;border:1px solid #244AFD;color:#244AFD;border-radius:6px;font-size:.75rem;"
-                        (click)="openUpdateReview(o.productId)">
-                  ✏️ Update
-                </button>
+          <!-- Header -->
+          <div class="order-card__header">
+            <div class="order-card__product">
+              <div class="order-card__icon">🧴</div>
+              <div>
+                <div class="order-card__name">{{ o.productName }}</div>
+                <div class="order-card__qty">Qty: {{ o.quantity }} · ₹{{ o.unitPrice }} / unit</div>
               </div>
             </div>
-            <p class="small mb-0 text-muted">{{ existingReview[o.productId].reviewText || '(no comment)' }}</p>
-          </div>
-
-          <!-- Rate button (not yet reviewed) -->
-          <div *ngIf="canReview[o.productId] && !reviewOpen[o.productId]"
-               class="mt-3">
-            <button class="btn btn-sm fw-semibold text-white"
-                    style="background:#f5a623;border-radius:8px;"
-                    (click)="toggleReview(o.productId)">
-              ★ Rate this Product
-            </button>
-          </div>
-
-          <!-- Inline review form -->
-          <div *ngIf="reviewOpen[o.productId]"
-               class="mt-3 p-3 rounded" style="background:#f8f9fa;border:1px solid #e0e0e0;">
-            <div class="fw-semibold small mb-2">
-              {{ reviewMode[o.productId] === 'update' ? '✏️ Update Your Review' : '✍️ Rate & Review' }}
-            </div>
-
-            <div *ngIf="reviewError[o.productId]" class="alert alert-danger py-1 small mb-2">
-              {{ reviewError[o.productId] }}
-            </div>
-
-            <!-- Star selector -->
-            <div class="d-flex gap-1 mb-3" style="font-size:1.8rem;">
-              <span *ngFor="let s of stars(5)"
-                    style="cursor:pointer;transition:color .1s;"
-                    [style.color]="s <= (reviewRating[o.productId] || 0) ? '#f5a623' : '#ccc'"
-                    (click)="setRating(o.productId, s)">★</span>
-              <small class="text-muted align-self-center ms-2">
-                {{ reviewRating[o.productId] ? reviewRating[o.productId] + '/5' : 'Select rating' }}
-              </small>
-            </div>
-
-            <!-- Comment -->
-            <textarea class="form-control form-control-sm mb-3" rows="3"
-                      [(ngModel)]="reviewText[o.productId]"
-                      placeholder="Share your experience with this product (optional)..."></textarea>
-
-            <div class="d-flex gap-2">
-              <button class="btn btn-sm fw-semibold text-white" style="background:#244AFD;"
-                      (click)="submitReview(o)"
-                      [disabled]="reviewSubmitting[o.productId] || !reviewRating[o.productId]">
-                <span *ngIf="reviewSubmitting[o.productId]"
-                      class="spinner-border spinner-border-sm me-1"></span>
-                {{ reviewSubmitting[o.productId] ? 'Saving...' :
-                   (reviewMode[o.productId] === 'update' ? 'Update Review' : 'Submit Review') }}
+            <div class="order-card__badges">
+              <span class="order-status"
+                    [class.order-status--delivered]="o.status === 'DELIVERED'"
+                    [class.order-status--pending]="o.status === 'PENDING'"
+                    [class.order-status--cancelled]="o.status === 'CANCELLED'"
+                    [class.order-status--default]="o.status !== 'DELIVERED' && o.status !== 'PENDING' && o.status !== 'CANCELLED'">
+                {{ o.status }}
+              </span>
+              <button *ngIf="o.status === 'DELIVERED' && o.productId"
+                      class="btn-fav-toggle" title="Toggle favorite"
+                      (click)="toggleFavorite(o.productId)"
+                      [disabled]="togglingFav[o.productId]">
+                {{ togglingFav[o.productId] ? '…' : (favorited[o.productId] ? '❤️' : '🤍') }}
               </button>
-              <button class="btn btn-sm btn-outline-secondary"
-                      (click)="toggleReview(o.productId)">Cancel</button>
             </div>
           </div>
 
-          <!-- Not eligible yet -->
-          <div *ngIf="!canReview[o.productId] && !existingReview[o.productId] && !reviewSuccess[o.productId]"
-               class="mt-2">
-            <small class="text-muted">Review not available for this order.</small>
+          <!-- Footer -->
+          <div class="order-card__footer">
+            <div class="order-card__date">
+              📅 {{ o.orderDate | date:'dd MMM yyyy, hh:mm a' }}
+              <span *ngIf="o.trackingNumber">&nbsp;·&nbsp; 🚚 {{ o.trackingNumber }}</span>
+            </div>
+            <span class="order-card__total">₹{{ o.totalPrice }}</span>
           </div>
 
-        </ng-container>
+          <!-- Review section (DELIVERED only) -->
+          <ng-container *ngIf="o.status === 'DELIVERED' && o.productId">
 
+            <div class="order-review-section">
+
+              <!-- Success toast -->
+              <div *ngIf="reviewSuccess[o.productId]" class="order-review-success">
+                ✅ {{ reviewSuccess[o.productId] }}
+              </div>
+
+              <!-- Existing review -->
+              <div *ngIf="existingReview[o.productId]" class="order-existing-review">
+                <div class="order-existing-review__header">
+                  <span class="order-existing-review__label">Your Review</span>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <div>
+                      <span *ngFor="let s of stars(5)"
+                            [class.star-f]="s <= existingReview[o.productId].rating"
+                            [class.star-e]="s > existingReview[o.productId].rating"
+                            style="font-size:1rem;">★</span>
+                      <span style="font-size:0.76rem;color:var(--text-muted);margin-left:0.25rem;">
+                        {{ existingReview[o.productId].rating }}/5
+                      </span>
+                    </div>
+                    <button class="btn-update-review" (click)="openUpdateReview(o.productId)">
+                      ✏️ Update
+                    </button>
+                  </div>
+                </div>
+                <p class="order-existing-review__text">
+                  {{ existingReview[o.productId].reviewText || '(no comment)' }}
+                </p>
+              </div>
+
+              <!-- Rate button -->
+              <div *ngIf="canReview[o.productId] && !reviewOpen[o.productId]">
+                <button class="btn-rate-product" (click)="toggleReview(o.productId)">
+                  ★ Rate this Product
+                </button>
+              </div>
+
+              <!-- Inline review form -->
+              <div *ngIf="reviewOpen[o.productId]" class="order-review-form">
+                <div class="order-review-form__title">
+                  {{ reviewMode[o.productId] === 'update' ? '✏️ Update Your Review' : '✍️ Rate & Review' }}
+                </div>
+                <div *ngIf="reviewError[o.productId]" class="order-review-form__error">
+                  {{ reviewError[o.productId] }}
+                </div>
+                <div class="order-stars-row">
+                  <span *ngFor="let s of stars(5)"
+                        [class.star-f]="s <= (reviewRating[o.productId] || 0)"
+                        [class.star-e]="s > (reviewRating[o.productId] || 0)"
+                        (click)="setRating(o.productId, s)">★</span>
+                  <small style="font-size:0.76rem;color:var(--text-muted);align-self:center;margin-left:0.5rem;">
+                    {{ reviewRating[o.productId] ? reviewRating[o.productId] + '/5' : 'Select rating' }}
+                  </small>
+                </div>
+                <textarea class="order-review-textarea" rows="3"
+                          [(ngModel)]="reviewText[o.productId]"
+                          placeholder="Share your experience with this product (optional)…"></textarea>
+                <div class="order-review-actions">
+                  <button class="btn-submit-review"
+                          (click)="submitReview(o)"
+                          [disabled]="reviewSubmitting[o.productId] || !reviewRating[o.productId]">
+                    <span *ngIf="reviewSubmitting[o.productId]"
+                          style="width:12px;height:12px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;margin-right:0.35rem;"></span>
+                    {{ reviewSubmitting[o.productId] ? 'Saving…' :
+                       (reviewMode[o.productId] === 'update' ? 'Update Review' : 'Submit Review') }}
+                  </button>
+                  <button class="btn-cancel-review" (click)="toggleReview(o.productId)">Cancel</button>
+                </div>
+              </div>
+
+              <!-- Not eligible -->
+              <div *ngIf="!canReview[o.productId] && !existingReview[o.productId] && !reviewSuccess[o.productId]"
+                   class="order-not-eligible">
+                Review not available for this order.
+              </div>
+
+            </div>
+          </ng-container>
+
+        </div>
       </div>
+
     </div>
 
-    <div *ngIf="orders.length === 0" class="text-center text-muted py-5">
-      <div style="font-size:3rem;">📦</div>
-      <p class="mt-2">No orders yet. Browse our products!</p>
-    </div>
-  </div>
+  </div><!-- /.orders-content -->
 </div>

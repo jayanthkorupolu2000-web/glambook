@@ -1,31 +1,42 @@
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Owner — Promotions
+     Palette: blush bg · navy hero · coral accent
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
 <div class="promo-page">
 
-  <!-- ── Page header ── -->
-  <div class="promo-page-header">
-    <div>
-      <h4 class="promo-title">Promotions</h4>
-      <p class="promo-subtitle">Create and manage discount promotions for your salon</p>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="promo-hero">
+    <div class="promo-hero__inner">
+      <div class="promo-hero__text">
+        <p class="promo-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="promo-hero__title">Promotions</h1>
+        <p class="promo-hero__sub">Create and manage discount promotions for your salon</p>
+      </div>
+      <div class="promo-hero__badge">
+        <i class="fa-solid fa-tag"></i>
+        <span>{{ promotions.length }} Promotions</span>
+      </div>
     </div>
   </div>
 
-  <!-- ── Alerts ── -->
-  <div *ngIf="success" class="promo-alert success">
-    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-    {{ success }}
-  </div>
-  <div *ngIf="error" class="promo-alert danger">
-    <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-    {{ error }}
+  <!-- ── Alerts ────────────────────────────────────────────── -->
+  <div class="promo-alerts">
+    <div *ngIf="success" class="promo-alert promo-alert--success">
+      <i class="fa-solid fa-circle-check me-2"></i>{{ success }}
+    </div>
+    <div *ngIf="error" class="promo-alert promo-alert--danger">
+      <i class="fa-solid fa-circle-exclamation me-2"></i>{{ error }}
+    </div>
   </div>
 
-  <!-- ── Create form card ── -->
+  <!-- ── Create form card ──────────────────────────────────── -->
   <div class="promo-card mb-4">
     <div class="promo-card-header">
       <div class="promo-card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
-        </svg>
+        <i class="fa-solid fa-tag"></i>
       </div>
       <div>
         <div class="promo-card-title">Create New Promotion</div>
@@ -36,15 +47,12 @@
     <form [formGroup]="form" (ngSubmit)="submit()" class="promo-form">
 
       <div class="form-row-2">
-        <!-- Title -->
         <div class="form-field">
           <label class="field-label">Title <span class="req">*</span></label>
           <input class="field-input" formControlName="title" placeholder="e.g. Summer Sale"
                  [class.invalid]="f['title'].touched && f['title'].invalid">
           <span class="field-error" *ngIf="f['title'].touched && f['title'].invalid">Title is required.</span>
         </div>
-
-        <!-- Discount % -->
         <div class="form-field">
           <label class="field-label">Discount % <span class="req">*</span></label>
           <div class="input-with-suffix">
@@ -59,23 +67,19 @@
         </div>
       </div>
 
-      <!-- Description -->
       <div class="form-field">
         <label class="field-label">Description <span class="optional">(optional)</span></label>
         <textarea class="field-input field-textarea" rows="2" formControlName="description"
-                  placeholder="Describe the promotion to your customers..."></textarea>
+                  placeholder="Describe the promotion to your customers…"></textarea>
       </div>
 
       <div class="form-row-2">
-        <!-- Start Date -->
         <div class="form-field">
           <label class="field-label">Start Date <span class="req">*</span></label>
           <input type="date" class="field-input" formControlName="startDate"
                  [class.invalid]="f['startDate'].touched && f['startDate'].invalid">
           <span class="field-error" *ngIf="f['startDate'].touched && f['startDate'].invalid">Start date is required.</span>
         </div>
-
-        <!-- End Date -->
         <div class="form-field">
           <label class="field-label">End Date <span class="req">*</span></label>
           <input type="date" class="field-input" formControlName="endDate"
@@ -87,34 +91,31 @@
       <div class="form-actions">
         <button type="submit" class="btn-create" [disabled]="submitting"
                 (click)="form.markAllAsTouched()">
-          <span *ngIf="submitting" class="spinner-border spinner-border-sm"></span>
-          <svg *ngIf="!submitting" viewBox="0 0 20 20" fill="currentColor" style="width:16px;height:16px;">
-            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
-          </svg>
-          {{ submitting ? 'Creating...' : 'Create Promotion' }}
+          <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!submitting" class="fa-solid fa-plus me-2"></i>
+          {{ submitting ? 'Creating…' : 'Create Promotion' }}
         </button>
       </div>
 
     </form>
   </div>
 
-  <!-- ── Promotions list ── -->
+  <!-- ── Promotions list ───────────────────────────────────── -->
   <div class="promo-card">
     <div class="promo-list-header">
-      <div class="promo-card-title">Active &amp; Past Promotions</div>
+      <div class="promo-card-title promo-card-title--dark">
+        <i class="fa-solid fa-list me-2"></i>Active &amp; Past Promotions
+      </div>
       <span class="promo-count">{{ promotions.length }} total</span>
     </div>
 
     <div *ngIf="loading" class="promo-loading">
-      <div class="spinner-border" style="color:#334155;width:1.5rem;height:1.5rem;border-width:2px;"></div>
-      <span>Loading promotions...</span>
+      <div class="promo-spinner"></div>
+      <span>Loading promotions…</span>
     </div>
 
     <div *ngIf="!loading && promotions.length === 0" class="promo-empty">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-           stroke-linecap="round" stroke-linejoin="round">
-        <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
-      </svg>
+      <i class="fa-solid fa-tag"></i>
       <p>No promotions yet. Create your first one above!</p>
     </div>
 
@@ -123,24 +124,19 @@
            [class.promo-expired]="isExpired(p.endDate)"
            [class.promo-inactive]="!p.isActive && !isExpired(p.endDate)">
 
-        <!-- Discount badge -->
         <div class="promo-discount-badge">
           {{ p.discountPct }}%<br><span>OFF</span>
         </div>
 
-        <!-- Info -->
         <div class="promo-info">
           <div class="promo-item-title">{{ p.title }}</div>
           <div class="promo-item-desc" *ngIf="p.description">{{ p.description }}</div>
           <div class="promo-dates">
-            <svg viewBox="0 0 20 20" fill="currentColor" style="width:12px;height:12px;opacity:.5;">
-              <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
-            </svg>
+            <i class="fa-solid fa-calendar me-1"></i>
             {{ p.startDate | date:'dd MMM yyyy' }} → {{ p.endDate | date:'dd MMM yyyy' }}
           </div>
         </div>
 
-        <!-- Status -->
         <div class="promo-status-col">
           <span class="promo-status-badge"
                 [class.badge-active]="p.isActive && !isExpired(p.endDate)"
@@ -154,4 +150,4 @@
     </div>
   </div>
 
-</div>
+</div><!-- /promo-page -->

@@ -1,121 +1,151 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">📅 Daily Schedule</h4>
+<div class="sched-page">
 
-  <!-- ── Today's Summary Cards ── -->
-  <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm text-center p-3">
-        <div class="fs-2 fw-bold text-success">{{ availableCount }}</div>
-        <div class="text-muted small">Available Slots Today</div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm text-center p-3">
-        <div class="fs-2 fw-bold text-primary">{{ bookedCount }}</div>
-        <div class="text-muted small">Booked / Completed</div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm text-center p-3">
-        <div class="fs-2 fw-bold" style="color:#244AFD;">{{ totalRemainingSlots }}</div>
-        <div class="text-muted small">Total Remaining Slots</div>
-      </div>
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
+  <div class="sched-hero">
+    <div class="sched-hero__inner">
+      <div class="sched-hero__eyebrow">Professional</div>
+      <h4 class="sched-hero__title">Daily Schedule</h4>
+      <p class="sched-hero__sub">View your today's slots and browse any date's availability.</p>
     </div>
   </div>
 
-  <!-- ── Today's Schedule ── -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-      <h6 class="fw-bold mb-0" style="color:#244AFD;">
-        📆 Today — {{ today | date:'EEEE, dd MMM yyyy' }}
-      </h6>
-      <button class="btn btn-sm btn-outline-primary" (click)="loadToday()">↻ Refresh</button>
+  <div class="sched-content">
+
+    <!-- ── Stats strip ──────────────────────────────────────────────────── -->
+    <div class="sched-stats">
+      <div class="sched-stat sched-stat--teal">
+        <div class="sched-stat__value">{{ availableCount }}</div>
+        <div class="sched-stat__label">Available Slots Today</div>
+      </div>
+      <div class="sched-stat sched-stat--blue">
+        <div class="sched-stat__value">{{ bookedCount }}</div>
+        <div class="sched-stat__label">Booked / Completed</div>
+      </div>
+      <div class="sched-stat sched-stat--coral">
+        <div class="sched-stat__value">{{ totalRemainingSlots }}</div>
+        <div class="sched-stat__label">Total Remaining Slots</div>
+      </div>
     </div>
-    <div class="card-body p-0">
 
-      <div *ngIf="loading" class="text-center py-4">
-        <div class="spinner-border" style="color:#244AFD;"></div>
+    <!-- ── Error ────────────────────────────────────────────────────────── -->
+    <div *ngIf="error" class="error-alert">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      </svg>
+      {{ error }}
+    </div>
+
+    <!-- ── Today's Schedule Card ─────────────────────────────────────────── -->
+    <div class="sched-card">
+      <div class="sched-card-header">
+        <div class="sched-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Today — {{ today | date:'EEEE, dd MMM yyyy' }}
+        </div>
+        <button class="btn-refresh" (click)="loadToday()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+          </svg>
+          Refresh
+        </button>
       </div>
 
-      <div *ngIf="error" class="alert alert-danger m-3">{{ error }}</div>
+      <div class="sched-card-body">
 
-      <div *ngIf="!loading && todaySlots.length === 0" class="text-center text-muted py-4">
-        No remaining slots for today.
-      </div>
-
-      <div *ngIf="!loading && todaySlots.length > 0">
-        <!-- Legend -->
-        <div class="d-flex gap-3 px-3 pt-3 pb-1 flex-wrap" style="font-size:.75rem;">
-          <span><span class="legend-dot available"></span> Available</span>
-          <span><span class="legend-dot past"></span> Past / Unavailable</span>
-          <span><span class="legend-dot booked"></span> Booked</span>
-          <span><span class="legend-dot completed"></span> Completed</span>
+        <div *ngIf="loading" class="loading-wrap">
+          <div class="spinner"></div>
+          <span>Loading schedule…</span>
         </div>
 
-        <div class="schedule-list">
-          <div *ngFor="let slot of todaySlots"
-               class="schedule-row d-flex align-items-center justify-content-between px-3 py-2 border-bottom"
-               [ngClass]="{
-                 'row-available':   slot.slotStatus === 'AVAILABLE',
-                 'row-past':        slot.slotStatus === 'UNAVAILABLE' && slot.past,
-                 'row-booked':      slot.slotStatus === 'UNAVAILABLE' && !slot.past,
-                 'row-completed':   slot.slotStatus === 'COMPLETED'
-               }">
-            <div class="d-flex align-items-center gap-3">
-              <div class="time-block fw-semibold" style="min-width:130px;">
-                <span [class.text-decoration-line-through]="slot.slotStatus !== 'AVAILABLE'">
+        <div *ngIf="!loading && todaySlots.length === 0" class="empty-state">
+          No remaining slots for today.
+        </div>
+
+        <div *ngIf="!loading && todaySlots.length > 0">
+          <!-- Legend -->
+          <div class="legend-row">
+            <span><span class="legend-dot available"></span> Available</span>
+            <span><span class="legend-dot past"></span> Past / Unavailable</span>
+            <span><span class="legend-dot booked"></span> Booked</span>
+            <span><span class="legend-dot completed"></span> Completed</span>
+          </div>
+
+          <div class="schedule-list">
+            <div *ngFor="let slot of todaySlots"
+                 class="schedule-row"
+                 [ngClass]="{
+                   'row-available':  slot.slotStatus === 'AVAILABLE',
+                   'row-past':       slot.slotStatus === 'UNAVAILABLE' && slot.past,
+                   'row-booked':     slot.slotStatus === 'UNAVAILABLE' && !slot.past,
+                   'row-completed':  slot.slotStatus === 'COMPLETED'
+                 }">
+              <div class="row-left">
+                <div class="time-block"
+                     [style.text-decoration]="slot.slotStatus !== 'AVAILABLE' ? 'line-through' : 'none'">
                   {{ formatTime(slot.startTime) }} – {{ formatTime(slot.endTime) }}
-                </span>
+                </div>
+                <div class="slot-type-label">{{ slotTypeIcon(slot.slotType) }} {{ slotTypeLabel(slot.slotType) }}</div>
               </div>
-              <div class="text-muted small">{{ slotTypeIcon(slot.slotType) }} {{ slotTypeLabel(slot.slotType) }}</div>
+              <span [class]="statusClass(slot)">{{ statusLabel(slot) }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Browse Another Date Card ──────────────────────────────────────── -->
+    <div class="sched-card sched-card--teal">
+      <div class="sched-card-header">
+        <div class="sched-card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Browse Another Date
+        </div>
+      </div>
+
+      <div class="sched-card-body">
+        <label class="field-label">Select Date</label>
+        <input type="date" class="field-input" [(ngModel)]="selectedDate" (change)="onDateChange()">
+
+        <div *ngIf="dateLoading" class="loading-wrap" style="padding:1.5rem 0;">
+          <div class="spinner"></div>
+        </div>
+
+        <div *ngIf="!dateLoading && selectedDate && selectedDateSlots.length === 0"
+             class="no-slots-hint">No slots found for this date.</div>
+
+        <div *ngIf="!dateLoading && selectedDateSlots.length > 0" class="schedule-list" style="margin-top:1rem;">
+          <div *ngFor="let slot of selectedDateSlots"
+               class="schedule-row"
+               [ngClass]="{
+                 'row-available':  slot.slotStatus === 'AVAILABLE',
+                 'row-past':       slot.slotStatus === 'UNAVAILABLE' && slot.past,
+                 'row-booked':     slot.slotStatus === 'UNAVAILABLE' && !slot.past,
+                 'row-completed':  slot.slotStatus === 'COMPLETED'
+               }">
+            <div class="row-left">
+              <div class="time-block"
+                   [style.text-decoration]="slot.slotStatus !== 'AVAILABLE' ? 'line-through' : 'none'">
+                {{ formatTime(slot.startTime) }} – {{ formatTime(slot.endTime) }}
+              </div>
+              <div class="slot-type-label">{{ slotTypeIcon(slot.slotType) }} {{ slotTypeLabel(slot.slotType) }}</div>
             </div>
             <span [class]="statusClass(slot)">{{ statusLabel(slot) }}</span>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ── Browse Another Date ── -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white">
-      <h6 class="fw-bold mb-0" style="color:#244AFD;">🔍 Browse Another Date</h6>
-    </div>
-    <div class="card-body">
-      <div class="row g-3 align-items-end mb-3">
-        <div class="col-md-4">
-          <label class="form-label fw-semibold small">Select Date</label>
-          <input type="date" class="form-control" [(ngModel)]="selectedDate" (change)="onDateChange()">
-        </div>
-      </div>
-
-      <div *ngIf="dateLoading" class="text-center py-3">
-        <div class="spinner-border spinner-border-sm" style="color:#244AFD;"></div>
-      </div>
-
-      <div *ngIf="!dateLoading && selectedDate && selectedDateSlots.length === 0"
-           class="text-muted small">No slots found for this date.</div>
-
-      <div *ngIf="!dateLoading && selectedDateSlots.length > 0" class="schedule-list">
-        <div *ngFor="let slot of selectedDateSlots"
-             class="schedule-row d-flex align-items-center justify-content-between px-3 py-2 border-bottom"
-             [ngClass]="{
-               'row-available':   slot.slotStatus === 'AVAILABLE',
-               'row-past':        slot.slotStatus === 'UNAVAILABLE' && slot.past,
-               'row-booked':      slot.slotStatus === 'UNAVAILABLE' && !slot.past,
-               'row-completed':   slot.slotStatus === 'COMPLETED'
-             }">
-          <div class="d-flex align-items-center gap-3">
-            <div class="time-block fw-semibold" style="min-width:130px;">
-              <span [class.text-decoration-line-through]="slot.slotStatus !== 'AVAILABLE'">
-                {{ formatTime(slot.startTime) }} – {{ formatTime(slot.endTime) }}
-              </span>
-            </div>
-            <div class="text-muted small">{{ slotTypeIcon(slot.slotType) }} {{ slotTypeLabel(slot.slotType) }}</div>
-          </div>
-          <span [class]="statusClass(slot)">{{ statusLabel(slot) }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
+  </div><!-- /.sched-content -->
 </div>

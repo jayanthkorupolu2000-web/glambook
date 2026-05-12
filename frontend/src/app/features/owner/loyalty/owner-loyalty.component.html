@@ -1,37 +1,107 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">Customer Loyalty</h4>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Owner — Customer Loyalty
+     Palette: blush bg · navy hero · gold=loyalty
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="ly-page">
 
-  <div *ngIf="loading" class="text-center py-4">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="ly-hero">
+    <div class="ly-hero__inner">
+      <div class="ly-hero__text">
+        <p class="ly-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="ly-hero__title">Customer Loyalty</h1>
+        <p class="ly-hero__sub">Track and manage loyalty points for your customers</p>
+      </div>
+      <div class="ly-hero__badge">
+        <i class="fa-solid fa-star"></i>
+        <span>{{ loyalty.length }} Customers</span>
+      </div>
+    </div>
   </div>
 
-  <div class="card border-0 shadow-sm" *ngIf="!loading">
+  <!-- ── Loading ───────────────────────────────────────────── -->
+  <div *ngIf="loading" class="ly-loading">
+    <div class="ly-spinner"></div>
+    <span>Loading loyalty data…</span>
+  </div>
+
+  <!-- ── Table ─────────────────────────────────────────────── -->
+  <div *ngIf="!loading" class="ly-table-wrap">
+
+    <div class="ly-table-header">
+      <i class="fa-solid fa-star me-2"></i>
+      Loyalty Points
+      <span class="ly-table-header__count">{{ loyalty.length }}</span>
+    </div>
+
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr><th>Customer</th><th>Points</th><th>Tier</th><th>Add Points</th><th>Action</th></tr>
+      <table class="ly-table">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Points</th>
+            <th>Tier</th>
+            <th>Add Points</th>
+            <th>Action</th>
+          </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let item of loyalty">
-            <td class="fw-semibold">{{ item.customerName }}</td>
-            <td>{{ item.points }}</td>
-            <td><span [class]="tierBadge(item.tier)">{{ item.tier }}</span></td>
-            <td style="width:150px;">
-              <input type="number" class="form-control form-control-sm"
-                     [(ngModel)]="item.editPoints" min="0" placeholder="pts">
-            </td>
+          <tr *ngFor="let item of loyalty" class="ly-row">
+
             <td>
-              <button class="btn btn-sm text-white" style="background:#244AFD;"
-                      (click)="save(item)" [disabled]="!item.editPoints">
-                Save
+              <div class="ly-cell--name">
+                <div class="ly-avatar">{{ item.customerName.charAt(0).toUpperCase() }}</div>
+                <span>{{ item.customerName }}</span>
+              </div>
+            </td>
+
+            <td>
+              <span class="ly-points">
+                <i class="fa-solid fa-star me-1"></i>{{ item.points }}
+              </span>
+            </td>
+
+            <td>
+              <span class="ly-tier-badge"
+                    [class.ly-tier-badge--bronze]="item.tier === 'BRONZE'"
+                    [class.ly-tier-badge--silver]="item.tier === 'SILVER'"
+                    [class.ly-tier-badge--gold]="item.tier === 'GOLD'">
+                <i class="fa-solid me-1"
+                   [class.fa-medal]="item.tier === 'BRONZE'"
+                   [class.fa-award]="item.tier === 'SILVER'"
+                   [class.fa-crown]="item.tier === 'GOLD'"></i>
+                {{ item.tier }}
+              </span>
+            </td>
+
+            <td>
+              <input type="number" class="ly-points-input"
+                     [(ngModel)]="item.editPoints"
+                     min="0" placeholder="pts">
+            </td>
+
+            <td>
+              <button class="ly-save-btn"
+                      (click)="save(item)"
+                      [disabled]="!item.editPoints">
+                <i class="fa-solid fa-floppy-disk me-1"></i>Save
               </button>
             </td>
+
           </tr>
           <tr *ngIf="loyalty.length === 0">
-            <td colspan="5" class="text-center text-muted py-3">No loyalty records yet.</td>
+            <td colspan="5" class="ly-empty">
+              <i class="fa-solid fa-star-half-stroke"></i>
+              <span>No loyalty records yet.</span>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
+
   </div>
-</div>
+
+</div><!-- /ly-page -->

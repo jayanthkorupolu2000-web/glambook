@@ -145,4 +145,14 @@ export class StaffListComponent implements OnInit {
     const r = Math.round(rating ?? 0);
     return [1, 2, 3, 4, 5].map(i => i <= r);
   }
+
+  countByStatus(status: string): number {
+    return this.staff.filter(s => (s.status || 'PENDING') === status).length;
+  }
+
+  /** Pink avatar for female-oriented services, blue for male/neutral */
+  isFemaleService(specialization: string | undefined): boolean {
+    const femaleKeywords = ['makeup', 'bridal', 'facial', 'manicure', 'pedicure', 'waxing', 'threading', 'eyebrow', 'lash', 'nail'];
+    return femaleKeywords.some(k => (specialization || '').toLowerCase().includes(k));
+  }
 }

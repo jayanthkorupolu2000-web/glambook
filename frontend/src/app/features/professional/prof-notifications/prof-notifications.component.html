@@ -1,9 +1,12 @@
 <div class="notif-page">
 
-  <!-- ── Header ──────────────────────────────────────────────────────────── -->
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
   <div class="page-header">
-    <div class="header-left">
-      <h4 class="page-title">Notifications</h4>
+    <div class="page-header-left">
+      <div class="page-header-text">
+        <div class="page-header-eyebrow">Professional</div>
+        <h4 class="page-title">Notifications</h4>
+      </div>
       <span *ngIf="unreadCount > 0" class="unread-badge">{{ unreadCount }}</span>
     </div>
     <button class="btn-mark-all" (click)="markAllRead()" [disabled]="unreadCount === 0">
@@ -14,64 +17,68 @@
     </button>
   </div>
 
-  <!-- ── Loading ──────────────────────────────────────────────────────────── -->
-  <div *ngIf="loading" class="loading-wrap">
-    <div class="spinner"></div>
-    <span>Loading notifications…</span>
-  </div>
+  <div class="notif-content">
 
-  <!-- ── Empty ────────────────────────────────────────────────────────────── -->
-  <div *ngIf="!loading && notifications.length === 0" class="empty-state">
-    <div class="empty-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-           stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-      </svg>
+    <!-- ── Loading ──────────────────────────────────────────────────────────── -->
+    <div *ngIf="loading" class="loading-wrap">
+      <div class="spinner"></div>
+      <span>Loading notifications…</span>
     </div>
-    <div class="empty-title">All caught up!</div>
-    <div class="empty-hint">No notifications yet.</div>
-  </div>
 
-  <!-- ── Notification list ────────────────────────────────────────────────── -->
-  <div *ngIf="!loading && notifications.length > 0" class="notif-list">
-    <div *ngFor="let n of notifications"
-         class="notif-card"
-         [class.unread]="!n.isRead"
-         [class.read]="n.isRead"
-         (click)="markRead(n.id)"
-         [style.cursor]="n.isRead ? 'default' : 'pointer'">
-
-      <!-- Type icon -->
-      <div class="notif-icon"
-           [style.background]="typeBg(n.type)"
-           [style.color]="typeColor(n.type)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    <!-- ── Empty ────────────────────────────────────────────────────────────── -->
+    <div *ngIf="!loading && notifications.length === 0" class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
              stroke-linecap="round" stroke-linejoin="round">
-          <path [attr.d]="typeIcon(n.type)"/>
+          <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
         </svg>
       </div>
+      <div class="empty-title">All caught up!</div>
+      <div class="empty-hint">No notifications yet.</div>
+    </div>
 
-      <!-- Content -->
-      <div class="notif-content">
-        <p class="notif-message">{{ n.message }}</p>
-        <div class="notif-time">
+    <!-- ── Notification list ────────────────────────────────────────────────── -->
+    <div *ngIf="!loading && notifications.length > 0" class="notif-list">
+      <div *ngFor="let n of notifications"
+           class="notif-card"
+           [class.unread]="!n.isRead"
+           [class.read]="n.isRead"
+           (click)="markRead(n.id)"
+           [style.cursor]="n.isRead ? 'default' : 'pointer'">
+
+        <!-- Type icon -->
+        <div class="notif-icon"
+             [style.background]="typeBg(n.type)"
+             [style.color]="typeColor(n.type)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            <path [attr.d]="typeIcon(n.type)"/>
           </svg>
-          {{ n.createdAt | date:'dd MMM yyyy, HH:mm' }}
         </div>
-      </div>
 
-      <!-- Read indicator (shown when read) -->
-      <div *ngIf="n.isRead" class="read-indicator">
-        <svg viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-        </svg>
-        Read
-      </div>
+        <!-- Content -->
+        <div class="notif-body">
+          <p class="notif-message">{{ n.message }}</p>
+          <div class="notif-time">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            {{ n.createdAt | date:'dd MMM yyyy, HH:mm' }}
+          </div>
+        </div>
 
+        <!-- Read indicator -->
+        <div *ngIf="n.isRead" class="read-indicator">
+          <svg viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+          Read
+        </div>
+
+      </div>
     </div>
-  </div>
+
+  </div><!-- /.notif-content -->
 
 </div>

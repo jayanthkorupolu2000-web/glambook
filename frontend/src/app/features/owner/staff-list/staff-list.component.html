@@ -1,119 +1,172 @@
-<div class="staff-page">
-  <h4 class="staff-title">Staff &amp; Approvals</h4>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Owner — Staff & Approvals
+     Palette: blush bg · navy hero · blue=men · pink=women
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="sl-page">
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#334155;" role="status"></div>
-  </div>
-
-  <div *ngIf="error" class="alert alert-danger mb-3">{{ error }}</div>
-  <div *ngIf="successMsg" class="alert alert-success mb-3 d-flex align-items-center gap-2">
-    <span>✓</span> {{ successMsg }}
-  </div>
-  <div *ngIf="suspendMsg" class="alert alert-danger mb-3 d-flex align-items-center gap-2">
-    <span>⚠</span> {{ suspendMsg }}
-  </div>
-
-  <div *ngIf="!loading && !error && staff.length === 0" class="text-muted text-center py-5">
-    No staff members found.
-  </div>
-
-  <div *ngIf="!loading && staff.length > 0" class="row g-3">
-    <div class="col-md-6 col-lg-4" *ngFor="let member of staff">
-      <div class="staff-card">
-
-        <!-- Header row -->
-        <div class="d-flex align-items-center gap-3 mb-3">
-          <div class="staff-avatar">{{ member.name.charAt(0) | uppercase }}</div>
-          <div class="flex-fill">
-            <div class="fw-bold" style="color:#1e293b;">{{ member.name }}</div>
-            <small class="text-muted">{{ member.city }}</small>
-          </div>
-          <span [ngClass]="{
-            'badge-active':    member.status === 'ACTIVE',
-            'badge-pending':   member.status === 'PENDING' || !member.status,
-            'badge-suspended': member.status === 'SUSPENDED'
-          }">{{ member.status || 'PENDING' }}</span>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="sl-hero">
+    <div class="sl-hero__inner">
+      <div class="sl-hero__text">
+        <p class="sl-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="sl-hero__title">Staff & Approvals</h1>
+        <p class="sl-hero__sub">Manage your salon professionals — approve, suspend and track status</p>
+      </div>
+      <div class="sl-hero__chips">
+        <div class="sl-hero__chip sl-hero__chip--green">
+          <i class="fa-solid fa-circle-check me-1"></i>
+          Active: {{ countByStatus('ACTIVE') }}
         </div>
-
-        <div class="small mb-1">
-          <span class="text-muted">Specialization:</span>
-          <span class="ms-1 fw-semibold">{{ member.specialization }}</span>
+        <div class="sl-hero__chip sl-hero__chip--amber">
+          <i class="fa-solid fa-clock me-1"></i>
+          Pending: {{ countByStatus('PENDING') }}
         </div>
-        <div class="small mb-2">
-          <span class="text-muted">Email:</span>
-          <span class="ms-1">{{ member.email }}</span>
+        <div class="sl-hero__chip sl-hero__chip--red">
+          <i class="fa-solid fa-ban me-1"></i>
+          Suspended: {{ countByStatus('SUSPENDED') }}
         </div>
-
-        <!-- Suspension info -->
-        <div *ngIf="member.status === 'SUSPENDED' && member.suspensionReason" class="suspension-info">
-          <strong>Reason:</strong> {{ member.suspensionReason }}
-          <span *ngIf="member.suspendedUntil"> · Until {{ member.suspendedUntil | date:'dd MMM yyyy' }}</span>
-          <span *ngIf="!member.suspendedUntil"> · Permanent</span>
-        </div>
-
-        <!-- Actions -->
-        <div class="d-flex gap-2 mt-3">
-          <button class="btn-approve"
-                  *ngIf="member.status !== 'ACTIVE'"
-                  (click)="approve(member.id)"
-                  [disabled]="actionLoading[member.id]">
-            <span *ngIf="actionLoading[member.id]" class="spinner-border spinner-border-sm me-1"></span>
-            ✓ {{ member.status === 'SUSPENDED' ? 'Reactivate' : 'Approve' }}
-          </button>
-          <button class="btn-suspend"
-                  *ngIf="member.status !== 'SUSPENDED'"
-                  (click)="openSuspendModal(member)"
-                  [disabled]="actionLoading[member.id]">
-            ✗ Suspend
-          </button>
-        </div>
-
       </div>
     </div>
   </div>
-</div>
 
-<!-- ══════════════════════════════════════════════════════════════
-     SUSPENSION MODAL
-══════════════════════════════════════════════════════════════════ -->
+  <!-- ── Alerts ────────────────────────────────────────────── -->
+  <div class="sl-alerts">
+    <div *ngIf="error" class="sl-alert sl-alert--danger">
+      <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ error }}
+    </div>
+    <div *ngIf="successMsg" class="sl-alert sl-alert--success">
+      <i class="fa-solid fa-circle-check me-2"></i>{{ successMsg }}
+    </div>
+    <div *ngIf="suspendMsg" class="sl-alert sl-alert--warning">
+      <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ suspendMsg }}
+    </div>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────── -->
+  <div *ngIf="loading" class="sl-loading">
+    <div class="sl-spinner"></div>
+    <span>Loading staff…</span>
+  </div>
+
+  <!-- ── Empty ─────────────────────────────────────────────── -->
+  <div *ngIf="!loading && !error && staff.length === 0" class="sl-empty">
+    <i class="fa-solid fa-users-slash"></i>
+    <span>No staff members found.</span>
+  </div>
+
+  <!-- ── Staff grid ────────────────────────────────────────── -->
+  <div *ngIf="!loading && staff.length > 0" class="sl-grid">
+    <div class="sl-card" *ngFor="let member of staff">
+
+      <!-- Card header -->
+      <div class="sl-card__header">
+        <div class="sl-card__avatar"
+             [class.sl-card__avatar--pink]="isFemaleService(member.specialization)"
+             [class.sl-card__avatar--blue]="!isFemaleService(member.specialization)">
+          {{ member.name.charAt(0) | uppercase }}
+        </div>
+        <div class="sl-card__info">
+          <div class="sl-card__name">{{ member.name }}</div>
+          <div class="sl-card__city">
+            <i class="fa-solid fa-location-dot me-1"></i>{{ member.city }}
+          </div>
+        </div>
+        <span class="sl-status-badge"
+              [class.sl-status-badge--active]="member.status === 'ACTIVE'"
+              [class.sl-status-badge--pending]="member.status === 'PENDING' || !member.status"
+              [class.sl-status-badge--suspended]="member.status === 'SUSPENDED'">
+          {{ member.status || 'PENDING' }}
+        </span>
+      </div>
+
+      <!-- Card body -->
+      <div class="sl-card__body">
+        <div class="sl-card__detail">
+          <span class="sl-card__detail-label">Specialization</span>
+          <span class="sl-card__detail-value">{{ member.specialization }}</span>
+        </div>
+        <div class="sl-card__detail">
+          <span class="sl-card__detail-label">Email</span>
+          <span class="sl-card__detail-value sl-card__detail-value--email">{{ member.email }}</span>
+        </div>
+      </div>
+
+      <!-- Suspension info -->
+      <div *ngIf="member.status === 'SUSPENDED' && member.suspensionReason" class="sl-suspension-info">
+        <i class="fa-solid fa-circle-exclamation me-1"></i>
+        <strong>Reason:</strong> {{ member.suspensionReason }}
+        <span *ngIf="member.suspendedUntil"> · Until {{ member.suspendedUntil | date:'dd MMM yyyy' }}</span>
+        <span *ngIf="!member.suspendedUntil"> · Permanent</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="sl-card__actions">
+        <button class="sl-btn sl-btn--approve"
+                *ngIf="member.status !== 'ACTIVE'"
+                (click)="approve(member.id)"
+                [disabled]="actionLoading[member.id]">
+          <span *ngIf="actionLoading[member.id]" class="spinner-border spinner-border-sm me-1"></span>
+          <i *ngIf="!actionLoading[member.id]" class="fa-solid fa-circle-check me-1"></i>
+          {{ member.status === 'SUSPENDED' ? 'Reactivate' : 'Approve' }}
+        </button>
+        <button class="sl-btn sl-btn--suspend"
+                *ngIf="member.status !== 'SUSPENDED'"
+                (click)="openSuspendModal(member)"
+                [disabled]="actionLoading[member.id]">
+          <i class="fa-solid fa-ban me-1"></i>Suspend
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /sl-page -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     Suspension Modal — all logic unchanged
+     ══════════════════════════════════════════════════════════ -->
 <div *ngIf="suspendTarget" class="modal-backdrop-custom" (click)="closeSuspendModal()">
   <div class="modal-box" (click)="$event.stopPropagation()">
 
-    <!-- Header -->
     <div class="modal-box-header">
       <div>
-        <div class="modal-box-title">⚠ Suspend Professional</div>
+        <div class="modal-box-title">
+          <i class="fa-solid fa-ban me-2"></i>Suspend Professional
+        </div>
         <p class="modal-box-sub">Suspending <strong>{{ suspendTarget.name }}</strong></p>
       </div>
-      <button class="modal-close-btn" (click)="closeSuspendModal()">✕</button>
+      <button class="modal-close-btn" (click)="closeSuspendModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
-    <!-- Body -->
     <div class="modal-box-body">
 
-      <!-- Reason -->
       <div class="mb-3">
         <label class="form-label">
           Reason for Suspension <span class="text-danger">*</span>
         </label>
         <textarea class="form-control" rows="3" [(ngModel)]="suspendReason"
-                  placeholder="Describe why this professional is being suspended..."
+                  placeholder="Describe why this professional is being suspended…"
                   [class.is-invalid]="suspendSubmitted && !suspendReason.trim()">
         </textarea>
         <div class="invalid-feedback">Reason is required.</div>
       </div>
 
-      <!-- Duration -->
       <div class="mb-3">
         <label class="form-label">Suspension Duration</label>
         <div class="duration-group">
           <label class="duration-option" [class.selected]="suspendDurationType === 'permanent'">
             <input type="radio" [(ngModel)]="suspendDurationType" value="permanent">
-            🔒 Permanent
+            <i class="fa-solid fa-lock me-1"></i>Permanent
           </label>
           <label class="duration-option" [class.selected]="suspendDurationType === 'days'">
             <input type="radio" [(ngModel)]="suspendDurationType" value="days">
-            📅 Specific days
+            <i class="fa-solid fa-calendar me-1"></i>Specific days
           </label>
         </div>
       </div>
@@ -130,11 +183,8 @@
         </small>
       </div>
 
-      <!-- Warning box -->
       <div class="suspend-warning-box">
-        <svg viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;">
-          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-        </svg>
+        <i class="fa-solid fa-triangle-exclamation"></i>
         <div>
           <strong>This action will:</strong>
           <ul>
@@ -149,15 +199,14 @@
 
     </div>
 
-    <!-- Footer -->
     <div class="modal-box-footer">
       <button class="btn-cancel" (click)="closeSuspendModal()" [disabled]="suspendLoading">
         Cancel
       </button>
       <button class="btn-confirm-suspend" (click)="confirmSuspend()" [disabled]="suspendLoading">
         <span *ngIf="suspendLoading" class="spinner-border spinner-border-sm"></span>
-        <span *ngIf="!suspendLoading">⚠</span>
-        {{ suspendLoading ? 'Suspending...' : 'Confirm Suspension' }}
+        <i *ngIf="!suspendLoading" class="fa-solid fa-ban me-1"></i>
+        {{ suspendLoading ? 'Suspending…' : 'Confirm Suspension' }}
       </button>
     </div>
 

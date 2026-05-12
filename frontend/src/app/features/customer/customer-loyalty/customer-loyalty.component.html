@@ -1,387 +1,338 @@
-<div class="container py-4" style="max-width:720px;">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">⭐ Loyalty & Rewards</h4>
+<div class="loy-page">
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#244AFD;"></div>
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <div class="loy-hero">
+    <div class="loy-hero__inner">
+      <div class="loy-hero__eyebrow">Customer</div>
+      <h4 class="loy-hero__title">Loyalty &amp; Rewards</h4>
+      <p class="loy-hero__sub">Earn points on every booking and redeem them for wallet credits.</p>
+    </div>
   </div>
 
-  <ng-container *ngIf="!loading && summary">
+  <div class="loy-content">
 
-    <!-- ── Tier Card ── -->
-    <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-      <div class="p-1" [style.background]="currentTier.color"></div>
-      <div class="p-4 text-center">
-        <div style="font-size:3rem;">{{ currentTier.icon }}</div>
-        <div class="fs-1 fw-bold mt-1" [style.color]="currentTier.color">{{ summary.totalEarned }}</div>
-        <div class="text-muted mb-2">Total Points Earned</div>
-        <span class="badge fs-6 px-3 py-2 mb-3" [style.background]="currentTier.color">
-          {{ currentTier.label }} Member
-        </span>
+    <div *ngIf="loading" class="loy-loading">
+      <div class="loy-spinner"></div>
+      <span>Loading your rewards…</span>
+    </div>
 
-        <!-- Progress to next tier -->
-        <div *ngIf="nextTier" class="mt-2">
-          <div class="d-flex justify-content-between small text-muted mb-1">
-            <span>{{ currentTier.label }}</span>
-            <span>{{ nextTier.min - summary.totalEarned }} pts to {{ nextTier.label }} {{ nextTier.icon }}</span>
+    <ng-container *ngIf="!loading && summary">
+
+      <!-- ── Tier Card ──────────────────────────────────────────────────────── -->
+      <div class="loy-card">
+        <div class="loy-tier-card">
+
+          <div class="loy-tier-icon">{{ currentTier.icon }}</div>
+          <div class="loy-tier-points" [style.color]="currentTier.color">{{ summary.totalEarned }}</div>
+          <div class="loy-tier-label">Total Points Earned</div>
+          <div class="loy-tier-badge" [style.background]="currentTier.color">
+            {{ currentTier.label }} Member
           </div>
-          <div class="progress" style="height:10px;border-radius:5px;">
-            <div class="progress-bar" role="progressbar"
-                 [style.width]="progressPct + '%'"
-                 [style.background]="currentTier.color"></div>
-          </div>
-          <small class="text-muted">Based on {{ summary.totalEarned }} pts lifetime earned</small>
-        </div>
-        <div *ngIf="!nextTier" class="text-muted small mt-2">🎉 You've reached the highest tier!</div>
 
-        <!-- Stats row -->
-        <div class="row g-3 mt-3">
-          <div class="col-6 col-md-3">
-            <div class="p-2 rounded" style="background:#f0f4ff;">
-              <div class="fw-bold" style="color:#244AFD;">{{ summary.totalEarned }}</div>
-              <div class="text-muted" style="font-size:.75rem;">Total Earned</div>
+          <!-- Progress to next tier -->
+          <div *ngIf="nextTier" class="loy-progress-wrap">
+            <div class="loy-progress-labels">
+              <span>{{ currentTier.label }}</span>
+              <span>{{ nextTier.min - summary.totalEarned }} pts to {{ nextTier.label }} {{ nextTier.icon }}</span>
+            </div>
+            <div class="loy-progress-track">
+              <div class="loy-progress-fill"
+                   [style.width]="progressPct + '%'"
+                   [style.background]="currentTier.color"></div>
+            </div>
+            <div class="loy-progress-hint">Based on {{ summary.totalEarned }} pts lifetime earned</div>
+          </div>
+          <div *ngIf="!nextTier" class="loy-progress-hint" style="margin-bottom:1rem;">
+            🎉 You've reached the highest tier!
+          </div>
+
+          <!-- Stats row -->
+          <div class="loy-stats">
+            <div class="loy-stat" style="background:#f0f4ff;">
+              <div class="loy-stat__value" style="color:var(--primary);">{{ summary.totalEarned }}</div>
+              <div class="loy-stat__label">Total Earned</div>
+            </div>
+            <div class="loy-stat" style="background:#fff8e1;">
+              <div class="loy-stat__value" style="color:var(--amber);">{{ summary.totalRedeemed }}</div>
+              <div class="loy-stat__label">Total Redeemed</div>
+            </div>
+            <div class="loy-stat" style="background:var(--success-bg);">
+              <div class="loy-stat__value" style="color:var(--success);">{{ summary.points }}</div>
+              <div class="loy-stat__label">Available Points</div>
+            </div>
+            <div class="loy-stat" style="background:var(--success-bg);">
+              <div class="loy-stat__value" style="color:var(--success);">₹{{ summary.points / 10 | number:'1.0-0' }}</div>
+              <div class="loy-stat__label">Redeemable Value</div>
             </div>
           </div>
-          <div class="col-6 col-md-3">
-            <div class="p-2 rounded" style="background:#fff3e0;">
-              <div class="fw-bold text-warning">{{ summary.totalRedeemed }}</div>
-              <div class="text-muted" style="font-size:.75rem;">Total Redeemed</div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="p-2 rounded" style="background:#e8f5e9;">
-              <div class="fw-bold text-success">{{ summary.points }}</div>
-              <div class="text-muted" style="font-size:.75rem;">Available Points</div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="p-2 rounded" style="background:#e8f5e9;">
-              <div class="fw-bold text-success">₹{{ summary.points / 10 | number:'1.0-0' }}</div>
-              <div class="text-muted" style="font-size:.75rem;">Redeemable Value</div>
-            </div>
-          </div>
-        </div>
 
-        <!-- Wallet Balance -->
-        <div class="mt-3 p-3 rounded d-flex align-items-center justify-content-between"
-             style="background:linear-gradient(135deg,#1a1a2e,#244AFD);color:#fff;border-radius:12px;">
-          <div>
-            <div style="font-size:.75rem;opacity:.8;">💰 Wallet Balance</div>
-            <div class="fw-bold fs-4">₹{{ walletBalance | number:'1.2-2' }}</div>
+          <!-- Wallet balance -->
+          <div class="loy-wallet">
+            <div>
+              <div class="loy-wallet__label">💰 Wallet Balance</div>
+              <div class="loy-wallet__value">₹{{ walletBalance | number:'1.2-2' }}</div>
+            </div>
+            <div class="loy-wallet__icon">🏦</div>
           </div>
-          <div style="font-size:2rem;opacity:.6;">🏦</div>
-        </div>
 
-        <!-- Pay Later Status — Interactive Card -->
-        <div class="mt-3 rounded overflow-hidden" style="border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.12);">
-
-          <!-- Header band -->
-          <div class="d-flex align-items-center justify-content-between px-4 py-3"
-               [style.background]="payLaterEligible
-                 ? 'linear-gradient(135deg,#1a5c38,#1a9e5c)'
-                 : 'linear-gradient(135deg,#3a3a4a,#5a5a6a)'"
-               style="color:#fff;">
-            <div class="d-flex align-items-center gap-2">
-              <span style="font-size:1.4rem;">🕐</span>
-              <div>
-                <div style="font-size:.72rem;opacity:.8;letter-spacing:.5px;text-transform:uppercase;">Pay Later</div>
-                <div class="fw-bold" style="font-size:1.05rem;">
-                  {{ payLaterEligible ? '✅ You\'re Eligible' : '🔒 Not Yet Eligible' }}
+          <!-- Pay Later block -->
+          <div class="loy-paylater">
+            <div class="loy-paylater__header"
+                 [style.background]="payLaterEligible
+                   ? 'linear-gradient(135deg,#1a5c38,#1a9e5c)'
+                   : 'linear-gradient(135deg,#3a3a4a,#5a5a6a)'">
+              <div class="loy-paylater__header-left">
+                <span class="loy-paylater__icon">🕐</span>
+                <div>
+                  <div class="loy-paylater__eyebrow">Pay Later</div>
+                  <div class="loy-paylater__title">
+                    {{ payLaterEligible ? "✅ You're Eligible" : '🔒 Not Yet Eligible' }}
+                  </div>
                 </div>
               </div>
+              <span class="loy-paylater__badge">{{ payLaterEligible ? 'Active' : 'Locked' }}</span>
             </div>
-            <span class="badge rounded-pill px-3 py-2 fw-semibold"
-                  [style.background]="payLaterEligible ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.15)'"
-                  style="font-size:.78rem;color:#fff;border:1px solid rgba(255,255,255,.3);">
-              {{ payLaterEligible ? 'Active' : 'Locked' }}
-            </span>
-          </div>
 
-          <!-- Body -->
-          <div class="px-4 py-3" style="background:#f8fdf9;">
+            <div class="loy-paylater__body"
+                 [style.background]="payLaterEligible ? '#f8fdf9' : '#f8f9fa'">
 
-            <!-- Eligible state -->
-            <ng-container *ngIf="payLaterEligible">
-              <p class="small mb-3" style="color:#1a5c38;font-weight:500;">
-                Defer your service payment for up to <strong>24 hours</strong> after your appointment.
-              </p>
-
-              <!-- 3 condition chips -->
-              <div class="d-flex flex-wrap gap-2 mb-3">
-                <span class="badge rounded-pill px-3 py-2"
-                      style="background:#e8f5e9;color:#1a5c38;font-size:.78rem;border:1px solid #a5d6a7;">
-                  ✓ {{ currentTier.label }} Tier
-                </span>
-                <span class="badge rounded-pill px-3 py-2"
-                      style="background:#e8f5e9;color:#1a5c38;font-size:.78rem;border:1px solid #a5d6a7;">
-                  ✓ {{ summary.points }} pts available
-                </span>
-                <span class="badge rounded-pill px-3 py-2"
-                      style="background:#e8f5e9;color:#1a5c38;font-size:.78rem;border:1px solid #a5d6a7;">
-                  ✓ Account active
-                </span>
-              </div>
-
-              <!-- Points value bar -->
-              <div class="mb-3">
-                <div class="d-flex justify-content-between small mb-1" style="color:#555;">
-                  <span>Points value</span>
-                  <span class="fw-semibold" style="color:#1a9e5c;">₹{{ payLaterPointsValue }}</span>
-                </div>
-                <div class="progress" style="height:6px;border-radius:4px;background:#c8e6c9;">
-                  <div class="progress-bar" role="progressbar"
-                       [style.width]="Math.min(100, (payLaterPointsValue / 100) * 100) + '%'"
-                       style="background:#1a9e5c;border-radius:4px;"></div>
-                </div>
-                <div class="small mt-1" style="color:#888;">
-                  Your {{ summary.points }} pts are worth ₹{{ payLaterPointsValue }} — covers half of services up to ₹{{ payLaterPointsValue * 2 }}
-                </div>
-              </div>
-
-              <!-- How it works -->
-              <div class="p-3 rounded" style="background:#e8f5e9;border-left:3px solid #1a9e5c;">
-                <div class="fw-semibold small mb-1" style="color:#1a5c38;">How Pay Later works</div>
-                <div class="small" style="color:#2e7d32;line-height:1.6;">
-                  1. Select "Pay Later" at checkout after your appointment<br>
-                  2. You get <strong>24 hours</strong> to complete payment<br>
-                  3. Reminders at 8h and 16h if unpaid<br>
-                  4. Non-payment zeroes your points and suspends your account
-                </div>
-              </div>
-            </ng-container>
-
-            <!-- Not eligible state -->
-            <ng-container *ngIf="!payLaterEligible">
-              <p class="small mb-3" style="color:#555;">
-                Complete these requirements to unlock Pay Later:
-              </p>
-
-              <!-- Requirement checklist -->
-              <div class="d-flex flex-column gap-2 mb-3">
-                <!-- Tier requirement -->
-                <div class="d-flex align-items-center gap-2 p-2 rounded"
-                     [style.background]="(summary.tier === 'SILVER' || summary.tier === 'GOLD' || summary.tier === 'DIAMOND') ? '#e8f5e9' : '#fff3e0'"
-                     style="border-radius:8px;">
-                  <span style="font-size:1rem;">
-                    {{ (summary.tier === 'SILVER' || summary.tier === 'GOLD' || summary.tier === 'DIAMOND') ? '✅' : '⏳' }}
+              <!-- Eligible -->
+              <ng-container *ngIf="payLaterEligible">
+                <p class="loy-paylater__desc" style="color:#1a5c38;">
+                  Defer your service payment for up to <strong>24 hours</strong> after your appointment.
+                </p>
+                <div class="loy-paylater__chips">
+                  <span class="loy-paylater__chip"
+                        style="background:#e8f5e9;color:#1a5c38;border:1px solid #a5d6a7;">
+                    ✓ {{ currentTier.label }} Tier
                   </span>
-                  <div class="small">
-                    <span class="fw-semibold">Silver tier or above</span>
-                    <span class="text-muted ms-1">
-                      (you are {{ summary.tier }} — need {{ 500 - summary.totalEarned > 0 ? (500 - summary.totalEarned) + ' more pts lifetime' : 'already met' }})
-                    </span>
+                  <span class="loy-paylater__chip"
+                        style="background:#e8f5e9;color:#1a5c38;border:1px solid #a5d6a7;">
+                    ✓ {{ summary.points }} pts available
+                  </span>
+                  <span class="loy-paylater__chip"
+                        style="background:#e8f5e9;color:#1a5c38;border:1px solid #a5d6a7;">
+                    ✓ Account active
+                  </span>
+                </div>
+                <div class="loy-paylater__how" style="background:#e8f5e9;border-left:3px solid #1a9e5c;">
+                  <div class="loy-paylater__how-title" style="color:#1a5c38;">How Pay Later works</div>
+                  <div style="color:#2e7d32;">
+                    1. Select "Pay Later" at checkout after your appointment<br>
+                    2. You get <strong>24 hours</strong> to complete payment<br>
+                    3. Reminders at 8h and 16h if unpaid<br>
+                    4. Non-payment zeroes your points and suspends your account
                   </div>
                 </div>
+              </ng-container>
 
-                <!-- Points requirement (example for ₹150 service) -->
-                <div class="d-flex align-items-center gap-2 p-2 rounded"
-                     style="background:#fff3e0;border-radius:8px;">
-                  <span>⏳</span>
-                  <div class="small">
-                    <span class="fw-semibold">Sufficient loyalty points</span>
-                    <span class="text-muted ms-1">(points value ≥ half the service cost)</span>
+              <!-- Not eligible -->
+              <ng-container *ngIf="!payLaterEligible">
+                <p class="loy-paylater__desc" style="color:var(--text-muted);">
+                  Complete these requirements to unlock Pay Later:
+                </p>
+                <div class="loy-paylater__req">
+                  <div class="loy-paylater__req-item"
+                       [style.background]="(summary.tier === 'SILVER' || summary.tier === 'GOLD' || summary.tier === 'DIAMOND') ? '#e8f5e9' : '#fff8e1'">
+                    <span>{{ (summary.tier === 'SILVER' || summary.tier === 'GOLD' || summary.tier === 'DIAMOND') ? '✅' : '⏳' }}</span>
+                    <div style="font-size:0.82rem;">
+                      <strong>Silver tier or above</strong>
+                      <span style="color:var(--text-muted);margin-left:0.35rem;">
+                        (you are {{ summary.tier }} — need {{ 500 - summary.totalEarned > 0 ? (500 - summary.totalEarned) + ' more pts lifetime' : 'already met' }})
+                      </span>
+                    </div>
+                  </div>
+                  <div class="loy-paylater__req-item" style="background:#fff8e1;">
+                    <span>⏳</span>
+                    <div style="font-size:0.82rem;">
+                      <strong>Sufficient loyalty points</strong>
+                      <span style="color:var(--text-muted);margin-left:0.35rem;">(points value ≥ half the service cost)</span>
+                    </div>
+                  </div>
+                  <div class="loy-paylater__req-item" style="background:#e8f5e9;">
+                    <span>✅</span>
+                    <div style="font-size:0.82rem;"><strong>Account in good standing</strong></div>
                   </div>
                 </div>
+                <div *ngIf="summary.tier === 'BRONZE'">
+                  <div class="loy-paylater__progress-label">
+                    <span>Progress to Silver</span>
+                    <span style="font-weight:700;">{{ summary.totalEarned }}/500 pts</span>
+                  </div>
+                  <div class="loy-paylater__progress-track" style="background:#ffe0b2;">
+                    <div class="loy-paylater__progress-fill"
+                         [style.width]="Math.min(100,(summary.totalEarned/500)*100)+'%'"
+                         style="background:var(--amber);"></div>
+                  </div>
+                  <div class="loy-paylater__progress-hint">
+                    {{ 500 - summary.totalEarned }} more points to unlock Pay Later
+                  </div>
+                </div>
+              </ng-container>
 
-                <!-- Account status -->
-                <div class="d-flex align-items-center gap-2 p-2 rounded"
-                     style="background:#e8f5e9;border-radius:8px;">
-                  <span>✅</span>
-                  <div class="small">
-                    <span class="fw-semibold">Account in good standing</span>
-                  </div>
-                </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Tier Roadmap ──────────────────────────────────────────────────── -->
+      <div class="loy-card">
+        <div style="padding:1.4rem;">
+          <div style="font-size:0.92rem;font-weight:800;color:var(--text-main);margin-bottom:1rem;">Tier Roadmap</div>
+          <div class="loy-roadmap">
+            <ng-container *ngFor="let t of tiers; let i = index; let last = last">
+              <div class="loy-roadmap__node">
+                <div class="loy-roadmap__icon">{{ t.icon }}</div>
+                <div class="loy-roadmap__name" [style.color]="t.color">{{ t.label }}</div>
+                <div class="loy-roadmap__range">{{ t.min }}{{ t.max === (1/0) ? '+' : ('–' + t.max) }} pts</div>
+                <div *ngIf="summary.tier === t.name"
+                     class="loy-roadmap__you" [style.background]="t.color">YOU</div>
               </div>
-
-              <!-- Progress to Silver -->
-              <div *ngIf="summary.tier === 'BRONZE'" class="mb-2">
-                <div class="d-flex justify-content-between small mb-1" style="color:#555;">
-                  <span>Progress to Silver</span>
-                  <span class="fw-semibold">{{ summary.totalEarned }}/500 pts</span>
-                </div>
-                <div class="progress" style="height:6px;border-radius:4px;background:#ffe0b2;">
-                  <div class="progress-bar" role="progressbar"
-                       [style.width]="Math.min(100, (summary.totalEarned / 500) * 100) + '%'"
-                       style="background:#f5a623;border-radius:4px;"></div>
-                </div>
-                <div class="small mt-1" style="color:#888;">
-                  {{ 500 - summary.totalEarned }} more points to unlock Pay Later
-                </div>
+              <div *ngIf="!last" class="loy-roadmap__connector">
+                <div class="loy-roadmap__connector-fill"
+                     [style.width]="isTierCompleted(i) ? '100%' : '0%'"
+                     [style.background]="t.color"></div>
               </div>
             </ng-container>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Tier Roadmap ── -->
-    <div class="card border-0 shadow-sm mb-4 p-4">
-      <h6 class="fw-bold mb-3">Tier Roadmap</h6>
-      <div class="d-flex align-items-center">
-        <ng-container *ngFor="let t of tiers; let i = index; let last = last">
-          <div class="text-center" style="min-width:64px;">
-            <div style="font-size:1.5rem;">{{ t.icon }}</div>
-            <div class="small fw-semibold" [style.color]="t.color">{{ t.label }}</div>
-            <div class="text-muted" style="font-size:.65rem;">{{ t.min }}{{ t.max === (1/0) ? '+' : ('–' + t.max) }} pts</div>
-            <div *ngIf="summary.tier === t.name"
-                 class="badge mt-1" [style.background]="t.color" style="font-size:.6rem;">YOU</div>
-          </div>
-          <div *ngIf="!last" class="flex-fill mx-1" style="height:4px;background:#e9ecef;border-radius:2px;">
-            <div [style.width]="isTierCompleted(i) ? '100%' : '0%'"
-                 [style.background]="t.color"
-                 style="height:100%;border-radius:2px;transition:width .4s;"></div>
-          </div>
-        </ng-container>
-      </div>
-    </div>
-
-    <!-- ── Tabs ── -->
-    <ul class="nav nav-tabs mb-4">
-      <li class="nav-item">
-        <button class="nav-link fw-semibold" style="color:#000 !important;"
-                [class.active]="activeTab === 'overview'" (click)="setTab('overview')">💳 Redeem</button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link fw-semibold" style="color:#000 !important;"
-                [class.active]="activeTab === 'history'" (click)="setTab('history')">📋 History</button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link fw-semibold" style="color:#000 !important;"
-                [class.active]="activeTab === 'benefits'" (click)="setTab('benefits')">🎁 Benefits</button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link fw-semibold" style="color:#000 !important;"
-                [class.active]="activeTab === 'early-access'" (click)="setTab('early-access')">🚀 Early Access</button>
-      </li>
-    </ul>
-
-    <!-- ── Redeem Tab ── -->
-    <div *ngIf="activeTab === 'overview'" class="card border-0 shadow-sm p-4">
-      <h6 class="fw-bold mb-1">Redeem Points for Wallet Credit</h6>
-      <p class="text-muted small mb-3">100 points = ₹10 added to your wallet. Redeem any amount (min 100 pts).</p>
-
-      <!-- Toast-style success -->
-      <div *ngIf="redeemSuccess"
-           class="alert alert-success d-flex align-items-center gap-2 py-2 mb-3"
-           style="border-left:4px solid #28a745;">
-        <span style="font-size:1.2rem;">🎉</span>
-        <span class="fw-semibold">{{ redeemSuccess }}</span>
-      </div>
-      <div *ngIf="redeemError" class="alert alert-danger py-2">{{ redeemError }}</div>
-
-      <div class="row g-3 align-items-end">
-        <div class="col-8">
-          <label class="form-label fw-semibold small">Points to Redeem</label>
-          <input type="number" class="form-control" [(ngModel)]="redeemPoints"
-                 min="100" step="1" [max]="maxRedeemable">
-          <small class="text-muted">You have <strong>{{ summary.points }}</strong> pts available</small>
-        </div>
-        <div class="col-4">
-          <div class="p-2 rounded text-center mb-2" style="background:#f0f4ff;">
-            <div class="fw-bold" style="color:#244AFD;">₹{{ discountValue }}</div>
-            <div class="text-muted" style="font-size:.7rem;">Wallet Credit</div>
           </div>
         </div>
       </div>
 
-      <button class="btn text-white w-100 mt-3 fw-semibold" style="background:#244AFD;"
-              (click)="redeem()" [disabled]="redeeming || maxRedeemable < 100">
-        <span *ngIf="redeeming" class="spinner-border spinner-border-sm me-2"></span>
-        {{ redeeming ? 'Redeeming...' : 'Redeem ' + redeemPoints + ' pts for ₹' + discountValue + ' wallet credit' }}
-      </button>
-
-      <div *ngIf="maxRedeemable < 100" class="text-center text-muted small mt-2">
-        Earn {{ 100 - summary.points }} more points to start redeeming.
+      <!-- ── Tabs ──────────────────────────────────────────────────────────── -->
+      <div class="loy-tabs">
+        <button class="loy-tab" [class.active]="activeTab==='overview'"    (click)="setTab('overview')">💳 Redeem</button>
+        <button class="loy-tab" [class.active]="activeTab==='history'"     (click)="setTab('history')">📋 History</button>
+        <button class="loy-tab" [class.active]="activeTab==='benefits'"    (click)="setTab('benefits')">🎁 Benefits</button>
+        <button class="loy-tab" [class.active]="activeTab==='early-access'" (click)="setTab('early-access')">🚀 Early Access</button>
       </div>
 
-    </div>
+      <!-- ── Redeem Tab ─────────────────────────────────────────────────────── -->
+      <div *ngIf="activeTab==='overview'" class="loy-card">
+        <div class="loy-redeem-card">
+          <div class="loy-redeem-title">Redeem Points for Wallet Credit</div>
+          <div class="loy-redeem-sub">100 points = ₹10 added to your wallet. Redeem any amount (min 100 pts).</div>
 
-    <!-- ── History Tab ── -->
-    <div *ngIf="activeTab === 'history'" class="card border-0 shadow-sm p-4">
-      <h6 class="fw-bold mb-3">💰 Wallet Transaction History</h6>
+          <div *ngIf="redeemSuccess" class="loy-alert loy-alert--success">🎉 {{ redeemSuccess }}</div>
+          <div *ngIf="redeemError"   class="loy-alert loy-alert--danger">⚠️ {{ redeemError }}</div>
 
-      <div *ngIf="walletTransactions.length > 0" class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th class="small">Date</th>
-              <th class="small">Description</th>
-              <th class="small text-center">Type</th>
-              <th class="small text-end">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let t of walletTransactions">
-              <td class="text-muted small" style="white-space:nowrap;">
-                {{ t.createdAt | date:'dd MMM yyyy, hh:mm a' }}
-              </td>
-              <td class="small">{{ t.description || t.source }}</td>
-              <td class="text-center">
-                <span class="badge"
-                      [style.background]="t.type === 'credit' ? '#28a745' : '#dc3545'">
-                  {{ t.type === 'credit' ? '⬆ Credit' : '⬇ Debit' }}
-                </span>
-              </td>
-              <td class="text-end fw-bold"
-                  [class.text-success]="t.type === 'credit'"
-                  [class.text-danger]="t.type === 'debit'">
-                {{ t.type === 'credit' ? '+' : '-' }}₹{{ t.amount | number:'1.2-2' }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          <div class="loy-redeem-row">
+            <div>
+              <label class="loy-field-label">Points to Redeem</label>
+              <input type="number" class="loy-input" [(ngModel)]="redeemPoints"
+                     min="100" step="1" [max]="maxRedeemable">
+              <div class="loy-field-hint">
+                You have <strong>{{ summary.points }}</strong> pts available
+              </div>
+            </div>
+            <div class="loy-redeem-preview">
+              <div class="loy-redeem-preview__value">₹{{ discountValue }}</div>
+              <div class="loy-redeem-preview__label">Wallet Credit</div>
+            </div>
+          </div>
 
-      <div *ngIf="walletTransactions.length === 0" class="text-center text-muted py-5">
-        <div style="font-size:2.5rem;">🏦</div>
-        <p class="mt-2 mb-0">No transactions yet.</p>
-        <small>Redeem your loyalty points to see wallet credits here.</small>
-      </div>
-    </div>
+          <button class="btn-loy-redeem" (click)="redeem()" [disabled]="redeeming || maxRedeemable < 100">
+            <span *ngIf="redeeming"
+                  style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;margin-right:0.4rem;"></span>
+            {{ redeeming ? 'Redeeming…' : 'Redeem ' + redeemPoints + ' pts for ₹' + discountValue + ' wallet credit' }}
+          </button>
 
-    <!-- ── Benefits Tab ── -->
-    <div *ngIf="activeTab === 'benefits'" class="card border-0 shadow-sm p-4">
-      <h6 class="fw-bold mb-3">Your {{ currentTier.label }} Benefits</h6>
-      <ul class="list-unstyled mb-0">
-        <li *ngFor="let b of summary.tierBenefits"
-            class="d-flex align-items-start gap-2 py-2 border-bottom">
-          <span style="color:#244AFD;">✓</span>
-          <span class="small">{{ b }}</span>
-        </li>
-      </ul>
-      <div *ngIf="nextTier" class="mt-3 p-3 rounded" style="background:#f0f4ff;">
-        <div class="small fw-semibold" style="color:#244AFD;">
-          Unlock more at {{ nextTier.label }} {{ nextTier.icon }} ({{ nextTier.min }} pts lifetime)
-        </div>
-        <div class="text-muted small">{{ nextTier.min - summary.totalEarned }} more points to earn</div>
-      </div>
-    </div>
-
-    <!-- ── Early Access Tab ── -->
-    <div *ngIf="activeTab === 'early-access'" class="card border-0 shadow-sm p-4">
-      <h6 class="fw-bold mb-1">🚀 Early Access Services</h6>
-      <p class="text-muted small mb-3">
-        As a <strong [style.color]="currentTier.color">{{ currentTier.label }}</strong> member,
-        you get exclusive early access to these services before they're available to everyone.
-      </p>
-
-      <div *ngIf="summary.earlyAccessServices.length > 0" class="row g-2">
-        <div *ngFor="let svc of summary.earlyAccessServices" class="col-md-6">
-          <div class="d-flex align-items-center gap-2 p-2 rounded border" style="background:#f8f9fa;">
-            <span style="color:#244AFD;font-size:1.1rem;">🎯</span>
-            <span class="small fw-semibold">{{ svc }}</span>
+          <div *ngIf="maxRedeemable < 100" class="loy-redeem-note">
+            Earn {{ 100 - summary.points }} more points to start redeeming.
           </div>
         </div>
       </div>
 
-      <div *ngIf="summary.earlyAccessServices.length === 0" class="text-center py-4">
-        <div style="font-size:2.5rem;">🥉</div>
-        <p class="text-muted small mt-2">
-          Early access starts at <strong>Silver tier</strong> (500 pts lifetime earned).<br>
-          You need <strong>{{ 500 - summary.totalEarned }}</strong> more points to unlock it.
-        </p>
-      </div>
-    </div>
+      <!-- ── History Tab ────────────────────────────────────────────────────── -->
+      <div *ngIf="activeTab==='history'" class="loy-card">
+        <div class="loy-history-card">
+          <div class="loy-history-title">💰 Wallet Transaction History</div>
 
-  </ng-container>
+          <div *ngIf="walletTransactions.length > 0" class="loy-table-wrap">
+            <table class="loy-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Type</th>
+                  <th style="text-align:right;">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let t of walletTransactions">
+                  <td style="white-space:nowrap;color:var(--text-muted);">
+                    {{ t.createdAt | date:'dd MMM yyyy, hh:mm a' }}
+                  </td>
+                  <td>{{ t.description || t.source }}</td>
+                  <td>
+                    <span class="loy-tx-badge"
+                          [class.loy-tx-credit]="t.type==='credit'"
+                          [class.loy-tx-debit]="t.type==='debit'">
+                      {{ t.type === 'credit' ? '⬆ Credit' : '⬇ Debit' }}
+                    </span>
+                  </td>
+                  <td style="text-align:right;"
+                      [class.loy-tx-amount-credit]="t.type==='credit'"
+                      [class.loy-tx-amount-debit]="t.type==='debit'">
+                    {{ t.type === 'credit' ? '+' : '-' }}₹{{ t.amount | number:'1.2-2' }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="walletTransactions.length === 0" class="loy-empty">
+            <div class="loy-empty__icon">🏦</div>
+            <div class="loy-empty__text">No transactions yet.<br>
+              <span style="font-size:0.78rem;">Redeem your loyalty points to see wallet credits here.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Benefits Tab ───────────────────────────────────────────────────── -->
+      <div *ngIf="activeTab==='benefits'" class="loy-card">
+        <div class="loy-benefits-card">
+          <div class="loy-benefits-title">Your {{ currentTier.label }} Benefits</div>
+          <div *ngFor="let b of summary.tierBenefits" class="loy-benefit-item">
+            <span class="loy-benefit-check">✓</span>
+            <span class="loy-benefit-text">{{ b }}</span>
+          </div>
+          <div *ngIf="nextTier" class="loy-next-tier-hint">
+            <div class="loy-next-tier-hint__title">
+              Unlock more at {{ nextTier.label }} {{ nextTier.icon }} ({{ nextTier.min }} pts lifetime)
+            </div>
+            <div class="loy-next-tier-hint__sub">{{ nextTier.min - summary.totalEarned }} more points to earn</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Early Access Tab ───────────────────────────────────────────────── -->
+      <div *ngIf="activeTab==='early-access'" class="loy-card">
+        <div class="loy-early-card">
+          <div class="loy-early-title">🚀 Early Access Services</div>
+          <p class="loy-early-sub">
+            As a <strong [style.color]="currentTier.color">{{ currentTier.label }}</strong> member,
+            you get exclusive early access to these services before they're available to everyone.
+          </p>
+
+          <div *ngIf="summary.earlyAccessServices.length > 0" class="loy-early-grid">
+            <div *ngFor="let svc of summary.earlyAccessServices" class="loy-early-item">
+              <span style="color:var(--primary);">🎯</span>
+              {{ svc }}
+            </div>
+          </div>
+
+          <div *ngIf="summary.earlyAccessServices.length === 0" class="loy-early-locked">
+            <div class="loy-early-locked__icon">🥉</div>
+            <div class="loy-early-locked__text">
+              Early access starts at <strong>Silver tier</strong> (500 pts lifetime earned).<br>
+              You need <strong>{{ 500 - summary.totalEarned }}</strong> more points to unlock it.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+  </div><!-- /.loy-content -->
 </div>

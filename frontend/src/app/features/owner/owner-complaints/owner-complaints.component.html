@@ -1,21 +1,43 @@
 <div class="oc-page">
 
-  <div class="oc-header-row">
-    <div>
-      <h4 class="oc-title">Complaints</h4>
-      <p class="oc-subtitle">Complaints forwarded to you by admin about your professionals</p>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="oc-hero">
+    <div class="oc-hero__inner">
+      <div class="oc-hero__text">
+        <p class="oc-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="oc-hero__title">Complaints</h1>
+        <p class="oc-hero__sub">Complaints forwarded to you by admin about your professionals</p>
+      </div>
+      <div class="oc-filters">
+        <select class="oc-select" [(ngModel)]="statusFilter" (change)="load()">
+          <option value="FORWARDED">Forwarded to Me</option>
+          <option value="ALL">All Complaints</option>
+        </select>
+        <button class="oc-btn-refresh" (click)="load()">
+          <i class="fa-solid fa-rotate-right me-1"></i>Refresh
+        </button>
+      </div>
     </div>
-    <div class="oc-filters">
-      <select class="oc-select" [(ngModel)]="statusFilter" (change)="load()">
-        <option value="FORWARDED">Forwarded to Me</option>
-        <option value="ALL">All Complaints</option>
-      </select>
-      <button class="oc-btn-refresh" (click)="load()">
-        <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px;">
-          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-        </svg>
-        Refresh
-      </button>
+  </div>
+
+  <!-- ── Summary chips ────────────────────────────────────── -->
+  <div class="oc-summary">
+    <div class="oc-chip oc-chip--amber">
+      <i class="fa-solid fa-comment-exclamation"></i>
+      <span class="oc-chip__label">Total</span>
+      <span class="oc-chip__count">{{ complaints.length }}</span>
+    </div>
+    <div class="oc-chip oc-chip--blue">
+      <i class="fa-solid fa-share"></i>
+      <span class="oc-chip__label">Forwarded</span>
+      <span class="oc-chip__count">{{ countByStatus('FORWARDED') }}</span>
+    </div>
+    <div class="oc-chip oc-chip--green">
+      <i class="fa-solid fa-circle-check"></i>
+      <span class="oc-chip__label">Resolved</span>
+      <span class="oc-chip__count">{{ countByStatus('RESOLVED') }}</span>
     </div>
   </div>
 

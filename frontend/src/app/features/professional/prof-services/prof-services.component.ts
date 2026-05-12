@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 
@@ -37,7 +37,64 @@ const SERVICE_NAMES_BY_CATEGORY: Record<string, string[]> = {
 @Component({
   selector: 'app-prof-services',
   templateUrl: './prof-services.component.html',
-  styleUrls: ['./prof-services.component.css']
+  styleUrls: ['./prof-services.component.css'],
+  encapsulation: ViewEncapsulation.None,
+  styles: [`
+    .ps-page{min-height:100vh;background:#fdf2f4;padding:0 0 3rem;font-family:'DM Sans','Inter',system-ui,sans-serif;}
+    .ps-hero{background:linear-gradient(135deg,#0d1b3e 0%,#1a3a6e 60%,#e8476a 100%);padding:2rem 2rem 3.5rem;position:relative;overflow:hidden;}
+    .ps-hero::after{content:'';position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:rgba(232,71,106,0.18);pointer-events:none;}
+    .ps-hero__inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;}
+    .ps-hero__eyebrow{font-size:0.72rem;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;color:rgba(255,255,255,0.60);margin-bottom:0.3rem;}
+    .ps-hero__title{font-size:1.85rem;font-weight:800;color:#ffffff;letter-spacing:-0.03em;margin-bottom:0.3rem;line-height:1.15;}
+    .ps-hero__sub{font-size:0.88rem;color:rgba(255,255,255,0.68);margin:0;}
+    .ps-add-btn{display:inline-flex;align-items:center;padding:0.65rem 1.35rem;border-radius:12px;border:1.5px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.15);color:#ffffff;font-size:0.88rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:background 0.18s ease;}
+    .ps-add-btn:hover{background:rgba(255,255,255,0.25);}
+    .ps-add-btn--cancel{background:rgba(220,38,38,0.25);border-color:rgba(252,165,165,0.50);}
+    .ps-alerts{max-width:1200px;margin:1.25rem auto 0;padding:0 1.5rem;display:flex;flex-direction:column;gap:0.5rem;}
+    .ps-alert{padding:0.65rem 1rem;border-radius:12px;font-size:0.85rem;font-weight:600;display:flex;align-items:center;}
+    .ps-alert--success{background:rgba(22,163,74,0.10);border:1px solid rgba(22,163,74,0.28);color:#15803d;}
+    .ps-alert--warning{background:rgba(217,119,6,0.10);border:1px solid rgba(217,119,6,0.28);color:#b45309;}
+    .ps-alert--danger{background:rgba(220,38,38,0.10);border:1px solid rgba(220,38,38,0.28);color:#b91c1c;}
+    .ps-form-card{max-width:1200px;margin:1.5rem auto 0;padding:0 1.5rem;background:#ffffff;border-radius:20px;box-shadow:0 2px 16px rgba(13,27,62,0.08);border:1px solid #f1f5f9;overflow:hidden;}
+    .ps-form-card__header{display:flex;align-items:center;padding:1rem 1.5rem;font-size:0.92rem;font-weight:800;color:#e8476a;background:rgba(232,71,106,0.05);border-bottom:1px solid #f1f5f9;}
+    .ps-form-card__header .fa-solid{color:#e8476a;}
+    .ps-form-card__body{padding:1.5rem;}
+    .ps-quick-pick{background:#f8fafc;border:1px solid #f1f5f9;border-radius:12px;padding:1rem;margin-bottom:1.25rem;}
+    .ps-quick-pick__label{font-size:0.80rem;font-weight:700;color:#334155;margin-bottom:0.5rem;display:flex;align-items:center;}
+    .ps-quick-pick__label .fa-solid{color:#d97706;}
+    .ps-quick-pick__hint{font-size:0.75rem;color:#94a3b8;margin-top:0.35rem;display:block;}
+    .ps-submit-btn{display:inline-flex;align-items:center;padding:0.68rem 1.5rem;border-radius:12px;border:none;font-size:0.92rem;font-weight:700;color:#ffffff;cursor:pointer;background:#e8476a;box-shadow:0 4px 14px rgba(232,71,106,0.38);}
+    .ps-submit-btn:hover:not(:disabled){background:#be185d;}
+    .ps-submit-btn:disabled{opacity:0.45;cursor:not-allowed;}
+    .ps-loading{display:flex;align-items:center;justify-content:center;gap:0.75rem;padding:3rem;color:#64748b;font-weight:600;}
+    .ps-spinner{width:26px;height:26px;border:3px solid #e2e8f0;border-top-color:#e8476a;border-radius:50%;animation:ps-spin 0.7s linear infinite;}
+    @keyframes ps-spin{to{transform:rotate(360deg);}}
+    .ps-table-wrap{max-width:1200px;margin:-2rem auto 0;padding:0 1.5rem;position:relative;z-index:2;background:#ffffff;border-radius:20px;box-shadow:0 4px 20px rgba(13,27,62,0.10);border:1px solid #f1f5f9;overflow:hidden;}
+    .ps-table-header{display:flex;align-items:center;gap:0.5rem;padding:1rem 1.5rem;font-size:0.88rem;font-weight:800;color:#e8476a;background:rgba(232,71,106,0.05);border-bottom:1px solid #f1f5f9;}
+    .ps-table-header .fa-solid{color:#e8476a;}
+    .ps-table-header__count{margin-left:0.35rem;font-size:0.75rem;font-weight:700;padding:0.15rem 0.55rem;border-radius:999px;color:#ffffff;background:#e8476a;}
+    .ps-table{width:100%;border-collapse:collapse;font-family:'DM Sans','Inter',system-ui,sans-serif;font-size:0.875rem;}
+    .ps-table thead tr{background:#f8fafc;border-bottom:2px solid #e2e8f0;}
+    .ps-table thead th{padding:0.75rem 1rem;font-size:0.70rem;font-weight:800;text-transform:uppercase;letter-spacing:0.07em;color:#64748b;white-space:nowrap;}
+    .ps-row{border-bottom:1px solid #f1f5f9;transition:background 0.15s ease;}
+    .ps-row td{padding:0.85rem 1rem;vertical-align:middle;}
+    .ps-row:hover{background:#fdf2f4;}
+    .ps-row:last-child{border-bottom:none;}
+    .ps-cell--name{font-weight:700;color:#0d1b3e;}
+    .ps-cell--meta{color:#64748b;font-size:0.85rem;}
+    .ps-cell--price{font-weight:700;color:#334155;}
+    .ps-cell--effective{font-weight:800;color:#16a34a;}
+    .ps-tg-pill{display:inline-flex;align-items:center;font-size:0.72rem;font-weight:800;padding:0.22rem 0.65rem;border-radius:999px;}
+    .ps-status-select{padding:0.3rem 0.65rem;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;outline:none;border:1.5px solid transparent;}
+    .ps-status-select--active{background:rgba(22,163,74,0.10);color:#15803d;border-color:rgba(22,163,74,0.25);}
+    .ps-status-select--inactive{background:rgba(220,38,38,0.08);color:#b91c1c;border-color:rgba(220,38,38,0.20);}
+    .ps-delete-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid rgba(220,38,38,0.25);background:rgba(220,38,38,0.08);color:#dc2626;font-size:0.75rem;cursor:pointer;}
+    .ps-delete-btn:hover{background:rgba(220,38,38,0.18);}
+    .ps-empty{text-align:center;padding:3rem !important;color:#94a3b8;font-weight:600;}
+    .ps-empty i{font-size:2rem;display:block;margin-bottom:0.5rem;}
+    @media(max-width:768px){.ps-hero__title{font-size:1.5rem;} .ps-table-wrap{margin:1rem 0.75rem 0;border-radius:14px;padding:0;}}
+    @media(max-width:520px){.ps-hero__inner{flex-direction:column;align-items:flex-start;}}
+  `]
 })
 export class ProfServicesComponent implements OnInit {
   services: ServiceItem[] = [];

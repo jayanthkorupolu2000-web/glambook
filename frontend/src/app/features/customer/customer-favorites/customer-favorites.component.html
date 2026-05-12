@@ -1,121 +1,99 @@
-<div class="container py-4" style="max-width:900px;">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">❤️ My Favorites</h4>
+<div class="fav-page">
 
-  <div *ngIf="success" class="alert alert-success fw-semibold">{{ success }}</div>
-  <div *ngIf="error"   class="alert alert-danger  fw-semibold">{{ error }}</div>
-
-  <!-- ── Tabs ── -->
-  <div class="d-flex gap-2 mb-4">
-    <button class="btn fw-semibold px-4 py-2"
-            [style.background]="activeTab === 'products' ? '#244AFD' : '#f0f0f0'"
-            [style.color]="activeTab === 'products' ? '#fff' : '#333'"
-            style="border-radius:8px;border:none;"
-            (click)="activeTab = 'products'">
-      🧴 Products
-      <span class="badge ms-1 rounded-pill"
-            [style.background]="activeTab === 'products' ? 'rgba(255,255,255,.3)' : '#244AFD'"
-            style="color:#fff;">{{ products.length }}</span>
-    </button>
-    <button class="btn fw-semibold px-4 py-2"
-            [style.background]="activeTab === 'services' ? '#244AFD' : '#f0f0f0'"
-            [style.color]="activeTab === 'services' ? '#fff' : '#333'"
-            style="border-radius:8px;border:none;"
-            (click)="activeTab = 'services'">
-      ✂️ Services
-      <span class="badge ms-1 rounded-pill"
-            [style.background]="activeTab === 'services' ? 'rgba(255,255,255,.3)' : '#244AFD'"
-            style="color:#fff;">{{ services.length }}</span>
-    </button>
+  <!-- ── Hero ──────────────────────────────────────────────────────────────── -->
+  <div class="fav-hero">
+    <div class="fav-hero__inner">
+      <div class="fav-hero__eyebrow">Customer</div>
+      <h4 class="fav-hero__title">My Favorites</h4>
+      <p class="fav-hero__sub">Your saved products and services, all in one place.</p>
+    </div>
   </div>
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#244AFD;"></div>
-  </div>
+  <div class="fav-content">
 
-  <!-- ══════════════ FAVORITE PRODUCTS ══════════════ -->
-  <div *ngIf="!loading && activeTab === 'products'">
-    <div *ngIf="products.length === 0" class="text-center py-5">
-      <div style="font-size:3rem;">🧴</div>
-      <p class="mt-2 fw-semibold text-secondary">No favorite products yet.</p>
-      <small class="text-muted">Tap the ♡ heart on any product to save it here.</small>
+    <div *ngIf="success" class="fav-alert fav-alert--success">✅ {{ success }}</div>
+    <div *ngIf="error"   class="fav-alert fav-alert--danger">⚠️ {{ error }}</div>
+
+    <!-- ── Tabs ──────────────────────────────────────────────────────────── -->
+    <div class="fav-tabs">
+      <button class="fav-tab" [class.fav-tab--active]="activeTab === 'products'"
+              (click)="activeTab = 'products'">
+        🧴 Products
+        <span class="fav-tab__count">{{ products.length }}</span>
+      </button>
+      <button class="fav-tab" [class.fav-tab--active]="activeTab === 'services'"
+              (click)="activeTab = 'services'">
+        ✂️ Services
+        <span class="fav-tab__count">{{ services.length }}</span>
+      </button>
     </div>
 
-    <div class="row g-3">
-      <div *ngFor="let p of products" class="col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
-          <div class="card-body d-flex flex-column p-3">
+    <!-- Loading -->
+    <div *ngIf="loading" class="fav-loading">
+      <div class="fav-spinner"></div>
+      <span>Loading favorites…</span>
+    </div>
 
-            <div class="rounded-3 mb-3 d-flex align-items-center justify-content-center"
-                 style="height:90px;background:#f0f4ff;font-size:2.5rem;">🧴</div>
+    <!-- ── Favorite Products ──────────────────────────────────────────────── -->
+    <div *ngIf="!loading && activeTab === 'products'">
+      <div *ngIf="products.length === 0" class="fav-empty">
+        <div class="fav-empty__icon">🧴</div>
+        <div class="fav-empty__title">No favorite products yet.</div>
+        <div class="fav-empty__hint">Tap the ♡ heart on any product to save it here.</div>
+      </div>
 
-            <div class="d-flex justify-content-between align-items-start mb-1">
-              <h6 class="fw-bold mb-0" style="color:#1a1a2e;">{{ p.name }}</h6>
-              <button class="btn btn-sm p-0 ms-2" title="Remove from favorites"
-                      (click)="removeFavoriteProduct(p)" [disabled]="togglingProduct[p.id]"
-                      style="font-size:1.2rem;line-height:1;background:none;border:none;">
+      <div *ngIf="products.length > 0" class="fav-grid">
+        <div *ngFor="let p of products" class="fav-card">
+          <div class="fav-card__img-wrap">🧴</div>
+          <div class="fav-card__body">
+            <div class="fav-card__header">
+              <div class="fav-card__name">{{ p.name }}</div>
+              <button class="btn-fav-remove" title="Remove from favorites"
+                      (click)="removeFavoriteProduct(p)" [disabled]="togglingProduct[p.id]">
                 {{ togglingProduct[p.id] ? '…' : '❤️' }}
               </button>
             </div>
-
-            <p class="small mb-2 flex-fill" style="color:#444;">{{ p.description || '—' }}</p>
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <span class="fw-bold fs-6" style="color:#244AFD;">₹{{ p.price }}</span>
-              <span class="badge rounded-pill" style="background:#e8f0fe;color:#244AFD;">{{ p.category }}</span>
+            <p class="fav-card__desc">{{ p.description || '—' }}</p>
+            <div class="fav-card__footer">
+              <span class="fav-card__price">₹{{ p.price }}</span>
+              <span class="fav-card__cat">{{ p.category }}</span>
             </div>
-
-            <!-- Navigates to products page and opens the full order modal -->
-            <button class="btn fw-semibold w-100 text-white"
-                    style="background:#244AFD;border-radius:8px;"
-                    (click)="orderProduct(p)">
-              🛒 Order Now
-            </button>
-
+            <button class="btn-fav-order" (click)="orderProduct(p)">🛒 Order Now</button>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ══════════════ FAVORITE SERVICES ══════════════ -->
-  <div *ngIf="!loading && activeTab === 'services'">
-    <div *ngIf="services.length === 0" class="text-center py-5">
-      <div style="font-size:3rem;">✂️</div>
-      <p class="mt-2 fw-semibold text-secondary">No favorite services yet.</p>
-      <small class="text-muted">Tap the ♡ heart on any service to save it here.</small>
-    </div>
+    <!-- ── Favorite Services ──────────────────────────────────────────────── -->
+    <div *ngIf="!loading && activeTab === 'services'">
+      <div *ngIf="services.length === 0" class="fav-empty">
+        <div class="fav-empty__icon">✂️</div>
+        <div class="fav-empty__title">No favorite services yet.</div>
+        <div class="fav-empty__hint">Tap the ♡ heart on any service to save it here.</div>
+      </div>
 
-    <div class="row g-3">
-      <div *ngFor="let s of services" class="col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
-          <div class="card-body d-flex flex-column p-3">
-
-            <div class="d-flex justify-content-between align-items-start mb-1">
+      <div *ngIf="services.length > 0" class="fav-grid">
+        <div *ngFor="let s of services" class="fav-card">
+          <div class="fav-card__body">
+            <div class="fav-card__header">
               <div>
-                <h6 class="fw-bold mb-0" style="color:#1a1a2e;">{{ s.name }}</h6>
-                <span class="small fw-semibold" style="color:#555;">{{ s.category }} · {{ s.gender }}</span>
+                <div class="fav-card__name">{{ s.name }}</div>
+                <div class="fav-card__meta">{{ s.category }} · {{ s.gender }}</div>
               </div>
-              <button class="btn btn-sm p-0 ms-2" title="Remove from favorites"
-                      (click)="removeFavoriteService(s)" [disabled]="togglingService[s.id]"
-                      style="font-size:1.2rem;line-height:1;background:none;border:none;">
+              <button class="btn-fav-remove" title="Remove from favorites"
+                      (click)="removeFavoriteService(s)" [disabled]="togglingService[s.id]">
                 {{ togglingService[s.id] ? '…' : '❤️' }}
               </button>
             </div>
-
-            <div class="d-flex justify-content-between align-items-center py-2 my-2 border-top border-bottom">
-              <span class="fw-bold fs-6" style="color:#244AFD;">₹{{ s.price }}</span>
-              <span class="small fw-semibold" style="color:#555;">⏱ {{ s.durationMins }} min</span>
+            <div class="fav-card__footer">
+              <span class="fav-card__price">₹{{ s.price }}</span>
+              <span class="fav-card__duration">⏱ {{ s.durationMins }} min</span>
             </div>
-
-            <button class="btn fw-semibold w-100 text-white mt-auto"
-                    style="background:#1a9e5c;border-radius:8px;"
-                    (click)="bookService(s)">
-              📅 Book Again
-            </button>
-
+            <button class="btn-fav-book" (click)="bookService(s)">📅 Book Again</button>
           </div>
         </div>
       </div>
     </div>
-  </div>
+
+  </div><!-- /.fav-content -->
 </div>

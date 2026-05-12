@@ -18,7 +18,8 @@ interface GenderGroup { gender: string; categories: CategoryGroup[]; }
 
 @Component({
   selector: 'app-service-management',
-  templateUrl: './service-management.component.html'
+  templateUrl: './service-management.component.html',
+  styleUrls: ['./service-management.component.scss']
 })
 export class ServiceManagementComponent implements OnInit {
   grouped: GenderGroup[] = [];

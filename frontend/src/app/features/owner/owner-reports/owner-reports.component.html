@@ -1,13 +1,19 @@
 <div class="or-page">
 
-  <!-- ── Header ── -->
-  <div class="or-header">
-    <div>
-      <h4 class="or-title">📊 Salon Reports</h4>
-      <p class="or-subtitle">Performance overview for your salon</p>
-    </div>
-    <div *ngIf="report" class="or-generated">
-      🕐 Generated: {{ report.reportGeneratedAt | date:'dd MMM yyyy, HH:mm' }}
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="or-hero">
+    <div class="or-hero__inner">
+      <div class="or-hero__text">
+        <p class="or-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="or-hero__title">Salon Reports</h1>
+        <p class="or-hero__sub">Performance overview for your salon</p>
+      </div>
+      <div *ngIf="report" class="or-hero__generated">
+        <i class="fa-solid fa-clock me-1"></i>
+        Generated: {{ report.reportGeneratedAt | date:'dd MMM yyyy, HH:mm' }}
+      </div>
     </div>
   </div>
 

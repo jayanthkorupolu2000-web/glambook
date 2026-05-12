@@ -1,221 +1,266 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">🔍 Find a Professional</h4>
+<div class="ss-page">
 
-  <div *ngIf="favSuccess" class="alert alert-success py-2">{{ favSuccess }}</div>
-
-  <div class="row g-4">
-    <!-- Filter Panel -->
-    <div class="col-md-3">
-      <div class="card border-0 shadow-sm p-3">
-        <h6 class="fw-bold mb-3">Filters</h6>
-        <form [formGroup]="form">
-
-          <!-- City -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">City</label>
-            <select class="form-select form-select-sm" formControlName="city" (change)="search()">
-              <option value="">-- Select City --</option>
-              <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
-            </select>
-          </div>
-
-          <!-- Service Type -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">Service Type</label>
-            <div class="d-flex gap-2">
-              <div class="form-check">
-                <input class="form-check-input" type="radio" formControlName="serviceType" [value]="null" id="all" (change)="search()">
-                <label class="form-check-label small" for="all">All</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" formControlName="serviceType" value="SALON" id="salon" (change)="search()">
-                <label class="form-check-label small" for="salon">Salon</label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="radio" formControlName="serviceType" value="HOME" id="home" (change)="search()">
-                <label class="form-check-label small" for="home">Home</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Target Group -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">For</label>
-            <select class="form-select form-select-sm" formControlName="targetGroup" (change)="search()">
-              <option value="">All</option>
-              <option value="MEN">Men</option>
-              <option value="WOMEN">Women</option>
-              <option value="KIDS">Kids</option>
-            </select>
-          </div>
-
-          <!-- Category (hierarchical) -->
-          <div class="mb-3" *ngIf="availableCategories.length > 0">
-            <label class="form-label fw-semibold small">Category</label>
-            <select class="form-select form-select-sm" formControlName="category" (change)="search()">
-              <option value="">All Categories</option>
-              <option *ngFor="let cat of availableCategories" [value]="cat">{{ cat }}</option>
-            </select>
-            <div class="mt-1">
-              <small class="text-muted">
-                <span *ngIf="form.value.targetGroup === 'MEN'">Men: Hair · Beard · Skin · Packages</span>
-                <span *ngIf="form.value.targetGroup === 'WOMEN'">Women: Hair · Skin · Nails · Makeup · Body</span>
-                <span *ngIf="form.value.targetGroup === 'KIDS'">Kids: Hair · Grooming · Special</span>
-              </small>
-            </div>
-          </div>
-
-          <!-- Price Range -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">Price Range (₹)</label>
-            <div class="d-flex gap-2">
-              <input type="number" class="form-control form-control-sm" formControlName="minPrice"
-                     placeholder="Min" min="0"
-                     (change)="onMinPriceChange()" (input)="onMinPriceChange()">
-              <input type="number" class="form-control form-control-sm" formControlName="maxPrice"
-                     placeholder="Max" [min]="minPriceValue"
-                     (change)="onMaxPriceChange()" (input)="onMaxPriceChange()">
-            </div>
-            <small *ngIf="form.value.maxPrice !== '' && +form.value.maxPrice < minPriceValue"
-                   class="text-danger" style="font-size:.72rem;">
-              Max must be ≥ Min
-            </small>
-          </div>
-
-          <!-- Min Rating -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">Min Rating</label>
-            <select class="form-select form-select-sm" formControlName="minRating" (change)="search()">
-              <option value="">Any</option>
-              <option value="3">3★ & above</option>
-              <option value="4">4★ & above</option>
-              <option value="5">5★ only</option>
-            </select>
-          </div>
-
-          <!-- Date -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">Available Date</label>
-            <input type="date" class="form-control form-control-sm" formControlName="date" (change)="search()">
-          </div>
-
-          <!-- Keyword -->
-          <div class="mb-3">
-            <label class="form-label fw-semibold small">Specialization</label>
-            <select class="form-select form-select-sm" formControlName="keyword" (change)="search()">
-              <option value="">All Specializations</option>
-              <optgroup label="Hair">
-                <option value="Hair Cut">Hair Cut</option>
-                <option value="Hair Color">Hair Color</option>
-                <option value="Hair Treatment">Hair Treatment</option>
-                <option value="Hair Styling">Hair Styling</option>
-                <option value="Keratin Treatment">Keratin Treatment</option>
-                <option value="Rebonding">Rebonding</option>
-              </optgroup>
-              <optgroup label="Skin & Face">
-                <option value="Facial">Facial</option>
-                <option value="Cleanup">Cleanup</option>
-                <option value="Bleach">Bleach</option>
-                <option value="Detan">Detan</option>
-                <option value="Anti-Acne">Anti-Acne</option>
-              </optgroup>
-              <optgroup label="Nails">
-                <option value="Manicure">Manicure</option>
-                <option value="Pedicure">Pedicure</option>
-                <option value="Nail Art">Nail Art</option>
-                <option value="Gel Nails">Gel Nails</option>
-              </optgroup>
-              <optgroup label="Makeup">
-                <option value="Bridal Makeup">Bridal Makeup</option>
-                <option value="Party Makeup">Party Makeup</option>
-                <option value="Airbrush Makeup">Airbrush Makeup</option>
-              </optgroup>
-              <optgroup label="Beard & Grooming">
-                <option value="Beard Trim">Beard Trim</option>
-                <option value="Shave">Shave</option>
-                <option value="Beard Color">Beard Color</option>
-              </optgroup>
-              <optgroup label="Body">
-                <option value="Waxing">Waxing</option>
-                <option value="Threading">Threading</option>
-                <option value="Body Massage">Body Massage</option>
-                <option value="Body Polishing">Body Polishing</option>
-              </optgroup>
-              <optgroup label="Packages">
-                <option value="Bridal Package">Bridal Package</option>
-                <option value="Party Package">Party Package</option>
-                <option value="Grooming Package">Grooming Package</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <button class="btn btn-sm w-100 text-white" style="background:#244AFD;" (click)="search()">Apply Filters</button>
-        </form>
-      </div>
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
+  <div class="ss-hero">
+    <div class="ss-hero__inner">
+      <div class="ss-hero__eyebrow">Customer</div>
+      <h4 class="ss-hero__title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round"
+             style="width:28px;height:28px;vertical-align:middle;margin-right:.5rem;">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Find a Professional
+      </h4>
+      <p class="ss-hero__sub">Search and filter professionals by city, service, price and availability.</p>
     </div>
+  </div>
 
-    <!-- Results -->
-    <div class="col-md-9">
-      <div *ngIf="loading" class="text-center py-5">
-        <div class="spinner-border" style="color:#244AFD;"></div>
-      </div>
+  <!-- Fav success alert -->
+  <div *ngIf="favSuccess" class="ss-alert-success">
+    <div class="ss-alert-success__inner">
+      <svg viewBox="0 0 20 20" fill="currentColor" style="width:15px;height:15px;flex-shrink:0;">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+      </svg>
+      {{ favSuccess }}
+    </div>
+  </div>
 
-      <div class="row g-3" *ngIf="!loading">
-        <div *ngFor="let pro of results" class="col-md-6">
-          <div class="card border-0 shadow-sm h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-start mb-3">
-                <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                     style="width:56px;height:56px;background:#244AFD;color:#fff;font-size:1.3rem;font-weight:700;flex-shrink:0;">
-                  {{ pro.name.charAt(0) }}
-                </div>
-                <div class="flex-fill">
-                  <h6 class="fw-bold mb-0">{{ pro.name }}</h6>
-                  <div class="text-muted small">{{ pro.specialization }} · {{ pro.cityName }}</div>
-                  <div class="d-flex align-items-center gap-1 mt-1">
-                    <span *ngFor="let s of stars(5)" [style.color]="s <= pro.averageRating ? '#f5a623' : '#ccc'" style="font-size:.9rem;">★</span>
-                    <span class="small text-muted">({{ pro.totalReviews }})</span>
-                  </div>
-                </div>
-                <div>
-                  <span *ngIf="pro.isAvailableHome" class="badge bg-info text-dark small">🏠 Home</span>
-                </div>
-              </div>
+  <!-- ── Main layout ───────────────────────────────────────────────────────── -->
+  <div class="ss-content">
 
-              <!-- Services preview -->
-              <div *ngIf="pro.activeServices?.length" class="mb-2">
-                <div *ngFor="let svc of pro.activeServices.slice(0,2)" class="d-flex justify-content-between small py-1 border-bottom">
-                  <span>{{ svc.name }}</span>
-                  <span class="fw-bold" style="color:#244AFD;">₹{{ svc.price }}</span>
-                </div>
-              </div>
+    <!-- ══ FILTER PANEL ══ -->
+    <aside class="ss-filters">
+      <div class="ss-filters__title">Filters</div>
 
-              <!-- Promotions -->
-              <div *ngIf="pro.activePromotions?.length" class="mb-2">
-                <span class="badge bg-success">🎉 {{ pro.activePromotions[0].discountPct }}% OFF</span>
-              </div>
+      <form [formGroup]="form">
 
-              <div class="d-flex gap-2 mt-3">
-                <button class="btn btn-sm btn-outline-secondary" (click)="openPortfolio(pro)">
-                  🖼️ Portfolio
-                </button>
-                <button class="btn btn-sm btn-outline-primary flex-fill" (click)="viewProfile(pro.professionalId)">
-                  View Profile
-                </button>
-                <button class="btn btn-sm text-white flex-fill" style="background:#244AFD;" (click)="bookNow(pro.professionalId)">
-                  Book Now
-                </button>
-              </div>
-            </div>
+        <!-- City -->
+        <div class="ss-field">
+          <label class="ss-label">City</label>
+          <select class="ss-select" formControlName="city" (change)="search()">
+            <option value="">-- Select City --</option>
+            <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
+          </select>
+        </div>
+
+        <!-- Service Type -->
+        <div class="ss-field">
+          <label class="ss-label">Service Type</label>
+          <div class="ss-radio-group">
+            <label class="ss-radio-label">
+              <input type="radio" formControlName="serviceType" [value]="null" (change)="search()"> All
+            </label>
+            <label class="ss-radio-label">
+              <input type="radio" formControlName="serviceType" value="SALON" (change)="search()"> Salon
+            </label>
+            <label class="ss-radio-label">
+              <input type="radio" formControlName="serviceType" value="HOME" (change)="search()"> Home
+            </label>
           </div>
         </div>
 
-        <div *ngIf="results.length === 0" class="col-12 text-center text-muted py-5">
-          No professionals found. Try adjusting your filters.
+        <!-- For -->
+        <div class="ss-field">
+          <label class="ss-label">For</label>
+          <select class="ss-select" formControlName="targetGroup" (change)="search()">
+            <option value="">All</option>
+            <option value="MEN">Men</option>
+            <option value="WOMEN">Women</option>
+            <option value="KIDS">Kids</option>
+          </select>
+        </div>
+
+        <!-- Category -->
+        <div class="ss-field" *ngIf="availableCategories.length > 0">
+          <label class="ss-label">Category</label>
+          <select class="ss-select" formControlName="category" (change)="search()">
+            <option value="">All Categories</option>
+            <option *ngFor="let cat of availableCategories" [value]="cat">{{ cat }}</option>
+          </select>
+          <div class="ss-category-hint">
+            <span *ngIf="form.value.targetGroup === 'MEN'">Men: Hair · Beard · Skin · Packages</span>
+            <span *ngIf="form.value.targetGroup === 'WOMEN'">Women: Hair · Skin · Nails · Makeup · Body</span>
+            <span *ngIf="form.value.targetGroup === 'KIDS'">Kids: Hair · Grooming · Special</span>
+          </div>
+        </div>
+
+        <!-- Price Range -->
+        <div class="ss-field">
+          <label class="ss-label">Price Range (₹)</label>
+          <div class="ss-price-row">
+            <input type="number" class="ss-input" formControlName="minPrice"
+                   placeholder="Min" min="0"
+                   (change)="onMinPriceChange()" (input)="onMinPriceChange()">
+            <input type="number" class="ss-input" formControlName="maxPrice"
+                   placeholder="Max" [min]="minPriceValue"
+                   (change)="onMaxPriceChange()" (input)="onMaxPriceChange()">
+          </div>
+          <div *ngIf="form.value.maxPrice !== '' && +form.value.maxPrice < minPriceValue"
+               class="ss-price-error">Max must be ≥ Min</div>
+        </div>
+
+        <!-- Min Rating -->
+        <div class="ss-field">
+          <label class="ss-label">Min Rating</label>
+          <select class="ss-select" formControlName="minRating" (change)="search()">
+            <option value="">Any</option>
+            <option value="3">3★ &amp; above</option>
+            <option value="4">4★ &amp; above</option>
+            <option value="5">5★ only</option>
+          </select>
+        </div>
+
+        <!-- Available Date -->
+        <div class="ss-field">
+          <label class="ss-label">Available Date</label>
+          <input type="date" class="ss-input" formControlName="date" (change)="search()">
+        </div>
+
+        <!-- Specialization -->
+        <div class="ss-field">
+          <label class="ss-label">Specialization</label>
+          <select class="ss-select" formControlName="keyword" (change)="search()">
+            <option value="">All Specializations</option>
+            <optgroup label="Hair">
+              <option value="Hair Cut">Hair Cut</option>
+              <option value="Hair Color">Hair Color</option>
+              <option value="Hair Treatment">Hair Treatment</option>
+              <option value="Hair Styling">Hair Styling</option>
+              <option value="Keratin Treatment">Keratin Treatment</option>
+              <option value="Rebonding">Rebonding</option>
+            </optgroup>
+            <optgroup label="Skin &amp; Face">
+              <option value="Facial">Facial</option>
+              <option value="Cleanup">Cleanup</option>
+              <option value="Bleach">Bleach</option>
+              <option value="Detan">Detan</option>
+              <option value="Anti-Acne">Anti-Acne</option>
+            </optgroup>
+            <optgroup label="Nails">
+              <option value="Manicure">Manicure</option>
+              <option value="Pedicure">Pedicure</option>
+              <option value="Nail Art">Nail Art</option>
+              <option value="Gel Nails">Gel Nails</option>
+            </optgroup>
+            <optgroup label="Makeup">
+              <option value="Bridal Makeup">Bridal Makeup</option>
+              <option value="Party Makeup">Party Makeup</option>
+              <option value="Airbrush Makeup">Airbrush Makeup</option>
+            </optgroup>
+            <optgroup label="Beard &amp; Grooming">
+              <option value="Beard Trim">Beard Trim</option>
+              <option value="Shave">Shave</option>
+              <option value="Beard Color">Beard Color</option>
+            </optgroup>
+            <optgroup label="Body">
+              <option value="Waxing">Waxing</option>
+              <option value="Threading">Threading</option>
+              <option value="Body Massage">Body Massage</option>
+              <option value="Body Polishing">Body Polishing</option>
+            </optgroup>
+            <optgroup label="Packages">
+              <option value="Bridal Package">Bridal Package</option>
+              <option value="Party Package">Party Package</option>
+              <option value="Grooming Package">Grooming Package</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <button class="btn-apply" type="button" (click)="search()">Apply Filters</button>
+
+      </form>
+    </aside>
+
+    <!-- ══ RESULTS ══ -->
+    <section class="ss-results">
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="ss-loading">
+        <div class="ss-spinner"></div>
+        <span>Searching professionals…</span>
+      </div>
+
+      <!-- Empty -->
+      <div *ngIf="!loading && results.length === 0" class="ss-empty">
+        No professionals found. Try adjusting your filters.
+      </div>
+
+      <!-- Grid -->
+      <div *ngIf="!loading && results.length > 0" class="ss-grid">
+        <div *ngFor="let pro of results" class="ss-pro-card">
+
+          <div class="ss-pro-card__body">
+            <!-- Header -->
+            <div class="ss-pro-header">
+              <div class="ss-pro-avatar">{{ pro.name.charAt(0) }}</div>
+              <div class="ss-pro-info">
+                <div class="ss-pro-name">{{ pro.name }}</div>
+                <div class="ss-pro-meta">{{ pro.specialization }} · {{ pro.cityName }}</div>
+                <div class="ss-pro-stars">
+                  <span *ngFor="let s of stars(5)"
+                        [class.star-f]="s <= pro.averageRating"
+                        [class.star-e]="s > pro.averageRating">★</span>
+                  <span class="ss-pro-review-count">({{ pro.totalReviews }})</span>
+                </div>
+              </div>
+              <span *ngIf="pro.isAvailableHome" class="ss-home-badge">🏠 Home</span>
+            </div>
+
+            <!-- Services preview -->
+            <div *ngIf="pro.activeServices?.length" class="ss-services">
+              <div *ngFor="let svc of pro.activeServices.slice(0,2)" class="ss-service-row">
+                <span class="ss-service-name">{{ svc.name }}</span>
+                <span class="ss-service-price">₹{{ svc.price }}</span>
+              </div>
+            </div>
+
+            <!-- Promo -->
+            <div *ngIf="pro.activePromotions?.length" class="ss-promo">
+              🎉 {{ pro.activePromotions[0].discountPct }}% OFF
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="ss-pro-actions">
+            <button class="btn-portfolio" (click)="openPortfolio(pro)">🖼️ Portfolio</button>
+            <button class="btn-view-profile" (click)="viewProfile(pro.professionalId)">View Profile</button>
+            <button class="btn-book-now" (click)="bookNow(pro.professionalId)">Book Now</button>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+  </div><!-- /.ss-content -->
+
+  <!-- ══ ALL SERVICES SECTION ══ -->
+  <div *ngIf="services.length > 0" class="ss-services-section">
+    <div class="ss-section-divider"></div>
+    <div class="ss-section-label">All Services</div>
+
+    <div class="ss-services-grid">
+      <div *ngFor="let s of services" class="ss-svc-card">
+        <div class="ss-svc-card__top">
+          <div>
+            <div class="ss-svc-card__name">{{ s.name }}</div>
+            <div class="ss-svc-card__meta">{{ s.category }} · {{ s.gender }}</div>
+          </div>
+          <button class="btn-fav"
+                  [title]="s.favorited ? 'Remove from favorites' : 'Save to favorites'"
+                  (click)="toggleServiceFavorite(s)"
+                  [disabled]="togglingFav[s.id]">
+            {{ togglingFav[s.id] ? '…' : (s.favorited ? '❤️' : '🤍') }}
+          </button>
+        </div>
+        <div class="ss-svc-card__footer">
+          <span class="ss-svc-price">₹{{ s.price }}</span>
+          <span class="ss-svc-duration">{{ s.durationMins }} min</span>
         </div>
       </div>
     </div>
   </div>
+
 </div>
 
 <!-- ── Portfolio Modal ── -->
@@ -224,32 +269,3 @@
   [professionalName]="portfolioProfName"
   (closed)="closePortfolio()">
 </app-portfolio-modal>
-
-<!-- ── All Services with Favorite Toggle ── -->
-<div class="container-fluid pb-5" *ngIf="services.length > 0">
-  <hr>
-  <h5 class="fw-bold mb-3" style="color:#244AFD;">✂️ All Services</h5>
-  <div class="row g-3">
-    <div *ngFor="let s of services" class="col-md-3 col-sm-6">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body d-flex flex-column">
-          <div class="d-flex justify-content-between align-items-start mb-1">
-            <div>
-              <h6 class="fw-bold mb-0">{{ s.name }}</h6>
-              <small class="text-muted">{{ s.category }} · {{ s.gender }}</small>
-            </div>
-            <button class="btn btn-sm p-0 ms-2" [title]="s.favorited ? 'Remove from favorites' : 'Save to favorites'"
-                    (click)="toggleServiceFavorite(s)" [disabled]="togglingFav[s.id]"
-                    style="font-size:1.2rem;line-height:1;background:none;border:none;">
-              {{ togglingFav[s.id] ? '…' : (s.favorited ? '❤️' : '🤍') }}
-            </button>
-          </div>
-          <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
-            <span class="fw-bold" style="color:#244AFD;">₹{{ s.price }}</span>
-            <span class="text-muted small">{{ s.durationMins }} min</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>

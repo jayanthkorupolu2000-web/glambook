@@ -1,0 +1,153 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Customer Notifications — Component Styles  (GlamBook palette)
+═══════════════════════════════════════════════════════════════════ */
+:host {
+  --primary:    #1e6fd9;
+  --navy:       #0d1b3e;
+  --coral:      #e8476a;
+  --teal:       #0d9488;
+  --success:    #1a9e5c;
+  --border:     #f1f5f9;
+  --border-mid: #e2e8f0;
+  --bg-page:    #fdf2f4;
+  --bg-card:    #ffffff;
+  --text-main:  #0d1b3e;
+  --text-muted: #64748b;
+  --text-label: #94a3b8;
+}
+
+/* ── Page ─────────────────────────────────────────────────────────── */
+.cnotif-page {
+  background: var(--bg-page);
+  min-height: 100vh;
+  padding: 0 0 3rem;
+  font-family: 'DM Sans','Inter','Segoe UI',system-ui,sans-serif;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.cnotif-hero {
+  background: linear-gradient(135deg,#0d1b3e 0%,#1a3a6e 60%,#e8476a 100%);
+  padding: 2.5rem 2rem 2rem;
+  position: relative; overflow: hidden; margin-bottom: 2rem;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 1.5rem; flex-wrap: wrap;
+}
+.cnotif-hero::after {
+  content:''; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:rgba(232,71,106,0.18); pointer-events:none;
+}
+.cnotif-hero__left { position:relative; z-index:1; }
+.cnotif-hero__eyebrow {
+  font-size:0.78rem; font-weight:700; letter-spacing:0.10em;
+  text-transform:uppercase; color:rgba(255,255,255,0.65); margin-bottom:0.4rem;
+}
+.cnotif-hero__title {
+  font-size:2rem; font-weight:800; color:#fff;
+  letter-spacing:-0.03em; margin:0; line-height:1.15;
+}
+
+/* Mark all read button */
+.btn-mark-all {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.48rem 1rem; border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.12); color: #ffffff;
+  font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  white-space: nowrap; transition: all 0.2s;
+  position: relative; z-index: 1; flex-shrink: 0; align-self: flex-start;
+  &:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.50); }
+}
+
+/* ── Content ──────────────────────────────────────────────────────── */
+.cnotif-content { padding: 0 1.5rem; }
+
+/* ── Loading ──────────────────────────────────────────────────────── */
+.cnotif-loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 4rem 1rem; gap: 0.75rem; color: var(--text-muted); font-size: 0.85rem;
+}
+.cnotif-spinner {
+  width: 32px; height: 32px; border: 3px solid var(--border-mid);
+  border-top-color: var(--primary); border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Empty ────────────────────────────────────────────────────────── */
+.cnotif-empty {
+  text-align: center; padding: 4rem 1rem; color: var(--text-muted);
+}
+.cnotif-empty__icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+.cnotif-empty__text { font-size: 0.9rem; }
+
+/* ── Notification list ────────────────────────────────────────────── */
+.cnotif-list { display: flex; flex-direction: column; gap: 0.6rem; }
+
+/* ── Notification card ────────────────────────────────────────────── */
+.cnotif-card {
+  background: var(--bg-card); border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(13,27,62,0.06);
+  padding: 1rem 1.25rem;
+  display: flex; align-items: flex-start; gap: 1rem;
+  position: relative; overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 4px; height: 100%;
+    border-radius: 16px 0 0 16px;
+    background: transparent; transition: background 0.2s;
+  }
+
+  &:hover { transform: translateX(3px); box-shadow: 0 4px 18px rgba(13,27,62,0.10); }
+}
+
+.cnotif-card.unread {
+  background: #fafbff;
+  border-color: rgba(30,111,217,0.18);
+  cursor: pointer;
+  &::before { background: var(--primary); }
+}
+
+.cnotif-card.read {
+  opacity: 0.72;
+  &::before { background: var(--border-mid); }
+}
+
+/* Icon */
+.cnotif-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 1.2rem;
+}
+
+/* Body */
+.cnotif-body { flex: 1; min-width: 0; }
+.cnotif-message {
+  font-size: 0.88rem; color: var(--text-main);
+  line-height: 1.55; margin: 0 0 0.3rem; font-weight: 500;
+}
+.cnotif-card.unread .cnotif-message { font-weight: 700; }
+.cnotif-time {
+  font-size: 0.72rem; color: var(--text-muted); font-weight: 500;
+}
+
+/* Mark read button */
+.btn-mark-read {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.28rem 0.75rem; border-radius: 999px;
+  border: 1.5px solid var(--border-mid); background: #f8fafc;
+  color: var(--text-muted); font-size: 0.72rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  transition: all 0.2s;
+  &:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .cnotif-hero__title { font-size: 1.5rem; }
+  .cnotif-hero { flex-direction: column; align-items: flex-start; padding: 1.75rem 1rem 1.5rem; }
+  .cnotif-content { padding: 0 1rem; }
+}

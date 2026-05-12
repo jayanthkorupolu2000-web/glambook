@@ -1,77 +1,117 @@
-<div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color:#244AFD;">Services</h4>
-    <button class="btn text-white fw-semibold" style="background:#244AFD;" (click)="showForm=!showForm">
-      {{ showForm ? 'Cancel' : '+ Add Service' }}
-    </button>
-  </div>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Owner — Services
+     Palette: blush bg · navy hero · blue=men · pink=women
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="svc-page">
 
-  <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
-  <div *ngIf="deactivateMsg" class="alert py-2" style="background:#fff3cd;color:#856404;border-color:#ffc107;">⚠ {{ deactivateMsg }}</div>
-  <div *ngIf="deleteMsg" class="alert alert-danger py-2">🗑 {{ deleteMsg }}</div>
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-
-  <!-- Add Service Form -->
-  <div *ngIf="showForm" class="card border-0 shadow-sm p-4 mb-4">
-    <h6 class="fw-bold mb-3">New Service</h6>
-    <form [formGroup]="form" (ngSubmit)="addService()">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Service Name <span class="text-danger">*</span></label>
-          <input class="form-control" formControlName="name" placeholder="e.g. Bridal Makeup">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
-          <select class="form-select" formControlName="category">
-            <option value="">Select category</option>
-            <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">For <span class="text-danger">*</span></label>
-          <select class="form-select" formControlName="gender">
-            <option *ngFor="let g of genders" [value]="g">{{ genderLabel(g) }}</option>
-          </select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Price (₹) <span class="text-danger">*</span></label>
-          <input type="number" class="form-control" formControlName="price" placeholder="e.g. 500">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label fw-semibold">Duration</label>
-          <select class="form-select" formControlName="durationMins">
-            <option *ngFor="let d of durations" [value]="d">{{ d }} min</option>
-          </select>
-        </div>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="svc-hero">
+    <div class="svc-hero__inner">
+      <div class="svc-hero__text">
+        <p class="svc-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="svc-hero__title">Services</h1>
+        <p class="svc-hero__sub">Manage your salon's service catalogue — add, activate and deactivate</p>
       </div>
-      <button type="submit" class="btn text-white fw-semibold mt-3 px-4"
-              style="background:#244AFD;" [disabled]="form.invalid || submitting">
-        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-1"></span>
-        Add Service
+      <button class="svc-add-btn" (click)="showForm = !showForm">
+        <i class="fa-solid me-2" [class.fa-plus]="!showForm" [class.fa-xmark]="showForm"></i>
+        {{ showForm ? 'Cancel' : 'Add Service' }}
       </button>
-    </form>
+    </div>
   </div>
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#244AFD;" role="status"></div>
+  <!-- ── Alerts ────────────────────────────────────────────── -->
+  <div class="svc-alerts">
+    <div *ngIf="success"       class="svc-alert svc-alert--success"><i class="fa-solid fa-circle-check me-2"></i>{{ success }}</div>
+    <div *ngIf="deactivateMsg" class="svc-alert svc-alert--warning"><i class="fa-solid fa-triangle-exclamation me-2"></i>{{ deactivateMsg }}</div>
+    <div *ngIf="deleteMsg"     class="svc-alert svc-alert--danger"><i class="fa-solid fa-trash me-2"></i>{{ deleteMsg }}</div>
+    <div *ngIf="error"         class="svc-alert svc-alert--danger"><i class="fa-solid fa-circle-exclamation me-2"></i>{{ error }}</div>
   </div>
 
-  <div *ngIf="!loading && !error && grouped.length === 0" class="text-muted text-center py-4">
-    No services found. Add your first service!
+  <!-- ── Add Service Form ──────────────────────────────────── -->
+  <div *ngIf="showForm" class="svc-form-card">
+    <div class="svc-form-card__header">
+      <i class="fa-solid fa-plus me-2"></i>New Service
+    </div>
+    <div class="svc-form-card__body">
+      <form [formGroup]="form" (ngSubmit)="addService()">
+        <div class="svc-form-grid">
+          <div class="svc-field">
+            <label class="svc-label">Service Name <span class="text-danger">*</span></label>
+            <input class="svc-input" formControlName="name" placeholder="e.g. Bridal Makeup">
+          </div>
+          <div class="svc-field">
+            <label class="svc-label">Category <span class="text-danger">*</span></label>
+            <select class="svc-input svc-select" formControlName="category">
+              <option value="">Select category</option>
+              <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="svc-field">
+            <label class="svc-label">For <span class="text-danger">*</span></label>
+            <select class="svc-input svc-select" formControlName="gender">
+              <option *ngFor="let g of genders" [value]="g">{{ genderLabel(g) }}</option>
+            </select>
+          </div>
+          <div class="svc-field">
+            <label class="svc-label">Price (₹) <span class="text-danger">*</span></label>
+            <input type="number" class="svc-input" formControlName="price" placeholder="e.g. 500">
+          </div>
+          <div class="svc-field">
+            <label class="svc-label">Duration</label>
+            <select class="svc-input svc-select" formControlName="durationMins">
+              <option *ngFor="let d of durations" [value]="d">{{ d }} min</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="svc-submit-btn" [disabled]="form.invalid || submitting">
+          <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!submitting" class="fa-solid fa-plus me-2"></i>
+          Add Service
+        </button>
+      </form>
+    </div>
   </div>
 
-  <div *ngFor="let genderGroup of grouped" class="mb-5">
-    <div class="d-flex align-items-center mb-3">
-      <span [class]="genderBadgeClass(genderGroup.gender)">{{ genderGroup.gender }}</span>
+  <!-- ── Loading ───────────────────────────────────────────── -->
+  <div *ngIf="loading" class="svc-loading">
+    <div class="svc-spinner"></div>
+    <span>Loading services…</span>
+  </div>
+
+  <!-- ── Empty ─────────────────────────────────────────────── -->
+  <div *ngIf="!loading && !error && grouped.length === 0" class="svc-empty">
+    <i class="fa-solid fa-scissors"></i>
+    <span>No services found. Add your first service!</span>
+  </div>
+
+  <!-- ── Services grouped by gender ───────────────────────── -->
+  <div *ngFor="let genderGroup of grouped" class="svc-gender-section">
+
+    <!-- Gender header -->
+    <div class="svc-gender-header">
+      <span class="svc-gender-badge"
+            [class.svc-gender-badge--men]="genderGroup.gender === 'MEN'"
+            [class.svc-gender-badge--women]="genderGroup.gender === 'WOMEN'"
+            [class.svc-gender-badge--kids]="genderGroup.gender === 'KIDS'">
+        <i class="fa-solid me-2"
+           [class.fa-mars]="genderGroup.gender === 'MEN'"
+           [class.fa-venus]="genderGroup.gender === 'WOMEN'"
+           [class.fa-child]="genderGroup.gender === 'KIDS'"></i>
+        {{ genderLabel(genderGroup.gender) }}
+      </span>
     </div>
 
-    <div *ngFor="let catGroup of genderGroup.categories" class="mb-4">
-      <h6 class="text-muted fw-semibold mb-2 text-uppercase" style="font-size:.75rem;letter-spacing:.08em;">
-        {{ catGroup.category }}
-      </h6>
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
+    <!-- Category groups -->
+    <div *ngFor="let catGroup of genderGroup.categories" class="svc-category-block">
+
+      <div class="svc-category-label">{{ catGroup.category }}</div>
+
+      <div class="svc-table-wrap">
+        <table class="svc-table">
+          <thead>
             <tr>
               <th>Service</th>
               <th>Duration</th>
@@ -80,29 +120,36 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let svc of catGroup.services"
-                [style.opacity]="svc.isActive === false ? '0.5' : '1'">
-              <td class="fw-semibold">
+            <tr *ngFor="let svc of catGroup.services" class="svc-row"
+                [class.svc-row--inactive]="svc.isActive === false">
+              <td class="svc-cell--name">
                 {{ svc.name }}
-                <span *ngIf="svc.isActive === false"
-                      class="badge ms-2"
-                      style="background:#fff3cd;color:#856404;font-size:.65rem;">INACTIVE</span>
+                <span *ngIf="svc.isActive === false" class="svc-inactive-tag">INACTIVE</span>
               </td>
-              <td>{{ svc.durationMins }} min</td>
-              <td>₹{{ svc.price }}</td>
+              <td class="svc-cell--meta">{{ svc.durationMins }} min</td>
+              <td class="svc-cell--price">₹{{ svc.price }}</td>
               <td>
-                <button class="btn btn-sm me-1"
-                        [class]="svc.isActive === false ? 'btn-outline-success' : 'btn-outline-warning'"
-                        (click)="toggleService(svc.id, svc.name, svc.isActive !== false)">
-                  {{ svc.isActive === false ? 'Activate' : 'Deactivate' }}
-                </button>
-                <button class="btn btn-sm btn-outline-danger"
-                        (click)="deleteService(svc.id, svc.name)">🗑</button>
+                <div class="svc-action-row">
+                  <button class="svc-action-btn"
+                          [class.svc-action-btn--activate]="svc.isActive === false"
+                          [class.svc-action-btn--deactivate]="svc.isActive !== false"
+                          (click)="toggleService(svc.id, svc.name, svc.isActive !== false)">
+                    <i class="fa-solid me-1"
+                       [class.fa-circle-check]="svc.isActive === false"
+                       [class.fa-circle-pause]="svc.isActive !== false"></i>
+                    {{ svc.isActive === false ? 'Activate' : 'Deactivate' }}
+                  </button>
+                  <button class="svc-delete-btn" (click)="deleteService(svc.id, svc.name)">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </div>
-</div>
+
+</div><!-- /svc-page -->

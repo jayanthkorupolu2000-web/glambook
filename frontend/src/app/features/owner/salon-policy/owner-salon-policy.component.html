@@ -1,56 +1,150 @@
-<div class="container-fluid py-4">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">Salon Policies</h4>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Owner — Salon Policies
+     Palette: blush bg · navy hero · teal accent
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="sp-page">
 
-  <div *ngIf="latestPolicy" class="alert mb-4" style="background:#eef1ff;border-left:4px solid #244AFD;">
-    <strong style="color:#244AFD;">📋 Latest Policy:</strong> {{ latestPolicy.title }}
-    <span class="ms-2 text-muted small">{{ latestPolicy.createdAt | date:'dd MMM yyyy' }}</span>
-    <p class="mb-0 mt-1 text-muted small">{{ latestPolicy.content | slice:0:150 }}...</p>
-  </div>
-
-  <div class="card border-0 shadow-sm p-4 mb-4">
-    <h6 class="fw-bold mb-3">Publish New Policy</h6>
-    <div *ngIf="success" class="alert alert-success py-2">{{ success }}</div>
-    <div *ngIf="error" class="alert alert-danger py-2">{{ error }}</div>
-    <form [formGroup]="form" (ngSubmit)="publish()">
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Title</label>
-        <input class="form-control" formControlName="title" placeholder="Policy title">
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="sp-hero">
+    <div class="sp-hero__inner">
+      <div class="sp-hero__text">
+        <p class="sp-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="sp-hero__title">Salon Policies</h1>
+        <p class="sp-hero__sub">Publish and manage policies for your salon professionals</p>
       </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Content</label>
-        <textarea class="form-control" rows="5" formControlName="content"
-                  placeholder="Write policy content (min 20 characters)..."></textarea>
-        <div class="form-text">{{ f['content'].value?.length || 0 }} characters</div>
+      <div class="sp-hero__badge">
+        <i class="fa-solid fa-file-shield"></i>
+        <span>{{ policies.length }} Published</span>
       </div>
-      <button type="submit" class="btn text-white fw-semibold px-4"
-              style="background:#244AFD;" [disabled]="form.invalid || submitting">
-        <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
-        Publish
-      </button>
-    </form>
-  </div>
-
-  <div class="card border-0 shadow-sm">
-    <div class="card-header bg-light fw-bold">All Policies ({{ policies.length }})</div>
-    <div *ngIf="loading" class="text-center py-3">
-      <div class="spinner-border spinner-border-sm" style="color:#244AFD;"></div>
     </div>
+  </div>
+
+  <!-- ── Summary chips ────────────────────────────────────── -->
+  <div class="sp-summary">
+    <div class="sp-chip sp-chip--teal">
+      <i class="fa-solid fa-file-shield"></i>
+      <span class="sp-chip__label">Total Policies</span>
+      <span class="sp-chip__count">{{ policies.length }}</span>
+    </div>
+    <div class="sp-chip sp-chip--navy" *ngIf="latestPolicy">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span class="sp-chip__label">Latest</span>
+      <span class="sp-chip__text">{{ latestPolicy.title | slice:0:24 }}{{ latestPolicy.title.length > 24 ? '…' : '' }}</span>
+    </div>
+  </div>
+
+  <!-- ── Latest Policy Alert ──────────────────────────────── -->
+  <div *ngIf="latestPolicy" class="sp-latest-wrap">
+    <div class="sp-latest-alert">
+      <div class="sp-latest-alert__header">
+        <i class="fa-solid fa-file-lines me-2"></i>
+        <span class="sp-latest-alert__label">Latest Policy:</span>
+        <strong class="sp-latest-alert__title">{{ latestPolicy.title }}</strong>
+        <span class="sp-latest-alert__date ms-auto">
+          {{ latestPolicy.createdAt | date:'dd MMM yyyy' }}
+        </span>
+      </div>
+      <p class="sp-latest-alert__preview">
+        {{ latestPolicy.content | slice:0:150 }}{{ latestPolicy.content.length > 150 ? '…' : '' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Publish Form ──────────────────────────────────────── -->
+  <div class="sp-form-card">
+    <div class="sp-form-card__header">
+      <i class="fa-solid fa-pen-to-square me-2"></i>Publish New Policy
+    </div>
+    <div class="sp-form-card__body">
+
+      <div *ngIf="success" class="sp-alert sp-alert--success">
+        <i class="fa-solid fa-circle-check me-2"></i>{{ success }}
+      </div>
+      <div *ngIf="error" class="sp-alert sp-alert--danger">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>{{ error }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="publish()" novalidate>
+
+        <div class="sp-field">
+          <label class="sp-label">Title <span class="text-danger">*</span></label>
+          <input class="sp-input" formControlName="title" placeholder="Policy title"
+                 [class.sp-input--error]="f['title'].invalid && f['title'].touched">
+          <div *ngIf="f['title'].invalid && f['title'].touched" class="sp-field-error">
+            Title is required.
+          </div>
+        </div>
+
+        <div class="sp-field">
+          <label class="sp-label">Content <span class="text-danger">*</span></label>
+          <textarea class="sp-textarea" rows="6" formControlName="content"
+                    placeholder="Write policy content (min 20 characters)…"
+                    [class.sp-input--error]="f['content'].invalid && f['content'].touched"></textarea>
+          <div *ngIf="f['content'].invalid && f['content'].touched" class="sp-field-error">
+            Content is required (minimum 20 characters).
+          </div>
+          <div class="sp-char-count">
+            <span [class.sp-char-count--ok]="(f['content'].value?.length || 0) >= 20">
+              {{ f['content'].value?.length || 0 }} characters
+            </span>
+            <span class="sp-char-count__min">min 20</span>
+          </div>
+        </div>
+
+        <button type="submit" class="sp-publish-btn" [disabled]="form.invalid || submitting">
+          <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+          <i *ngIf="!submitting" class="fa-solid fa-paper-plane me-2"></i>
+          {{ submitting ? 'Publishing…' : 'Publish' }}
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ── All Policies Table ────────────────────────────────── -->
+  <div class="sp-table-wrap">
+
+    <div class="sp-table-header">
+      <i class="fa-solid fa-list me-2"></i>
+      All Policies
+      <span class="sp-table-header__count">{{ policies.length }}</span>
+    </div>
+
+    <div *ngIf="loading" class="sp-loading">
+      <div class="sp-spinner"></div>
+      <span>Loading policies…</span>
+    </div>
+
     <div class="table-responsive" *ngIf="!loading">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr><th>Title</th><th>Date</th><th>Preview</th></tr>
+      <table class="sp-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Preview</th>
+          </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let p of policies">
-            <td class="fw-semibold">{{ p.title }}</td>
-            <td class="text-muted small">{{ p.createdAt | date:'dd MMM yyyy' }}</td>
-            <td class="text-muted small">{{ p.content | slice:0:80 }}...</td>
+          <tr *ngFor="let p of policies" class="sp-row">
+            <td class="sp-cell--title">
+              <i class="fa-solid fa-file-lines me-2"></i>{{ p.title }}
+            </td>
+            <td class="sp-cell--date">{{ p.createdAt | date:'dd MMM yyyy' }}</td>
+            <td class="sp-cell--preview">{{ p.content | slice:0:80 }}…</td>
           </tr>
           <tr *ngIf="policies.length === 0">
-            <td colspan="3" class="text-center text-muted py-3">No policies yet.</td>
+            <td colspan="3" class="sp-empty">
+              <i class="fa-solid fa-file-circle-xmark"></i>
+              <span>No policies yet.</span>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
+
   </div>
-</div>
+
+</div><!-- /sp-page -->

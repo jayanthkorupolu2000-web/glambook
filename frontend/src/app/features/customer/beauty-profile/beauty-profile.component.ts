@@ -7,7 +7,8 @@ const API = 'http://localhost:8080/api/v1';
 
 @Component({
   selector: 'app-beauty-profile',
-  templateUrl: './beauty-profile.component.html'
+  templateUrl: './beauty-profile.component.html',
+  styleUrls: ['./beauty-profile.component.scss']
 })
 export class BeautyProfileComponent implements OnInit {
   form!: FormGroup;

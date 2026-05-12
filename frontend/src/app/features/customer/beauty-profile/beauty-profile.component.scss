@@ -1,0 +1,247 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Beauty Profile — Component Styles
+   Palette mirrors GlamBook Admin Dashboard
+═══════════════════════════════════════════════════════════════════ */
+
+:host {
+  --primary:     #1e6fd9;
+  --navy:        #0d1b3e;
+  --coral:       #e8476a;
+  --teal:        #0d9488;
+  --success:     #1a9e5c;
+  --success-bg:  #e6f9f0;
+  --danger:      #c0392b;
+  --danger-bg:   #fdecea;
+  --border:      #f1f5f9;
+  --border-mid:  #e2e8f0;
+  --bg-page:     #fdf2f4;
+  --bg-card:     #ffffff;
+  --text-main:   #0d1b3e;
+  --text-muted:  #64748b;
+  --text-label:  #94a3b8;
+}
+
+/* ── Page shell ───────────────────────────────────────────────────── */
+.bp-page {
+  background: var(--bg-page);
+  min-height: 100vh;
+  padding: 0 0 3rem;
+  font-family: 'DM Sans', 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.bp-hero {
+  background: linear-gradient(135deg, #0d1b3e 0%, #1a3a6e 60%, #e8476a 100%);
+  padding: 2.5rem 2rem 2rem;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+.bp-hero::after {
+  content: '';
+  position: absolute;
+  right: -60px; top: -60px;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: rgba(232,71,106,0.18);
+  pointer-events: none;
+}
+.bp-hero__inner {
+  position: relative; z-index: 1;
+  max-width: 800px; margin: 0 auto;
+}
+.bp-hero__eyebrow {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.10em;
+  text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 0.4rem;
+}
+.bp-hero__title {
+  font-size: 2rem; font-weight: 800; color: #fff;
+  letter-spacing: -0.03em; margin: 0 0 0.4rem; line-height: 1.15;
+}
+.bp-hero__sub {
+  font-size: 0.9rem; color: rgba(255,255,255,0.72); margin: 0;
+}
+
+/* ── Content wrapper ──────────────────────────────────────────────── */
+.bp-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ── Loading ──────────────────────────────────────────────────────── */
+.bp-loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 4rem 1rem; gap: 0.75rem; color: var(--text-muted); font-size: 0.85rem;
+}
+.bp-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border-mid);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Alerts ───────────────────────────────────────────────────────── */
+.bp-alert {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.65rem 1rem; border-radius: 10px;
+  font-size: 0.86rem; font-weight: 600; margin-bottom: 1rem;
+}
+.bp-alert--success { background: var(--success-bg); color: var(--success); border-left: 3px solid var(--success); }
+.bp-alert--danger  { background: var(--danger-bg);  color: var(--danger);  border-left: 3px solid var(--danger); }
+
+/* ── Form card ────────────────────────────────────────────────────── */
+.bp-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(13,27,62,0.07);
+  border: 1px solid var(--border);
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 20px 20px 0 0;
+    background: var(--teal);
+  }
+}
+
+/* ── Field ────────────────────────────────────────────────────────── */
+.bp-field { margin-bottom: 1.25rem; }
+
+.bp-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+
+.bp-select,
+.bp-textarea {
+  width: 100%;
+  border: 1.5px solid var(--border-mid);
+  border-radius: 10px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  background: #fff;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(13,148,136,0.12);
+  }
+}
+.bp-textarea { resize: vertical; }
+
+/* ── Tag chips ────────────────────────────────────────────────────── */
+.bp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.bp-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.28rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, color 0.15s;
+  border: 1.5px solid var(--border-mid);
+  background: #f8fafc;
+  color: var(--text-muted);
+
+  &:hover { border-color: var(--teal); color: var(--teal); }
+}
+
+.bp-tag--allergy-active {
+  background: rgba(232,71,106,0.10);
+  color: var(--coral);
+  border-color: rgba(232,71,106,0.30);
+}
+
+.bp-tag--service-active {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: rgba(26,158,92,0.30);
+}
+
+.bp-tag--view {
+  cursor: default;
+  &:hover { border-color: var(--border-mid); color: var(--text-muted); }
+}
+
+.bp-tag-none {
+  font-size: 0.8rem;
+  color: var(--text-label);
+  font-style: italic;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────── */
+.bp-btn-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btn-bp-primary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.58rem 1.25rem;
+  border-radius: 12px;
+  border: none;
+  background: var(--teal);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(13,148,136,0.35);
+  transition: filter 0.18s, transform 0.15s;
+
+  &:hover:not(:disabled) { filter: brightness(1.10); transform: translateY(-1px); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+}
+
+.btn-bp-secondary {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.25rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--border-mid);
+  background: #f8fafc;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover { border-color: var(--navy); color: var(--navy); background: #fff; }
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .bp-hero__title { font-size: 1.5rem; }
+  .bp-content { padding: 0 1rem; }
+}

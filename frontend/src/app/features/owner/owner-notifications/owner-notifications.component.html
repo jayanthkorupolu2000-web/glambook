@@ -1,32 +1,113 @@
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color:#244AFD;">Notifications</h4>
-    <button class="btn btn-outline-primary btn-sm" (click)="markAllRead()">Mark All as Read</button>
-  </div>
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Owner — Notifications
+     Palette: blush bg · navy hero · amber=unread · slate=read
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="on-page">
 
-  <div *ngIf="loading" class="text-center py-4">
-    <div class="spinner-border" style="color:#244AFD;"></div>
-  </div>
-
-  <div *ngIf="!loading">
-    <div *ngFor="let n of notifications"
-         class="card border-0 shadow-sm mb-2 p-3"
-         [style.border-left]="!n.isRead ? '4px solid #244AFD' : '4px solid transparent'"
-         [class.bg-light]="n.isRead"
-         (click)="markRead(n.id)"
-         [style.cursor]="n.isRead ? 'default' : 'pointer'">
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <span class="me-2">{{ typeIcon(n.type) }}</span>
-          <span [class.fw-bold]="!n.isRead">{{ n.message }}</span>
-          <div class="text-muted small mt-1">{{ n.createdAt | date:'dd MMM yyyy, HH:mm' }}</div>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="on-hero">
+    <div class="on-hero__inner">
+      <div class="on-hero__text">
+        <p class="on-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="on-hero__title">Notifications</h1>
+        <p class="on-hero__sub">Stay updated on bookings, complaints and staff activity</p>
+      </div>
+      <div class="on-hero__actions">
+        <div class="on-hero__chip" *ngIf="unreadCount > 0">
+          <i class="fa-solid fa-bell me-1"></i>
+          {{ unreadCount }} unread
         </div>
-        <span *ngIf="n.isRead" class="text-muted small ms-3" style="white-space:nowrap;">✓ Read</span>
+        <button class="on-mark-all-btn" (click)="markAllRead()">
+          <i class="fa-solid fa-check-double me-2"></i>Mark All as Read
+        </button>
       </div>
     </div>
-
-    <p *ngIf="notifications.length === 0" class="text-center text-muted py-4">
-      No notifications yet.
-    </p>
   </div>
-</div>
+
+  <!-- ── Summary chips ────────────────────────────────────── -->
+  <div class="on-summary">
+    <div class="on-chip on-chip--navy">
+      <i class="fa-solid fa-bell"></i>
+      <span class="on-chip__label">Total</span>
+      <span class="on-chip__count">{{ notifications.length }}</span>
+    </div>
+    <div class="on-chip on-chip--amber">
+      <i class="fa-solid fa-circle-dot"></i>
+      <span class="on-chip__label">Unread</span>
+      <span class="on-chip__count">{{ unreadCount }}</span>
+    </div>
+    <div class="on-chip on-chip--green">
+      <i class="fa-solid fa-circle-check"></i>
+      <span class="on-chip__label">Read</span>
+      <span class="on-chip__count">{{ notifications.length - unreadCount }}</span>
+    </div>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────── -->
+  <div *ngIf="loading" class="on-loading">
+    <div class="on-spinner"></div>
+    <span>Loading notifications…</span>
+  </div>
+
+  <!-- ── Notifications list ────────────────────────────────── -->
+  <div *ngIf="!loading" class="on-list-wrap">
+
+    <div class="on-list-header">
+      <i class="fa-solid fa-bell me-2"></i>
+      All Notifications
+      <span class="on-list-header__count">{{ notifications.length }}</span>
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="notifications.length === 0" class="on-empty">
+      <i class="fa-solid fa-bell-slash"></i>
+      <span>No notifications yet.</span>
+    </div>
+
+    <!-- Notification items -->
+    <div *ngFor="let n of notifications"
+         class="on-item"
+         [class.on-item--unread]="!n.isRead"
+         [class.on-item--read]="n.isRead"
+         (click)="markRead(n.id)"
+         [style.cursor]="n.isRead ? 'default' : 'pointer'">
+
+      <!-- Type icon -->
+      <div class="on-item__icon"
+           [class.on-item__icon--amber]="!n.isRead"
+           [class.on-item__icon--slate]="n.isRead">
+        <i class="fa-solid"
+           [class.fa-calendar-check]="n.type === 'NEW_BOOKING'"
+           [class.fa-triangle-exclamation]="n.type === 'COMPLAINT_FORWARDED'"
+           [class.fa-user-clock]="n.type === 'PROFESSIONAL_PENDING'"
+           [class.fa-calendar-xmark]="n.type === 'APPOINTMENT_CANCELLED'"
+           [class.fa-bell]="!['NEW_BOOKING','COMPLAINT_FORWARDED','PROFESSIONAL_PENDING','APPOINTMENT_CANCELLED'].includes(n.type)">
+        </i>
+      </div>
+
+      <!-- Content -->
+      <div class="on-item__body">
+        <p class="on-item__message" [class.on-item__message--bold]="!n.isRead">
+          {{ n.message }}
+        </p>
+        <span class="on-item__time">
+          <i class="fa-regular fa-clock me-1"></i>{{ n.createdAt | date:'dd MMM yyyy, HH:mm' }}
+        </span>
+      </div>
+
+      <!-- Read badge -->
+      <div class="on-item__status">
+        <span *ngIf="n.isRead" class="on-read-badge">
+          <i class="fa-solid fa-check me-1"></i>Read
+        </span>
+        <span *ngIf="!n.isRead" class="on-unread-dot"></span>
+      </div>
+
+    </div>
+
+  </div><!-- /on-list-wrap -->
+
+</div><!-- /on-page -->

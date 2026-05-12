@@ -1,144 +1,150 @@
-<div class="container py-4" style="max-width:720px;">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color:#244AFD;">💬 Consultations</h4>
-    <button class="btn text-white" style="background:#244AFD;" (click)="showForm=!showForm; error=''; success=''">
-      {{ showForm ? 'Cancel' : '+ Ask a Professional' }}
+<div class="cons-page">
+
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
+  <div class="cons-hero">
+    <div class="cons-hero__left">
+      <div class="cons-hero__eyebrow">Customer</div>
+      <h4 class="cons-hero__title">Consultations</h4>
+      <p class="cons-hero__sub">Ask professionals about your beauty concerns and get expert advice.</p>
+    </div>
+    <button class="btn-ask" (click)="showForm=!showForm; error=''; success=''">
+      {{ showForm ? '✕ Cancel' : '+ Ask a Professional' }}
     </button>
   </div>
 
-  <div *ngIf="success" class="alert alert-success">{{ success }}</div>
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div class="cons-content">
 
-  <!-- ── Submission Form ── -->
-  <div *ngIf="showForm" class="card border-0 shadow-sm p-4 mb-4">
-    <h6 class="fw-bold mb-3">Ask a Professional</h6>
-    <form [formGroup]="form">
+    <div *ngIf="success" class="cons-alert cons-alert--success">✅ {{ success }}</div>
+    <div *ngIf="error"   class="cons-alert cons-alert--danger">⚠️ {{ error }}</div>
 
-      <!-- Professional picker -->
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Professional <small class="text-muted">(optional)</small></label>
-        <select class="form-select" formControlName="professionalId">
-          <option value="">Any professional matching this topic</option>
-          <option *ngFor="let p of professionals" [value]="p.id">{{ p.name }} — {{ p.specialization }}</option>
-        </select>
-        <small *ngIf="professionals.length === 0" class="text-muted">
-          No professionals found for this topic — your question will be visible to all professionals.
-        </small>
-      </div>
+    <!-- ── Submission Form ──────────────────────────────────────────────── -->
+    <div *ngIf="showForm" class="cons-form-card">
+      <div class="cons-form-title">Ask a Professional</div>
 
-      <!-- Topic -->
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Topic</label>
-        <select class="form-select" formControlName="topic">
-          <option *ngFor="let t of topics" [value]="t">{{ t }}</option>
-        </select>
-      </div>
+      <form [formGroup]="form">
 
-      <!-- Question -->
-      <div class="mb-4">
-        <label class="form-label fw-semibold">Your Question <span class="text-danger">*</span></label>
-        <textarea class="form-control" formControlName="question" rows="4"
-                  placeholder="Describe your concern..."
-                  [class.is-invalid]="form.get('question')?.invalid && form.get('question')?.dirty"></textarea>
-        <div class="d-flex justify-content-between align-items-start mt-1">
-          <div>
-            <div *ngIf="form.get('question')?.dirty && form.get('question')?.errors?.['required']"
-                 class="text-danger small">Question is required.</div>
-            <div *ngIf="form.get('question')?.dirty && form.get('question')?.errors?.['minlength']"
-                 class="text-danger small">
-              Question must be at least {{ form.get('question')?.errors?.['minlength']?.requiredLength }} characters
-              ({{ form.get('question')?.errors?.['minlength']?.actualLength }} entered).
-            </div>
+        <!-- Professional picker -->
+        <div class="cons-field">
+          <label class="cons-label">Professional <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <select class="cons-select" formControlName="professionalId">
+            <option value="">Any professional matching this topic</option>
+            <option *ngFor="let p of professionals" [value]="p.id">{{ p.name }} — {{ p.specialization }}</option>
+          </select>
+          <div *ngIf="professionals.length === 0" class="cons-char-count">
+            No professionals found — your question will be visible to all professionals.
           </div>
-          <small class="text-muted">{{ form.get('question')?.value?.length || 0 }}/2000</small>
         </div>
-      </div>
 
-      <!-- Photo Upload -->
-      <div class="mb-4">
-        <label class="form-label fw-semibold">Reference Photo <small class="text-muted">(optional)</small></label>
-        <div *ngIf="!photoPreview" class="border rounded p-3 text-center"
-             style="border-style:dashed!important;cursor:pointer;" (click)="photoInput.click()">
-          <div class="text-muted mb-1">📷 Upload a photo to help the professional understand your concern</div>
-          <small class="text-muted">JPG, PNG or WEBP · Max 5 MB</small>
-          <input #photoInput type="file" accept="image/jpeg,image/png,image/webp" class="d-none"
-                 (change)="onPhotoSelected($event)">
-        </div>
-        <div *ngIf="photoPreview" class="position-relative d-inline-block">
-          <img [src]="photoPreview" alt="Preview" class="rounded"
-               style="max-height:180px;max-width:100%;object-fit:cover;border:2px solid #244AFD;">
-          <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
-                  (click)="removePhoto()" title="Remove photo">✕</button>
-        </div>
-      </div>
-
-      <button class="btn text-white w-100 fw-semibold" style="background:#244AFD;"
-              (click)="submit()" [disabled]="submitting">
-        {{ submitting ? 'Submitting...' : 'Submit Consultation' }}
-      </button>
-    </form>
-  </div>
-
-  <!-- ── List ── -->
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#244AFD;"></div>
-  </div>
-
-  <div *ngIf="!loading && !showForm">
-    <div *ngFor="let c of consultations" class="card border-0 shadow-sm mb-3">
-      <div class="card-body">
-
-        <!-- Header row -->
-        <div class="d-flex justify-content-between align-items-start mb-2">
-          <div class="d-flex align-items-center gap-2">
-            <span class="fs-5">{{ topicIcon(c.topic) }}</span>
-            <span class="badge bg-info text-dark">{{ c.topic }}</span>
-          </div>
-          <span [class]="statusBadge(c.status)">{{ c.status }}</span>
+        <!-- Topic -->
+        <div class="cons-field">
+          <label class="cons-label">Topic</label>
+          <select class="cons-select" formControlName="topic">
+            <option *ngFor="let t of topics" [value]="t">{{ t }}</option>
+          </select>
         </div>
 
         <!-- Question -->
-        <p class="fw-semibold mb-1">{{ c.question }}</p>
-        <div class="text-muted small mb-2">
-          To: {{ c.professionalName || 'Any Professional' }} · {{ c.createdAt | date:'dd MMM yyyy, hh:mm a' }}
+        <div class="cons-field">
+          <label class="cons-label">Your Question <span style="color:var(--coral);">*</span></label>
+          <textarea class="cons-textarea"
+                    formControlName="question"
+                    rows="4"
+                    placeholder="Describe your concern…"
+                    [class.is-invalid]="form.get('question')?.invalid && form.get('question')?.dirty"></textarea>
+          <div class="cons-char-count">{{ form.get('question')?.value?.length || 0 }}/2000</div>
+          <div *ngIf="form.get('question')?.dirty && form.get('question')?.errors?.['required']"
+               class="cons-field-error">Question is required.</div>
+          <div *ngIf="form.get('question')?.dirty && form.get('question')?.errors?.['minlength']"
+               class="cons-field-error">
+            Minimum {{ form.get('question')?.errors?.['minlength']?.requiredLength }} characters
+            ({{ form.get('question')?.errors?.['minlength']?.actualLength }} entered).
+          </div>
         </div>
 
-        <!-- Attached photo -->
-        <div *ngIf="c.photoUrl" class="mb-2">
-          <img [src]="photoUrl(c.photoUrl)" alt="Consultation photo"
-               class="rounded" style="max-height:140px;max-width:100%;object-fit:cover;border:1px solid #dee2e6;">
+        <!-- Photo Upload -->
+        <div class="cons-field">
+          <label class="cons-label">Reference Photo <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <div *ngIf="!photoPreview" class="cons-photo-zone" (click)="photoInput.click()">
+            📷 Upload a photo to help the professional understand your concern
+            <div class="cons-photo-hint">JPG, PNG or WEBP · Max 5 MB</div>
+            <input #photoInput type="file" accept="image/jpeg,image/png,image/webp"
+                   style="display:none;" (change)="onPhotoSelected($event)">
+          </div>
+          <div *ngIf="photoPreview" class="cons-photo-preview">
+            <img [src]="photoPreview" alt="Preview">
+            <button type="button" class="btn-remove-photo" (click)="removePhoto()">✕</button>
+          </div>
         </div>
 
-        <!-- Professional's response -->
-        <div *ngIf="c.professionalReply" class="p-3 rounded mt-2"
-             style="background:#f0f4ff;border-left:3px solid #244AFD;">
-          <div class="d-flex align-items-center gap-2 mb-1">
-            <div class="rounded-circle d-flex align-items-center justify-content-center"
-                 style="width:28px;height:28px;background:#244AFD;color:#fff;font-size:.75rem;font-weight:700;flex-shrink:0;">
-              {{ (c.professionalName || 'P').charAt(0) }}
+        <button class="btn-cons-submit" type="button" (click)="submit()" [disabled]="submitting">
+          {{ submitting ? 'Submitting…' : 'Submit Consultation' }}
+        </button>
+
+      </form>
+    </div>
+
+    <!-- ── Loading ──────────────────────────────────────────────────────── -->
+    <div *ngIf="loading" class="cons-loading">
+      <div class="cons-spinner"></div>
+      <span>Loading consultations…</span>
+    </div>
+
+    <!-- ── Consultation list ─────────────────────────────────────────────── -->
+    <div *ngIf="!loading && !showForm">
+
+      <div *ngFor="let c of consultations" class="cons-card">
+        <div class="cons-card__body">
+
+          <!-- Header -->
+          <div class="cons-card__header">
+            <div class="cons-topic-row">
+              <span class="cons-topic-icon">{{ topicIcon(c.topic) }}</span>
+              <span class="cons-topic-badge">{{ c.topic }}</span>
             </div>
-            <span class="fw-semibold small" style="color:#244AFD;">
-              {{ c.professionalName }}'s Response
-            </span>
-            <span class="text-muted small ms-auto">
-              {{ c.professionalRepliedAt | date:'dd MMM yyyy, hh:mm a' }}
+            <span class="cons-status"
+                  [class.cons-status--pending]="c.status === 'PENDING'"
+                  [class.cons-status--answered]="c.status === 'ANSWERED'"
+                  [class.cons-status--closed]="c.status === 'CLOSED'">
+              {{ c.status }}
             </span>
           </div>
-          <p class="mb-0 small">{{ c.professionalReply }}</p>
-        </div>
 
-        <!-- Pending indicator -->
-        <div *ngIf="c.status === 'PENDING'" class="mt-2">
-          <small class="text-warning fw-semibold">⏳ Awaiting professional response...</small>
-        </div>
+          <!-- Question -->
+          <p class="cons-question">{{ c.question }}</p>
+          <div class="cons-meta">
+            To: {{ c.professionalName || 'Any Professional' }} &nbsp;·&nbsp;
+            {{ c.createdAt | date:'dd MMM yyyy, hh:mm a' }}
+          </div>
 
+          <!-- Attached photo -->
+          <img *ngIf="c.photoUrl" [src]="photoUrl(c.photoUrl)" alt="Consultation photo" class="cons-photo">
+
+          <!-- Professional reply -->
+          <div *ngIf="c.professionalReply" class="cons-reply">
+            <div class="cons-reply__header">
+              <div class="cons-reply__avatar">{{ (c.professionalName || 'P').charAt(0) }}</div>
+              <span class="cons-reply__name">{{ c.professionalName }}'s Response</span>
+              <span class="cons-reply__date">{{ c.professionalRepliedAt | date:'dd MMM yyyy, hh:mm a' }}</span>
+            </div>
+            <p class="cons-reply__text">{{ c.professionalReply }}</p>
+          </div>
+
+          <!-- Pending indicator -->
+          <div *ngIf="c.status === 'PENDING'" class="cons-pending-note">
+            ⏳ Awaiting professional response…
+          </div>
+
+        </div>
       </div>
+
+      <!-- Empty state -->
+      <div *ngIf="consultations.length === 0" class="cons-empty">
+        <div class="cons-empty__icon">💬</div>
+        <div class="cons-empty__title">No consultations yet.</div>
+        <div class="cons-empty__hint">Ask a professional about your beauty concerns!</div>
+      </div>
+
     </div>
 
-    <div *ngIf="consultations.length === 0" class="text-center text-muted py-5">
-      <div style="font-size:2.5rem;">💬</div>
-      <p class="mt-2">No consultations yet.</p>
-      <small>Ask a professional about your beauty concerns!</small>
-    </div>
-  </div>
+  </div><!-- /.cons-content -->
 </div>

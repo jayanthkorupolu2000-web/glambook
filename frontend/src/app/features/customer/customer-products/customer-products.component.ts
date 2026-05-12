@@ -7,7 +7,8 @@ const BASE = 'http://localhost:8080';
 
 @Component({
   selector: 'app-customer-products',
-  templateUrl: './customer-products.component.html'
+  templateUrl: './customer-products.component.html',
+  styleUrls: ['./customer-products.component.scss']
 })
 export class CustomerProductsComponent implements OnInit {
 

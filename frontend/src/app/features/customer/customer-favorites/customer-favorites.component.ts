@@ -7,7 +7,8 @@ const API = 'http://localhost:8080/api/v1';
 
 @Component({
   selector: 'app-customer-favorites',
-  templateUrl: './customer-favorites.component.html'
+  templateUrl: './customer-favorites.component.html',
+  styleUrls: ['./customer-favorites.component.scss']
 })
 export class CustomerFavoritesComponent implements OnInit {
   activeTab: 'products' | 'services' = 'products';

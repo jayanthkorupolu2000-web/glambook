@@ -1,190 +1,181 @@
-<div class="d-flex min-vh-100" style="background:#f8f9fa;">
+<div class="cd-page">
 
-  <!-- Sidebar -->
-  <div class="d-flex flex-column p-3 border-end bg-white shadow-sm" style="width:240px;min-height:100vh;">
-    <div class="text-center mb-4 pt-2">
-      <div class="fw-bold fs-5" style="color:#244AFD;">✂ Glambook</div>
-      <div *ngIf="dashboard" class="mt-2">
-        <div class="rounded-circle d-inline-flex align-items-center justify-content-center"
-             style="width:48px;height:48px;background:#244AFD;color:#fff;font-size:1.2rem;font-weight:700;">
-          {{ dashboard.customerName.charAt(0) }}
-        </div>
-        <div class="small fw-semibold mt-1">{{ dashboard.customerName }}</div>
-        <div class="badge bg-light text-dark border small">📍 {{ dashboard.cityName }}</div>
-      </div>
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
+  <div class="cd-hero">
+    <div class="cd-hero__inner">
+      <div class="cd-hero__eyebrow">Customer</div>
+      <h4 class="cd-hero__title">
+        Welcome back{{ dashboard ? ', ' + dashboard.customerName.split(' ')[0] : '' }}!
+      </h4>
+      <p class="cd-hero__sub">Here's what's happening with your bookings and rewards.</p>
     </div>
-
-    <nav class="flex-fill">
-      <ul class="nav flex-column gap-1">
-        <li *ngFor="let link of sidebarLinks" class="nav-item">
-          <button class="sidebar-nav-btn w-100 text-start rounded px-3 py-2 d-flex align-items-center gap-2"
-                  [class.sidebar-nav-active]="activeSection === link.id"
-                  (click)="navigate(link.id)">
-            <span>{{ link.icon }}</span>
-            <span class="small fw-semibold">{{ link.label }}</span>
-            <span *ngIf="link.id === 'notifications' && dashboard && dashboard.unreadNotificationCount"
-                  class="badge bg-danger ms-auto">{{ dashboard.unreadNotificationCount }}</span>
-          </button>
-        </li>
-      </ul>
-    </nav>
   </div>
 
-  <!-- Main Content -->
-  <div class="flex-fill p-4 overflow-auto">
+  <!-- Content -->
+  <div class="cd-content">
 
-    <!-- ── SUSPENSION BANNER ── -->
-    <div *ngIf="isSuspended"
-         class="alert mb-4 d-flex align-items-start gap-3"
-         style="background:#fdecea;border:1.5px solid #f5c6c2;border-radius:12px;color:#c0392b;">
-      <span style="font-size:1.5rem;flex-shrink:0;">🚫</span>
-      <div>
-        <div class="fw-bold" style="font-size:1rem;">Your account has been suspended</div>
-        <div class="mt-1" style="font-size:.85rem;">
-          {{ suspensionReason || 'Your account is currently suspended. You cannot book new appointments or make payments.' }}
-        </div>
-        <div class="mt-2" style="font-size:.82rem;opacity:.85;">
-          If you believe this is a mistake or have resolved the issue, please contact support to reactivate your account.
-        </div>
-      </div>
-    </div>
-
-    <div *ngIf="loading" class="text-center py-5">
-      <div class="spinner-border" style="color:#244AFD;"></div>
+    <!-- Loading -->
+    <div *ngIf="loading" class="cd-loading">
+      <div class="cd-spinner"></div>
+      <span>Loading your dashboard…</span>
     </div>
 
     <ng-container *ngIf="!loading && dashboard as d">
 
+      <!-- Suspension Banner -->
+      <div *ngIf="isSuspended" class="cd-suspension">
+        <span class="cd-suspension__icon">🚫</span>
+        <div>
+          <div class="cd-suspension__title">Your account has been suspended</div>
+          <div class="cd-suspension__body">
+            {{ suspensionReason || 'Your account is currently suspended. You cannot book new appointments or make payments.' }}
+          </div>
+          <div class="cd-suspension__note">
+            If you believe this is a mistake, please contact support to reactivate your account.
+          </div>
+        </div>
+      </div>
+
       <!-- Policy Alert -->
-      <div *ngIf="d.latestGlobalPolicy && !policyDismissed"
-           class="alert alert-info d-flex justify-content-between align-items-start mb-4">
+      <div *ngIf="d.latestGlobalPolicy && !policyDismissed" class="cd-policy-alert">
         <div>
           <strong>📋 Policy Update:</strong> {{ d.latestGlobalPolicy.title }}
-          <span class="text-muted small ms-2">{{ d.latestGlobalPolicy.createdAt | date:'dd MMM yyyy' }}</span>
+          <span style="font-size:.8rem;color:var(--text-muted);margin-left:.5rem;">
+            {{ d.latestGlobalPolicy.createdAt | date:'dd MMM yyyy' }}
+          </span>
         </div>
-        <button class="btn-close" (click)="dismissPolicy()"></button>
+        <button class="cd-policy-alert__close" (click)="dismissPolicy()">✕</button>
       </div>
 
-      <!-- Summary Cards -->
-      <div class="row g-3 mb-4">
-        <div class="col-md-3">
-          <div class="card border-0 shadow-sm text-center p-3">
-            <div class="fs-2 fw-bold" style="color:#244AFD;">{{ d.upcomingAppointments.length }}</div>
-            <div class="text-muted small">Upcoming Appointments</div>
-            <div *ngIf="(d.upcomingAppointments.length || 0) > 0" class="text-muted" style="font-size:.75rem;">
-              Next: {{ d.upcomingAppointments[0].scheduledAt | date:'dd MMM, hh:mm a' }}
-            </div>
+      <!-- ── Stats Strip ──────────────────────────────────────────── -->
+      <div class="cd-stats">
+        <div class="cd-stat cd-stat--blue">
+          <div class="cd-stat__value">{{ d.upcomingAppointments.length }}</div>
+          <div class="cd-stat__label">Upcoming Appointments</div>
+          <div *ngIf="d.upcomingAppointments.length > 0" class="cd-stat__sub">
+            Next: {{ d.upcomingAppointments[0].scheduledAt | date:'dd MMM, hh:mm a' }}
           </div>
         </div>
-        <div class="col-md-3">
-          <div class="card border-0 shadow-sm text-center p-3">
-            <div class="fs-2 fw-bold text-warning">{{ d.totalLoyaltyPoints || 0 }}</div>
-            <div class="text-muted small">Loyalty Points</div>
-          </div>
+        <div class="cd-stat cd-stat--amber">
+          <div class="cd-stat__value">{{ d.totalLoyaltyPoints || 0 }}</div>
+          <div class="cd-stat__label">Loyalty Points</div>
         </div>
-        <div class="col-md-3">
-          <div class="card border-0 shadow-sm text-center p-3">
-            <div class="fs-2 fw-bold text-success">{{ d.pendingReviews.length }}</div>
-            <div class="text-muted small">Pending Reviews</div>
-          </div>
+        <div class="cd-stat cd-stat--teal">
+          <div class="cd-stat__value">{{ d.pendingReviews.length }}</div>
+          <div class="cd-stat__label">Pending Reviews</div>
         </div>
-        <div class="col-md-3">
-          <div class="card border-0 shadow-sm text-center p-3">
-            <div class="fs-2 fw-bold text-info">{{ d.pendingOrderCount || 0 }}</div>
-            <div class="text-muted small">Active Orders</div>
-          </div>
+        <div class="cd-stat cd-stat--coral">
+          <div class="cd-stat__value">{{ d.pendingOrderCount || 0 }}</div>
+          <div class="cd-stat__label">Active Orders</div>
         </div>
       </div>
 
-
-
-      <!-- Upcoming Appointments -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-          <h6 class="fw-bold mb-0" style="color:#244AFD;">📅 Upcoming Appointments</h6>
-          <button class="btn btn-sm btn-outline-primary" (click)="navigate('appointments')">View All</button>
+      <!-- ── Upcoming Appointments ────────────────────────────────── -->
+      <div class="cd-card cd-card--blue">
+        <div class="cd-card__header">
+          <div class="cd-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Upcoming Appointments
+          </div>
+          <button class="btn-view-all" (click)="navigate('appointments')">View All</button>
         </div>
-        <div class="card-body p-0">
-          <div *ngFor="let appt of d.upcomingAppointments || []" class="d-flex align-items-center p-3 border-bottom">
-            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
-                 style="width:40px;height:40px;background:#244AFD;color:#fff;font-weight:700;flex-shrink:0;">
-              {{ appt.serviceName.charAt(0) }}
+
+        <div *ngFor="let appt of d.upcomingAppointments || []" class="cd-appt-row">
+          <div class="cd-appt-avatar">{{ appt.serviceName.charAt(0) }}</div>
+          <div class="cd-appt-info">
+            <div class="cd-appt-name">{{ appt.serviceName }}</div>
+            <div class="cd-appt-meta">
+              {{ appt.professionalName || 'Awaiting assignment' }} &nbsp;·&nbsp;
+              {{ appt.scheduledAt | date:'dd MMM, hh:mm a' }}
             </div>
-            <div class="flex-fill">
-              <div class="fw-semibold">{{ appt.serviceName }}</div>
-              <div class="text-muted small">{{ appt.professionalName || 'Awaiting assignment' }} · {{ appt.scheduledAt | date:'dd MMM, hh:mm a' }}</div>
-            </div>
-            <span [class]="'badge ' + statusBadge(appt.status)">{{ statusLabel(appt.status) }}</span>
           </div>
-          <div *ngIf="(d.upcomingAppointments || []).length === 0" class="text-center text-muted py-4">
-            No upcoming appointments.
-            <button class="btn btn-sm btn-link p-0" (click)="navigate('search')">Book one now!</button>
-          </div>
+          <span [class]="statusBadge(appt.status)">{{ statusLabel(appt.status) }}</span>
+        </div>
+
+        <div *ngIf="(d.upcomingAppointments || []).length === 0" class="cd-empty">
+          No upcoming appointments.
+          <button (click)="navigate('search')">Book one now!</button>
         </div>
       </div>
 
-      <!-- Pending Assignments -->
-      <div *ngIf="d.pendingAppointments.length > 0" class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white">
-          <h6 class="fw-bold mb-0 text-warning">⏳ Awaiting Professional Assignment</h6>
-        </div>
-        <div class="card-body">
-          <div *ngFor="let appt of d.pendingAppointments || []" class="d-flex align-items-center mb-2">
-            <span class="badge bg-warning text-dark me-2">Pending</span>
-            <span class="fw-semibold me-2">{{ appt.serviceName }}</span>
-            <span class="text-muted small">{{ appt.scheduledAt | date:'dd MMM, hh:mm a' }}</span>
+      <!-- ── Pending Assignments ──────────────────────────────────── -->
+      <div *ngIf="d.pendingAppointments.length > 0" class="cd-card cd-card--amber">
+        <div class="cd-card__header">
+          <div class="cd-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Awaiting Professional Assignment
           </div>
-          <p class="text-muted small mb-0 mt-2">
+        </div>
+        <div class="cd-card__body">
+          <div *ngFor="let appt of d.pendingAppointments || []" class="cd-pending-row">
+            <span class="cd-pending-tag">Pending</span>
+            <span class="cd-pending-name">{{ appt.serviceName }}</span>
+            <span class="cd-pending-date">{{ appt.scheduledAt | date:'dd MMM, hh:mm a' }}</span>
+          </div>
+          <div class="cd-pending-note">
             ✅ Your booking is confirmed — a professional will be assigned shortly.
-          </p>
+          </div>
         </div>
       </div>
 
-      <!-- Pending Reviews -->
-      <div *ngIf="d.pendingReviews.length > 0" class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-white">
-          <h6 class="fw-bold mb-0" style="color:#244AFD;">⭐ Rate Your Recent Services</h6>
+      <!-- ── Pending Reviews ──────────────────────────────────────── -->
+      <div *ngIf="d.pendingReviews.length > 0" class="cd-card cd-card--coral">
+        <div class="cd-card__header">
+          <div class="cd-card__title">
+            <svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;color:var(--amber);">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            Rate Your Recent Services
+          </div>
         </div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div *ngFor="let appt of d.pendingReviews || []" class="col-md-4">
-              <div class="card border shadow-sm p-3">
-                <div class="fw-semibold">{{ appt.serviceName }}</div>
-                <div class="text-muted small">{{ appt.professionalName }}</div>
-                <div class="text-muted small">{{ appt.scheduledAt | date:'dd MMM yyyy' }}</div>
-                <div class="mt-2 small text-muted">Rate on: ✨ Quality · ⏱ Timeliness · 🤝 Professionalism</div>
-                <button class="btn btn-sm text-white mt-2 w-100" style="background:#244AFD;"
-                        (click)="navigate('appointments')">
-                  Rate & Review
-                </button>
-              </div>
+        <div class="cd-card__body">
+          <div class="cd-review-grid">
+            <div *ngFor="let appt of d.pendingReviews || []" class="cd-review-card">
+              <div class="cd-review-card__service">{{ appt.serviceName }}</div>
+              <div class="cd-review-card__prof">{{ appt.professionalName }}</div>
+              <div class="cd-review-card__date">{{ appt.scheduledAt | date:'dd MMM yyyy' }}</div>
+              <div class="cd-review-card__hint">Rate on: ✨ Quality · ⏱ Timeliness · 🤝 Professionalism</div>
+              <button class="btn-rate" (click)="navigate('appointments')">Rate &amp; Review</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Actions -->
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white">
-          <h6 class="fw-bold mb-0" style="color:#244AFD;">Quick Actions</h6>
+      <!-- ── Quick Actions ────────────────────────────────────────── -->
+      <div class="cd-card">
+        <div class="cd-card__header">
+          <div class="cd-card__title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;">
+              <polyline points="13 17 18 12 13 7"/>
+              <polyline points="6 17 11 12 6 7"/>
+            </svg>
+            Quick Actions
+          </div>
         </div>
-        <div class="card-body">
-          <div class="row g-2">
-            <div class="col-md-3" *ngFor="let action of [
-              {icon:'🔍', label:'Book a Service', route:'search'},
-              {icon:'📅', label:'My Appointments', route:'appointments'},
-              {icon:'⭐', label:'Loyalty Points', route:'loyalty'},
-              {icon:'🛍️', label:'Order Products', route:'products'}
-            ]">
-              <button class="btn btn-outline-primary w-100 py-3" (click)="navigate(action.route)">
-                <div class="fs-4">{{ action.icon }}</div>
-                <div class="small">{{ action.label }}</div>
-              </button>
-            </div>
+        <div class="cd-card__body">
+          <div class="cd-actions-grid">
+            <button class="cd-action-btn"
+                    *ngFor="let action of quickActions"
+                    (click)="navigate(action.route)">
+              <span class="cd-action-btn__icon">{{ action.icon }}</span>
+              <span class="cd-action-btn__label">{{ action.label }}</span>
+            </button>
           </div>
         </div>
       </div>
 
     </ng-container>
-  </div>
+  </div><!-- /.cd-content -->
+
 </div>

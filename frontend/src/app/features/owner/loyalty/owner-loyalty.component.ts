@@ -5,7 +5,8 @@ import { OwnerLoyaltyService } from '../../../services/owner-loyalty.service';
 
 @Component({
   selector: 'app-owner-loyalty',
-  templateUrl: './owner-loyalty.component.html'
+  templateUrl: './owner-loyalty.component.html',
+  styleUrls: ['./owner-loyalty.component.scss']
 })
 export class OwnerLoyaltyComponent implements OnInit {
   loyalty: (LoyaltyResponse & { editPoints: number })[] = [];

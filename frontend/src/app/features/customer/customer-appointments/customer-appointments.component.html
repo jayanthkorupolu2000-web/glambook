@@ -1,5 +1,15 @@
 <div class="appt-page">
-  <h4 class="page-title">My Appointments</h4>
+
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
+  <div class="appt-hero">
+    <div class="appt-hero__inner">
+      <div class="appt-hero__eyebrow">Customer</div>
+      <h4 class="appt-hero__title">My Appointments</h4>
+      <p class="appt-hero__sub">Track your upcoming, past and cancelled bookings.</p>
+    </div>
+  </div>
+
+  <div class="appt-content">
 
   <!-- ── Tabs ──────────────────────────────────────────────────────────── -->
   <div class="appt-tabs">
@@ -9,8 +19,9 @@
     <button class="tab-btn" [class.active]="activeTab==='payments'" (click)="activeTab='payments'">Payment History</button>
   </div>
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#2d4a6e;width:1.5rem;height:1.5rem;border-width:2px;"></div>
+  <div *ngIf="loading" class="appt-loading">
+    <div class="appt-spinner"></div>
+    <span>Loading appointments…</span>
   </div>
 
   <div *ngIf="!loading">
@@ -196,8 +207,8 @@
 
       <!-- ══════════════ PAYMENT HISTORY ══════════════ -->
       <div *ngSwitchCase="'payments'">
-        <div *ngIf="historyLoading" class="text-center py-5">
-          <div class="spinner-border" style="color:#2d4a6e;width:1.5rem;height:1.5rem;border-width:2px;"></div>
+        <div *ngIf="historyLoading" class="appt-loading">
+          <div class="appt-spinner"></div>
         </div>
         <div *ngIf="!historyLoading && paymentHistory.length === 0" class="empty-state">
           <div class="empty-icon">
@@ -237,7 +248,10 @@
       </div>
 
     </ng-container>
-  </div>
+  </div><!-- /ngIf !loading -->
+
+  </div><!-- /.appt-content -->
+
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════

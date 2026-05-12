@@ -7,7 +7,8 @@ const API = 'http://localhost:8080/api/v1';
 
 @Component({
   selector: 'app-consultations',
-  templateUrl: './consultations.component.html'
+  templateUrl: './consultations.component.html',
+  styleUrls: ['./consultations.component.scss']
 })
 export class ConsultationsComponent implements OnInit {
   consultations: any[] = [];

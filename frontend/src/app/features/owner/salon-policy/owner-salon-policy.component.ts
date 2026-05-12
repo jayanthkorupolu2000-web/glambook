@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SalonPolicyResponse } from '../../../models/owner.model';
 import { AuthService } from '../../../services/auth.service';
@@ -7,7 +7,9 @@ import { OwnerSalonPolicyService } from '../../../services/owner-salon-policy.se
 
 @Component({
   selector: 'app-owner-salon-policy',
-  templateUrl: './owner-salon-policy.component.html'
+  templateUrl: './owner-salon-policy.component.html',
+  styleUrls: ['./owner-salon-policy.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class OwnerSalonPolicyComponent implements OnInit {
   form: FormGroup;

@@ -1,0 +1,59 @@
+<div class="cd-shell">
+
+  <!-- Mobile overlay -->
+  <div class="cd-overlay" [class.cd-overlay--visible]="sidebarOpen" (click)="toggleSidebar()"></div>
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="cd-sidebar" [class.cd-sidebar--open]="sidebarOpen">
+
+    <div class="cd-sidebar__brand">
+      <div class="cd-sidebar__brand-icon">✂</div>
+      Glambook
+    </div>
+
+    <div *ngIf="dashboard" class="cd-sidebar__profile">
+      <div class="cd-sidebar__avatar">{{ dashboard.customerName.charAt(0) }}</div>
+      <div class="cd-sidebar__name">{{ dashboard.customerName }}</div>
+      <div class="cd-sidebar__city">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        {{ dashboard.cityName }}
+      </div>
+    </div>
+
+    <nav class="cd-sidebar__nav">
+      <button *ngFor="let link of sidebarLinks"
+              class="sidebar-nav-btn"
+              [class.sidebar-nav-active]="activeSection === link.id"
+              (click)="navigate(link.id)">
+        <span class="sidebar-nav-btn__icon">{{ link.icon }}</span>
+        <span class="sidebar-nav-btn__label">{{ link.label }}</span>
+        <span *ngIf="link.id === 'notifications' && dashboard && dashboard.unreadNotificationCount"
+              class="sidebar-notif-badge">{{ dashboard.unreadNotificationCount }}</span>
+      </button>
+    </nav>
+
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="cd-shell__main">
+
+    <!-- Top bar with hamburger — sits above all child page content -->
+    <div class="cd-topbar">
+      <button class="cd-hamburger"
+              (click)="toggleSidebar()"
+              [class.cd-hamburger--open]="sidebarOpen"
+              title="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <router-outlet></router-outlet>
+  </main>
+
+</div>

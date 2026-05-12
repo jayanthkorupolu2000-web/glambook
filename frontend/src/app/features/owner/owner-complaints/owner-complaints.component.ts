@@ -152,4 +152,8 @@ export class OwnerComplaintsComponent implements OnInit {
     const m: Record<string, string> = { OPEN: '#fff8e1', FORWARDED: '#e3f2fd', RESOLVED: '#dcfce7' };
     return m[s] ?? '#f1f5f9';
   }
+
+  countByStatus(status: string): number {
+    return this.complaints.filter(c => c.status === status).length;
+  }
 }

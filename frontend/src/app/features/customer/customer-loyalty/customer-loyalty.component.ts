@@ -35,7 +35,8 @@ interface WalletTransaction {
 
 @Component({
   selector: 'app-customer-loyalty',
-  templateUrl: './customer-loyalty.component.html'
+  templateUrl: './customer-loyalty.component.html',
+  styleUrls: ['./customer-loyalty.component.scss']
 })
 export class CustomerLoyaltyComponent implements OnInit {
   Math = Math; // expose Math to template

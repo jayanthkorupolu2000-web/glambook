@@ -10,7 +10,8 @@ const BASE = 'http://localhost:8080/api/v1';
 
 @Component({
   selector: 'app-service-search',
-  templateUrl: './service-search.component.html'
+  templateUrl: './service-search.component.html',
+  styleUrls: ['./service-search.component.scss']
 })
 export class ServiceSearchComponent implements OnInit {
   form: FormGroup;

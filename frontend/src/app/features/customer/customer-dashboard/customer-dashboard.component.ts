@@ -20,6 +20,7 @@ export class CustomerDashboardHomeComponent implements OnInit {
   policyDismissed = false;
   isSuspended = false;
   suspensionReason = '';
+  sidebarOpen = true;
 
   sidebarLinks = [
     { id: 'home', icon: '🏠', label: 'Dashboard' },
@@ -33,6 +34,13 @@ export class CustomerDashboardHomeComponent implements OnInit {
     { id: 'loyalty', icon: '⭐', label: 'Loyalty & Rewards' },
     { id: 'complaints', icon: '📣', label: 'My Complaints' },
     { id: 'notifications', icon: '🔔', label: 'Notifications' }
+  ];
+
+  quickActions = [
+    { icon: '🔍', label: 'Book a Service',   route: 'search' },
+    { icon: '📅', label: 'My Appointments',  route: 'appointments' },
+    { icon: '⭐', label: 'Loyalty Points',   route: 'loyalty' },
+    { icon: '🛍️', label: 'Order Products',  route: 'products' }
   ];
 
   constructor(
@@ -108,12 +116,12 @@ export class CustomerDashboardHomeComponent implements OnInit {
 
   statusBadge(status: string): string {
     const m: Record<string, string> = {
-      PENDING: 'warning text-dark',
-      CONFIRMED: 'success',
-      COMPLETED: 'primary',
-      CANCELLED: 'danger'
+      PENDING:   'badge-pending',
+      CONFIRMED: 'badge-confirmed',
+      COMPLETED: 'badge-completed',
+      CANCELLED: 'badge-cancelled'
     };
-    return `badge bg-${m[status] ?? 'secondary'}`;
+    return m[status] ?? 'badge-default';
   }
 
   statusLabel(status: string): string {

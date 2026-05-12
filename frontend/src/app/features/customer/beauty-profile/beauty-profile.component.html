@@ -1,93 +1,117 @@
-<div class="container py-4" style="max-width:640px;">
-  <h4 class="fw-bold mb-4" style="color:#244AFD;">👤 Beauty Profile</h4>
+<div class="bp-page">
 
-  <div *ngIf="loading" class="text-center py-5"><div class="spinner-border" style="color:#244AFD;"></div></div>
-
-  <div *ngIf="!loading" class="card border-0 shadow-sm p-4">
-    <div *ngIf="success" class="alert alert-success">{{ success }}</div>
-    <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-
-    <form [formGroup]="form">
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Skin Type</label>
-        <select class="form-select" formControlName="skinType">
-          <option value="">Select skin type</option>
-          <option *ngFor="let s of skinTypes" [value]="s">{{ s }}</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Hair Type</label>
-        <select class="form-select" formControlName="hairType">
-          <option value="">Select hair type</option>
-          <option *ngFor="let h of hairTypes" [value]="h">{{ h }}</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Hair Texture</label>
-        <select class="form-select" formControlName="hairTexture">
-          <option value="">Select texture</option>
-          <option *ngFor="let t of hairTextures" [value]="t">{{ t }}</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Allergies / Sensitivities</label>
-        <!-- View mode: show as tags -->
-        <div *ngIf="!editMode" class="d-flex flex-wrap gap-2 mt-1">
-          <span *ngFor="let a of allergyOptions" [class.d-none]="!selectedAllergies.has(a)"
-                class="badge rounded-pill px-3 py-2" style="background:#fdecea;color:#c0392b;font-size:.8rem;">
-            {{ a }}
-          </span>
-          <span *ngIf="selectedAllergies.size === 0" class="text-muted small">None selected</span>
-        </div>
-        <!-- Edit mode: checkbox tags -->
-        <div *ngIf="editMode" class="d-flex flex-wrap gap-2 mt-1">
-          <span *ngFor="let a of allergyOptions"
-                (click)="toggleAllergy(a)"
-                class="badge rounded-pill px-3 py-2 cursor-pointer"
-                [style.background]="selectedAllergies.has(a) ? '#c0392b' : '#f0f0f0'"
-                [style.color]="selectedAllergies.has(a) ? '#fff' : '#555'"
-                style="font-size:.82rem;cursor:pointer;user-select:none;transition:background .15s;">
-            <span *ngIf="selectedAllergies.has(a)" style="margin-right:4px;">✓</span>{{ a }}
-          </span>
-        </div>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Preferred Services</label>
-        <!-- View mode: show as tags -->
-        <div *ngIf="!editMode" class="d-flex flex-wrap gap-2 mt-1">
-          <span *ngFor="let s of serviceOptions" [class.d-none]="!selectedServices.has(s)"
-                class="badge rounded-pill px-3 py-2" style="background:#e8f5e9;color:#2e7d32;font-size:.8rem;">
-            {{ s }}
-          </span>
-          <span *ngIf="selectedServices.size === 0" class="text-muted small">None selected</span>
-        </div>
-        <!-- Edit mode: checkbox tags -->
-        <div *ngIf="editMode" class="d-flex flex-wrap gap-2 mt-1">
-          <span *ngFor="let s of serviceOptions"
-                (click)="toggleService(s)"
-                class="badge rounded-pill px-3 py-2"
-                [style.background]="selectedServices.has(s) ? '#2e7d32' : '#f0f0f0'"
-                [style.color]="selectedServices.has(s) ? '#fff' : '#555'"
-                style="font-size:.82rem;cursor:pointer;user-select:none;transition:background .15s;">
-            <span *ngIf="selectedServices.has(s)" style="margin-right:4px;">✓</span>{{ s }}
-          </span>
-        </div>
-      </div>
-      <div class="mb-4">
-        <label class="form-label fw-semibold">Additional Notes</label>
-        <textarea class="form-control" formControlName="notes" rows="3" placeholder="Any other preferences..."></textarea>
-      </div>
-
-      <div *ngIf="!editMode">
-        <button class="btn text-white w-100 fw-semibold" style="background:#244AFD;" (click)="enableEdit()">Edit Profile</button>
-      </div>
-      <div *ngIf="editMode" class="d-flex gap-2">
-        <button class="btn text-white flex-fill fw-semibold" style="background:#244AFD;" (click)="save()" [disabled]="saving">
-          {{ saving ? 'Saving...' : 'Save' }}
-        </button>
-        <button class="btn btn-outline-secondary flex-fill" (click)="cancel()">Cancel</button>
-      </div>
-    </form>
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
+  <div class="bp-hero">
+    <div class="bp-hero__inner">
+      <div class="bp-hero__eyebrow">Customer</div>
+      <h4 class="bp-hero__title">Beauty Profile</h4>
+      <p class="bp-hero__sub">Set your skin type, hair preferences and sensitivities for personalised recommendations.</p>
+    </div>
   </div>
+
+  <div class="bp-content">
+
+    <div *ngIf="loading" class="bp-loading">
+      <div class="bp-spinner"></div>
+      <span>Loading your profile…</span>
+    </div>
+
+    <div *ngIf="!loading" class="bp-card">
+
+      <div *ngIf="success" class="bp-alert bp-alert--success">✅ {{ success }}</div>
+      <div *ngIf="error"   class="bp-alert bp-alert--danger">⚠️ {{ error }}</div>
+
+      <form [formGroup]="form">
+
+        <!-- Skin Type -->
+        <div class="bp-field">
+          <label class="bp-label">Skin Type</label>
+          <select class="bp-select" formControlName="skinType">
+            <option value="">Select skin type</option>
+            <option *ngFor="let s of skinTypes" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+
+        <!-- Hair Type -->
+        <div class="bp-field">
+          <label class="bp-label">Hair Type</label>
+          <select class="bp-select" formControlName="hairType">
+            <option value="">Select hair type</option>
+            <option *ngFor="let h of hairTypes" [value]="h">{{ h }}</option>
+          </select>
+        </div>
+
+        <!-- Hair Texture -->
+        <div class="bp-field">
+          <label class="bp-label">Hair Texture</label>
+          <select class="bp-select" formControlName="hairTexture">
+            <option value="">Select texture</option>
+            <option *ngFor="let t of hairTextures" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+
+        <!-- Allergies -->
+        <div class="bp-field">
+          <label class="bp-label">Allergies / Sensitivities</label>
+          <!-- View mode -->
+          <div *ngIf="!editMode" class="bp-tags">
+            <ng-container *ngFor="let a of allergyOptions">
+              <span *ngIf="selectedAllergies.has(a)" class="bp-tag bp-tag--allergy-active bp-tag--view">{{ a }}</span>
+            </ng-container>
+            <span *ngIf="selectedAllergies.size === 0" class="bp-tag-none">None selected</span>
+          </div>
+          <!-- Edit mode -->
+          <div *ngIf="editMode" class="bp-tags">
+            <span *ngFor="let a of allergyOptions"
+                  class="bp-tag"
+                  [class.bp-tag--allergy-active]="selectedAllergies.has(a)"
+                  (click)="toggleAllergy(a)">
+              <span *ngIf="selectedAllergies.has(a)">✓</span>{{ a }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Preferred Services -->
+        <div class="bp-field">
+          <label class="bp-label">Preferred Services</label>
+          <!-- View mode -->
+          <div *ngIf="!editMode" class="bp-tags">
+            <ng-container *ngFor="let s of serviceOptions">
+              <span *ngIf="selectedServices.has(s)" class="bp-tag bp-tag--service-active bp-tag--view">{{ s }}</span>
+            </ng-container>
+            <span *ngIf="selectedServices.size === 0" class="bp-tag-none">None selected</span>
+          </div>
+          <!-- Edit mode -->
+          <div *ngIf="editMode" class="bp-tags">
+            <span *ngFor="let s of serviceOptions"
+                  class="bp-tag"
+                  [class.bp-tag--service-active]="selectedServices.has(s)"
+                  (click)="toggleService(s)">
+              <span *ngIf="selectedServices.has(s)">✓</span>{{ s }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Additional Notes -->
+        <div class="bp-field">
+          <label class="bp-label">Additional Notes</label>
+          <textarea class="bp-textarea" formControlName="notes" rows="3"
+                    placeholder="Any other preferences…"></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div *ngIf="!editMode">
+          <button class="btn-bp-primary" style="width:100%;" (click)="enableEdit()">Edit Profile</button>
+        </div>
+        <div *ngIf="editMode" class="bp-btn-row">
+          <button class="btn-bp-primary" (click)="save()" [disabled]="saving">
+            {{ saving ? 'Saving…' : 'Save Profile' }}
+          </button>
+          <button class="btn-bp-secondary" (click)="cancel()">Cancel</button>
+        </div>
+
+      </form>
+    </div>
+
+  </div><!-- /.bp-content -->
 </div>

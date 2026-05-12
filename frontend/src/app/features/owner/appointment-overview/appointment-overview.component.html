@@ -1,126 +1,199 @@
-<div class="container py-4">
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK · Owner — Appointments
+     Palette: blush bg · navy hero · blue=men · pink=women
+     All backend logic preserved
+     ═══════════════════════════════════════════════════════════ -->
+<div class="ap-page">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="fw-bold mb-0" style="color:#334155;">Appointments</h4>
-    <span *ngIf="pendingCount > 0" class="badge bg-warning text-dark fs-6">
-      {{ pendingCount }} awaiting assignment
-    </span>
+  <!-- ── Hero header ──────────────────────────────────────── -->
+  <div class="ap-hero">
+    <div class="ap-hero__inner">
+      <div class="ap-hero__text">
+        <p class="ap-hero__eyebrow">
+          <i class="fa-solid fa-store me-2"></i>Salon Management
+        </p>
+        <h1 class="ap-hero__title">Appointments</h1>
+        <p class="ap-hero__sub">View and manage all salon appointments</p>
+      </div>
+      <div class="ap-hero__chips">
+        <div class="ap-hero__chip ap-hero__chip--amber" *ngIf="pendingCount > 0">
+          <i class="fa-solid fa-clock me-1"></i>
+          {{ pendingCount }} awaiting assignment
+        </div>
+        <div class="ap-hero__chip ap-hero__chip--navy">
+          <i class="fa-solid fa-calendar-check me-1"></i>
+          {{ appointments.length }} total
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border" style="color:#334155;" role="status"></div>
+  <!-- ── Loading / Error ──────────────────────────────────── -->
+  <div *ngIf="loading" class="ap-loading">
+    <div class="ap-spinner"></div>
+    <span>Loading appointments…</span>
+  </div>
+  <div *ngIf="error" class="ap-error-banner">
+    <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ error }}
   </div>
 
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
-
-  <div *ngIf="!loading && !error && appointments.length === 0" class="text-muted text-center py-4">
-    No appointments found.
+  <!-- ── Empty ─────────────────────────────────────────────── -->
+  <div *ngIf="!loading && !error && appointments.length === 0" class="ap-empty">
+    <i class="fa-solid fa-calendar-xmark"></i>
+    <span>No appointments found.</span>
   </div>
 
-  <div *ngIf="!loading && appointments.length > 0" class="table-responsive">
-    <table class="table table-hover align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>#</th>
-          <th>Customer</th>
-          <th>Service</th>
-          <th>Assigned To</th>
-          <th>Date &amp; Time</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let appt of appointments"
-            [class.table-warning]="appt.status === 'PENDING'">
-          <td class="text-muted small">{{ appt.id }}</td>
-          <td class="fw-semibold">{{ appt.customerName }}</td>
-          <td>{{ appt.serviceName }}</td>
-          <td>
-            <span *ngIf="appt.professionalName; else unassigned">{{ appt.professionalName }}</span>
-            <ng-template #unassigned>
-              <span class="text-muted fst-italic small">Unassigned</span>
-            </ng-template>
-          </td>
-          <td>{{ appt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}</td>
-          <td><span [class]="statusBadgeClass(appt.status)">{{ appt.status }}</span></td>
-          <td>
-            <button *ngIf="appt.status === 'PENDING'"
-                    class="btn btn-sm btn-primary"
-                    (click)="openAssign(appt)">
-              Assign &amp; Confirm
-            </button>
-            <button *ngIf="appt.status === 'CONFIRMED'"
-                    class="btn btn-sm btn-outline-danger"
-                    (click)="cancelAssignment(appt)">
-              Cancel Assignment
-            </button>
-            <span *ngIf="appt.status !== 'PENDING' && appt.status !== 'CONFIRMED'" class="text-muted small">—</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+  <!-- ── Table ─────────────────────────────────────────────── -->
+  <div *ngIf="!loading && appointments.length > 0" class="ap-table-wrap">
 
-<!-- ── Assign Professional Modal ──────────────────────────────────────────── -->
+    <div class="ap-table-header">
+      <i class="fa-solid fa-calendar-check me-2"></i>
+      All Appointments
+      <span class="ap-table-header__count">{{ appointments.length }}</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="ap-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Service</th>
+            <th>Assigned To</th>
+            <th>Date &amp; Time</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let appt of appointments" class="ap-row"
+              [class.ap-row--pending]="appt.status === 'PENDING'">
+
+            <td class="ap-cell--id">{{ appt.id }}</td>
+
+            <td>
+              <div class="ap-cell--name">
+                <div class="ap-avatar ap-avatar--blue">{{ appt.customerName.charAt(0).toUpperCase() }}</div>
+                <span>{{ appt.customerName }}</span>
+              </div>
+            </td>
+
+            <td class="ap-cell--service">{{ appt.serviceName }}</td>
+
+            <td>
+              <span *ngIf="appt.professionalName; else unassigned" class="ap-professional">
+                <div class="ap-avatar ap-avatar--pink ap-avatar--sm">{{ appt.professionalName.charAt(0).toUpperCase() }}</div>
+                {{ appt.professionalName }}
+              </span>
+              <ng-template #unassigned>
+                <span class="ap-unassigned">Unassigned</span>
+              </ng-template>
+            </td>
+
+            <td class="ap-cell--date">{{ appt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}</td>
+
+            <td>
+              <span class="ap-status-badge"
+                    [class.ap-status-badge--pending]="appt.status === 'PENDING'"
+                    [class.ap-status-badge--confirmed]="appt.status === 'CONFIRMED'"
+                    [class.ap-status-badge--completed]="appt.status === 'COMPLETED'"
+                    [class.ap-status-badge--cancelled]="appt.status === 'CANCELLED'">
+                {{ appt.status }}
+              </span>
+            </td>
+
+            <td>
+              <button *ngIf="appt.status === 'PENDING'"
+                      class="ap-action-btn ap-action-btn--assign"
+                      (click)="openAssign(appt)">
+                <i class="fa-solid fa-user-check me-1"></i>Assign
+              </button>
+              <button *ngIf="appt.status === 'CONFIRMED'"
+                      class="ap-action-btn ap-action-btn--cancel"
+                      (click)="cancelAssignment(appt)">
+                <i class="fa-solid fa-xmark me-1"></i>Cancel
+              </button>
+              <span *ngIf="appt.status !== 'PENDING' && appt.status !== 'CONFIRMED'"
+                    class="ap-no-action">—</span>
+            </td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /ap-page -->
+
+
+<!-- ══════════════════════════════════════════════════════════
+     Assign Professional Modal — all logic unchanged
+     ══════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop fade show" *ngIf="assigningAppt" (click)="closeAssign()"></div>
 
 <div class="modal fade show d-block" tabindex="-1" *ngIf="assigningAppt" aria-modal="true">
   <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-    <div class="modal-content">
+    <div class="ap-modal">
 
-      <div class="modal-header">
-        <h5 class="modal-title">
-          <i class="fas fa-user-check me-2"></i>Assign Professional
-        </h5>
-        <button type="button" class="btn-close" (click)="closeAssign()"></button>
+      <div class="ap-modal__header">
+        <div class="ap-modal__header-icon">
+          <i class="fa-solid fa-user-check"></i>
+        </div>
+        <div>
+          <h6 class="ap-modal__title">Assign Professional</h6>
+          <p class="ap-modal__subtitle">{{ assigningAppt.serviceName }} · {{ assigningAppt.customerName }}</p>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto" (click)="closeAssign()"></button>
       </div>
 
-      <div class="modal-body">
+      <div class="ap-modal__body">
 
-        <div *ngIf="assignSuccess" class="alert alert-success py-2">
-          <i class="fas fa-check-circle me-2"></i>{{ assignSuccess }}
+        <div *ngIf="assignSuccess" class="ap-modal__alert ap-modal__alert--success">
+          <i class="fa-solid fa-circle-check me-2"></i>{{ assignSuccess }}
         </div>
-        <div *ngIf="assignError" class="alert alert-danger py-2">
-          <i class="fas fa-exclamation-circle me-2"></i>{{ assignError }}
+        <div *ngIf="assignError" class="ap-modal__alert ap-modal__alert--danger">
+          <i class="fa-solid fa-circle-exclamation me-2"></i>{{ assignError }}
         </div>
 
         <!-- Appointment summary -->
-        <div class="p-3 rounded mb-3" style="background:#f8f9fa;">
-          <div class="small text-muted mb-1">Appointment Details</div>
-          <div class="fw-semibold">{{ assigningAppt.serviceName }}</div>
-          <div class="small text-muted">
-            Customer: {{ assigningAppt.customerName }} ·
-            {{ assigningAppt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}
+        <div class="ap-modal__summary">
+          <div class="ap-modal__summary-label">Appointment Details</div>
+          <div class="ap-modal__summary-service">{{ assigningAppt.serviceName }}</div>
+          <div class="ap-modal__summary-meta">
+            <i class="fa-solid fa-user me-1"></i>{{ assigningAppt.customerName }}
+            &nbsp;·&nbsp;
+            <i class="fa-solid fa-clock me-1"></i>{{ assigningAppt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}
           </div>
         </div>
 
         <!-- Professional selector -->
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Select Professional <span class="text-danger">*</span></label>
-          <select class="form-select" [(ngModel)]="selectedProfId">
-            <option [ngValue]="null" disabled>-- Choose a professional --</option>
+        <div class="ap-modal__field">
+          <label class="ap-modal__field-label">
+            Select Professional <span class="text-danger">*</span>
+          </label>
+          <select class="ap-modal__select" [(ngModel)]="selectedProfId">
+            <option [ngValue]="null" disabled>— Choose a professional —</option>
             <option *ngFor="let p of staff" [ngValue]="p.id">
               {{ p.name }} — {{ p.specialization }}
             </option>
           </select>
-          <div *ngIf="staff.length === 0" class="text-muted small mt-1">
+          <div *ngIf="staff.length === 0" class="ap-modal__hint">
             No active staff found. Please approve professionals first.
           </div>
         </div>
 
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" (click)="closeAssign()">
+      <div class="ap-modal__footer">
+        <button class="ap-modal__btn ap-modal__btn--cancel" (click)="closeAssign()">
           Cancel
         </button>
-        <button type="button" class="btn btn-primary"
+        <button class="ap-modal__btn ap-modal__btn--confirm"
                 (click)="confirmAssign()"
                 [disabled]="!selectedProfId || assignLoading">
           <span *ngIf="assignLoading" class="spinner-border spinner-border-sm me-2"></span>
-          {{ assignLoading ? 'Assigning...' : 'Confirm Assignment' }}
+          <i *ngIf="!assignLoading" class="fa-solid fa-circle-check me-2"></i>
+          {{ assignLoading ? 'Assigning…' : 'Confirm Assignment' }}
         </button>
       </div>
 

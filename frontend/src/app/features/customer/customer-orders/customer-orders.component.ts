@@ -6,7 +6,8 @@ const BASE = 'http://localhost:8080';
 
 @Component({
   selector: 'app-customer-orders',
-  templateUrl: './customer-orders.component.html'
+  templateUrl: './customer-orders.component.html',
+  styleUrls: ['./customer-orders.component.scss']
 })
 export class CustomerOrdersComponent implements OnInit {
   orders: any[] = [];
