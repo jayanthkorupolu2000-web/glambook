@@ -40,6 +40,13 @@
                       (click)="openPayGuarded(a)">
                 💳 Pay & Complete
               </button>
+              <!-- Settle Pay Later button (shown when appointment has PAY_LATER_PENDING) -->
+              <button *ngIf="a.status === 'CONFIRMED' && hasPayLaterPending(a)"
+                      class="btn btn-sm fw-semibold text-white"
+                      style="background:#1a9e5c;border-radius:8px;font-size:.8rem;padding:6px 12px;"
+                      (click)="openSettle(a)">
+                🕐 Settle Pay Later — ₹{{ a.servicePrice }}
+              </button>
               <button *ngIf="a.status === 'CONFIRMED'" class="btn-cancel-appt"
                       (click)="cancel(a.id)">
                 Cancel
@@ -110,6 +117,14 @@
                   Update Review
                 </button>
               </ng-container>
+
+              <!-- Settle Pay Later button (shown when appointment has PAY_LATER_PENDING) -->
+              <button *ngIf="hasPayLaterPending(a)"
+                      class="btn btn-sm fw-semibold text-white mt-1"
+                      style="background:#1a9e5c;border-radius:8px;font-size:.8rem;"
+                      (click)="openSettle(a)">
+                🕐 Settle Pay Later — ₹{{ a.servicePrice }}
+              </button>
 
               <!-- Favorites -->
               <button class="btn-fav"
@@ -282,14 +297,47 @@
           </div>
         </div>
 
-        <!-- ── Fully paid by wallet ──────────────────────────────────── -->
+        <!-- ── Pay Later Option ──────────────────────────────────────────── -->
+        <div *ngIf="payLaterLoading" class="mb-3 text-muted small">
+          <span class="spinner-border spinner-border-sm me-1"></span> Checking Pay Later eligibility...
+        </div>
+
+        <div *ngIf="payLaterEligibilityChecked && !payLaterLoading" class="mb-3">
+          <!-- Eligible -->
+          <div *ngIf="payLaterEligible" class="p-3 rounded border"
+               style="border-color:#c3d4e8 !important; background:#f0f5fb;">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-2">
+                <input class="form-check-input mt-0" type="checkbox" id="usePayLater"
+                       [(ngModel)]="usePayLater"
+                       (change)="usePayLater && (useWallet = false)">
+                <label class="form-check-label fw-semibold mb-0" for="usePayLater" style="cursor:pointer;">
+                  🕐 Pay Later (24h)
+                </label>
+              </div>
+              <span class="badge rounded-pill" style="background:#1a9e5c;font-size:.78rem;">
+                Silver+ Eligible
+              </span>
+            </div>
+            <div *ngIf="usePayLater" class="mt-2 pt-2 border-top small text-muted"
+                 style="border-color:#c3d4e8 !important;">
+              Pay within 24 hours. Deadline: <strong>{{ payLaterDeadline }}</strong>.
+              Non-payment will zero your loyalty points and suspend your account.
+            </div>
+          </div>
+          <!-- Not eligible -->
+          <div *ngIf="!payLaterEligible && payLaterEligibilityReason" class="small text-muted"
+               style="background:#f8f9fa;border-radius:6px;padding:8px 12px;">
+            🕐 Pay Later not available: {{ payLaterEligibilityReason }}
+          </div>
+        </div>
         <div *ngIf="fullyPaidByWallet" class="alert py-2 small mb-3"
              style="background:#e6f4ec; border-left:4px solid #2d7a4f; color:#1a5c38;">
           ✅ Fully paid via Wallet — no Cash/Card needed.
         </div>
 
-        <!-- ── Cash / Card selector (hidden when fully paid by wallet) ── -->
-        <div *ngIf="!fullyPaidByWallet" class="mb-3">
+        <!-- ── Cash / Card selector (hidden when fully paid by wallet OR Pay Later selected) ── -->
+        <div *ngIf="!fullyPaidByWallet && !usePayLater" class="mb-3">
           <label class="form-label fw-semibold">Select Payment Method</label>
           <div class="d-flex gap-3">
             <div class="form-check">
@@ -304,14 +352,15 @@
             </div>
           </div>
         </div>
-        <div *ngIf="!fullyPaidByWallet && payMethod === 'CASH'" class="alert alert-info py-2 small">
+        <div *ngIf="!fullyPaidByWallet && !usePayLater && payMethod === 'CASH'" class="alert alert-info py-2 small">
           Pay cash directly to the professional after the service.
         </div>
-        <div *ngIf="!fullyPaidByWallet && payMethod === 'CARD'">
+        <div *ngIf="!fullyPaidByWallet && !usePayLater && payMethod === 'CARD'">
           <div class="mb-3">
             <label class="form-label fw-semibold">Card Number <span class="text-muted small">(12 digits)</span></label>
             <input type="text" class="form-control" [value]="cardNumber"
                    maxlength="12" placeholder="xxxx xxxx xxxx" (input)="onCardNumberInput($event)"
+                   autocomplete="off"
                    [class.is-invalid]="paySubmitted && cardNumber.length !== 12">
             <div class="invalid-feedback">Card number must be exactly 12 digits.</div>
           </div>
@@ -319,6 +368,7 @@
             <div class="col-6">
               <label class="form-label fw-semibold">Expiry</label>
               <input type="text" class="form-control" [(ngModel)]="cardExpiry" maxlength="5" placeholder="MM/YY"
+                     autocomplete="off"
                      [class.is-invalid]="paySubmitted && !isValidExpiry(cardExpiry)">
               <div class="invalid-feedback">Enter a valid expiry (MM/YY) that hasn't passed.</div>
             </div>
@@ -326,6 +376,7 @@
               <label class="form-label fw-semibold">CVV</label>
               <input type="password" class="form-control" [value]="cardCvv"
                      maxlength="3" placeholder="•••" (input)="onCvvInput($event)"
+                     autocomplete="off"
                      [class.is-invalid]="paySubmitted && cardCvv.length !== 3">
               <div class="invalid-feedback">CVV must be 3 digits.</div>
             </div>
@@ -334,7 +385,15 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline-secondary" (click)="closePay()">Cancel</button>
-        <button class="btn text-white" style="background:#2d4a6e;"
+        <!-- Pay Later confirm button -->
+        <button *ngIf="usePayLater" class="btn fw-semibold text-white"
+                style="background:#1a9e5c;"
+                (click)="confirmPayLater()" [disabled]="payLoading">
+          <span *ngIf="payLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ payLoading ? 'Activating...' : '🕐 Confirm Pay Later — ₹' + payingAppt.servicePrice }}
+        </button>
+        <!-- Normal payment confirm button -->
+        <button *ngIf="!usePayLater" class="btn text-white" style="background:#2d4a6e;"
                 (click)="onConfirmPayClick()" [disabled]="payLoading">
           <span *ngIf="payLoading" class="spinner-border spinner-border-sm me-2"></span>
           {{ payLoading ? 'Processing...' : 'Confirm Payment' }}
@@ -424,6 +483,126 @@
                 (click)="submitReview()" [disabled]="reviewLoading">
           <span *ngIf="reviewLoading" class="spinner-border spinner-border-sm me-2"></span>
           {{ reviewLoading ? 'Saving...' : (reviewMode === 'update' ? 'Update Review' : 'Submit Review') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     Pay Later Settlement Modal
+══════════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop fade show" *ngIf="settlingAppt" (click)="closeSettle()"></div>
+<div class="modal fade show d-block" tabindex="-1" *ngIf="settlingAppt" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">🕐 Settle Pay Later</h5>
+        <button type="button" class="btn-close" (click)="closeSettle()"></button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="settleSuccess" class="alert alert-success py-2">{{ settleSuccess }}</div>
+        <div *ngIf="settleError"   class="alert alert-danger  py-2">{{ settleError }}</div>
+
+        <!-- Order summary -->
+        <div class="p-3 rounded mb-4" style="background:#f8f9fa;">
+          <div class="d-flex justify-content-between">
+            <span class="fw-semibold">{{ settlingAppt.serviceName }}</span>
+            <span class="fw-bold fs-5" style="color:#1a9e5c;">₹{{ settlingAppt.servicePrice }}</span>
+          </div>
+          <div class="text-muted small mt-1">
+            {{ settlingAppt.professionalName }} · {{ settlingAppt.scheduledAt | date:'dd MMM yyyy, hh:mm a' }}
+          </div>
+        </div>
+
+        <!-- Wallet option -->
+        <div class="mb-3 p-3 rounded border" style="border-color:#c3d4e8 !important; background:#f0f5fb;">
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+              <input class="form-check-input mt-0" type="checkbox" id="settleUseWallet"
+                     [(ngModel)]="settleUseWallet" [disabled]="settleWalletBalance <= 0">
+              <label class="form-check-label fw-semibold mb-0" for="settleUseWallet"
+                     [style.cursor]="settleWalletBalance > 0 ? 'pointer' : 'not-allowed'"
+                     [style.opacity]="settleWalletBalance > 0 ? '1' : '0.5'">
+                👛 Use Wallet Balance
+              </label>
+            </div>
+            <span class="badge rounded-pill" style="font-size:.8rem;"
+                  [style.background]="settleWalletBalance > 0 ? '#2d4a6e' : '#9aa0ac'">
+              {{ settleWalletBalance > 0 ? '₹' + settleWalletBalance + ' available' : '₹0 — No balance' }}
+            </span>
+          </div>
+          <div *ngIf="settleUseWallet" class="mt-2 pt-2 border-top" style="border-color:#c3d4e8 !important;">
+            <div class="d-flex justify-content-between small">
+              <span class="text-muted">Wallet deduction</span>
+              <span class="fw-semibold" style="color:#2d7a4f;">− ₹{{ settleWalletDeduction }}</span>
+            </div>
+            <div class="d-flex justify-content-between small mt-1">
+              <span class="text-muted">Remaining via Cash/Card</span>
+              <span class="fw-bold" style="color:#2d4a6e;">₹{{ settleRemaining }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fully paid by wallet -->
+        <div *ngIf="settleFullyByWallet" class="alert py-2 small mb-3"
+             style="background:#e6f4ec; border-left:4px solid #2d7a4f; color:#1a5c38;">
+          ✅ Fully paid via Wallet — no Cash/Card needed.
+        </div>
+
+        <!-- Cash / Card selector -->
+        <div *ngIf="!settleFullyByWallet" class="mb-3">
+          <label class="form-label fw-semibold">Select Payment Method</label>
+          <div class="d-flex gap-3">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" id="settle-cash" name="settleMethod"
+                     [checked]="settleMethod === 'CASH'" (change)="settleMethod = 'CASH'">
+              <label class="form-check-label fw-semibold" for="settle-cash">💵 Cash</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" id="settle-card" name="settleMethod"
+                     [checked]="settleMethod === 'CARD'" (change)="settleMethod = 'CARD'">
+              <label class="form-check-label fw-semibold" for="settle-card">💳 Card</label>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!settleFullyByWallet && settleMethod === 'CASH'" class="alert alert-info py-2 small">
+          Pay cash directly to the professional to settle your Pay Later balance.
+        </div>
+        <div *ngIf="!settleFullyByWallet && settleMethod === 'CARD'">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Card Number <span class="text-muted small">(12 digits)</span></label>
+            <input type="text" class="form-control"
+                   [class.is-invalid]="settleSubmitted && settleCardNumber.length !== 12"
+                   [value]="settleCardNumber" autocomplete="off"
+                   maxlength="12" placeholder="xxxx xxxx xxxx" (input)="onSettleCardInput($event)">
+            <div class="invalid-feedback">Card number must be exactly 12 digits (entered: {{ settleCardNumber.length }}).</div>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold">Expiry</label>
+              <input type="text" class="form-control"
+                     [class.is-invalid]="settleSubmitted && settleCardExpiry.length !== 5"
+                     [(ngModel)]="settleCardExpiry" maxlength="5" placeholder="MM/YY" autocomplete="off">
+              <div class="invalid-feedback">Enter a valid expiry (MM/YY).</div>
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">CVV</label>
+              <input type="password" class="form-control"
+                     [class.is-invalid]="settleSubmitted && settleCardCvv.length !== 3"
+                     [value]="settleCardCvv" autocomplete="off"
+                     maxlength="3" placeholder="•••" (input)="onSettleCvvInput($event)">
+              <div class="invalid-feedback">CVV must be 3 digits.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" (click)="closeSettle()">Cancel</button>
+        <button class="btn fw-semibold text-white" style="background:#1a9e5c;"
+                (click)="onConfirmSettleClick()" [disabled]="settleLoading">
+          <span *ngIf="settleLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ settleLoading ? 'Processing...' : 'Settle Now — ₹' + (settleFullyByWallet ? settleWalletDeduction : settleRemaining) }}
         </button>
       </div>
     </div>

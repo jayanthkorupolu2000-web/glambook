@@ -38,6 +38,7 @@ interface WalletTransaction {
   templateUrl: './customer-loyalty.component.html'
 })
 export class CustomerLoyaltyComponent implements OnInit {
+  Math = Math; // expose Math to template
   summary: LoyaltySummary | null = null;
   transactions: LoyaltyTransaction[] = [];
   walletTransactions: WalletTransaction[] = [];
@@ -53,7 +54,7 @@ export class CustomerLoyaltyComponent implements OnInit {
     { name: 'BRONZE',   label: 'Bronze',   min: 0,    max: 499,      color: '#cd7f32', icon: '🥉' },
     { name: 'SILVER',   label: 'Silver',   min: 500,  max: 1499,     color: '#9e9e9e', icon: '🥈' },
     { name: 'GOLD',     label: 'Gold',     min: 1500, max: 2999,     color: '#f5a623', icon: '🥇' },
-    { name: 'PLATINUM', label: 'Platinum', min: 3000, max: Infinity, color: '#244AFD', icon: '💎' }
+    { name: 'DIAMOND',  label: 'Diamond',  min: 3000, max: Infinity, color: '#244AFD', icon: '💎' }
   ];
 
   constructor(private http: HttpClient, private auth: AuthService) {}
@@ -126,6 +127,17 @@ export class CustomerLoyaltyComponent implements OnInit {
 
   get maxRedeemable(): number {
     return this.summary?.points ?? 0;
+  }
+
+  /** Pay Later eligibility based on current tier and points */
+  get payLaterEligible(): boolean {
+    if (!this.summary) return false;
+    const tier = this.summary.tier;
+    return tier === 'SILVER' || tier === 'GOLD' || tier === 'DIAMOND';
+  }
+
+  get payLaterPointsValue(): number {
+    return Math.round((this.summary?.points ?? 0) / 10);
   }
 
   get tierIndex(): number {

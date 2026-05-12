@@ -70,6 +70,147 @@
           </div>
           <div style="font-size:2rem;opacity:.6;">🏦</div>
         </div>
+
+        <!-- Pay Later Status — Interactive Card -->
+        <div class="mt-3 rounded overflow-hidden" style="border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,.12);">
+
+          <!-- Header band -->
+          <div class="d-flex align-items-center justify-content-between px-4 py-3"
+               [style.background]="payLaterEligible
+                 ? 'linear-gradient(135deg,#1a5c38,#1a9e5c)'
+                 : 'linear-gradient(135deg,#3a3a4a,#5a5a6a)'"
+               style="color:#fff;">
+            <div class="d-flex align-items-center gap-2">
+              <span style="font-size:1.4rem;">🕐</span>
+              <div>
+                <div style="font-size:.72rem;opacity:.8;letter-spacing:.5px;text-transform:uppercase;">Pay Later</div>
+                <div class="fw-bold" style="font-size:1.05rem;">
+                  {{ payLaterEligible ? '✅ You\'re Eligible' : '🔒 Not Yet Eligible' }}
+                </div>
+              </div>
+            </div>
+            <span class="badge rounded-pill px-3 py-2 fw-semibold"
+                  [style.background]="payLaterEligible ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.15)'"
+                  style="font-size:.78rem;color:#fff;border:1px solid rgba(255,255,255,.3);">
+              {{ payLaterEligible ? 'Active' : 'Locked' }}
+            </span>
+          </div>
+
+          <!-- Body -->
+          <div class="px-4 py-3" style="background:#f8fdf9;">
+
+            <!-- Eligible state -->
+            <ng-container *ngIf="payLaterEligible">
+              <p class="small mb-3" style="color:#1a5c38;font-weight:500;">
+                Defer your service payment for up to <strong>24 hours</strong> after your appointment.
+              </p>
+
+              <!-- 3 condition chips -->
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="badge rounded-pill px-3 py-2"
+                      style="background:#e8f5e9;color:#1a5c38;font-size:.78rem;border:1px solid #a5d6a7;">
+                  ✓ {{ currentTier.label }} Tier
+                </span>
+                <span class="badge rounded-pill px-3 py-2"
+                      style="background:#e8f5e9;color:#1a5c38;font-size:.78rem;border:1px solid #a5d6a7;">
+                  ✓ {{ summary.points }} pts available
+                </span>
+                <span class="badge rounded-pill px-3 py-2"
+                      style="background:#e8f5e9;color:#1a5c38;font-size:.78rem;border:1px solid #a5d6a7;">
+                  ✓ Account active
+                </span>
+              </div>
+
+              <!-- Points value bar -->
+              <div class="mb-3">
+                <div class="d-flex justify-content-between small mb-1" style="color:#555;">
+                  <span>Points value</span>
+                  <span class="fw-semibold" style="color:#1a9e5c;">₹{{ payLaterPointsValue }}</span>
+                </div>
+                <div class="progress" style="height:6px;border-radius:4px;background:#c8e6c9;">
+                  <div class="progress-bar" role="progressbar"
+                       [style.width]="Math.min(100, (payLaterPointsValue / 100) * 100) + '%'"
+                       style="background:#1a9e5c;border-radius:4px;"></div>
+                </div>
+                <div class="small mt-1" style="color:#888;">
+                  Your {{ summary.points }} pts are worth ₹{{ payLaterPointsValue }} — covers half of services up to ₹{{ payLaterPointsValue * 2 }}
+                </div>
+              </div>
+
+              <!-- How it works -->
+              <div class="p-3 rounded" style="background:#e8f5e9;border-left:3px solid #1a9e5c;">
+                <div class="fw-semibold small mb-1" style="color:#1a5c38;">How Pay Later works</div>
+                <div class="small" style="color:#2e7d32;line-height:1.6;">
+                  1. Select "Pay Later" at checkout after your appointment<br>
+                  2. You get <strong>24 hours</strong> to complete payment<br>
+                  3. Reminders at 8h and 16h if unpaid<br>
+                  4. Non-payment zeroes your points and suspends your account
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- Not eligible state -->
+            <ng-container *ngIf="!payLaterEligible">
+              <p class="small mb-3" style="color:#555;">
+                Complete these requirements to unlock Pay Later:
+              </p>
+
+              <!-- Requirement checklist -->
+              <div class="d-flex flex-column gap-2 mb-3">
+                <!-- Tier requirement -->
+                <div class="d-flex align-items-center gap-2 p-2 rounded"
+                     [style.background]="(summary.tier === 'SILVER' || summary.tier === 'GOLD' || summary.tier === 'DIAMOND') ? '#e8f5e9' : '#fff3e0'"
+                     style="border-radius:8px;">
+                  <span style="font-size:1rem;">
+                    {{ (summary.tier === 'SILVER' || summary.tier === 'GOLD' || summary.tier === 'DIAMOND') ? '✅' : '⏳' }}
+                  </span>
+                  <div class="small">
+                    <span class="fw-semibold">Silver tier or above</span>
+                    <span class="text-muted ms-1">
+                      (you are {{ summary.tier }} — need {{ 500 - summary.totalEarned > 0 ? (500 - summary.totalEarned) + ' more pts lifetime' : 'already met' }})
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Points requirement (example for ₹150 service) -->
+                <div class="d-flex align-items-center gap-2 p-2 rounded"
+                     style="background:#fff3e0;border-radius:8px;">
+                  <span>⏳</span>
+                  <div class="small">
+                    <span class="fw-semibold">Sufficient loyalty points</span>
+                    <span class="text-muted ms-1">(points value ≥ half the service cost)</span>
+                  </div>
+                </div>
+
+                <!-- Account status -->
+                <div class="d-flex align-items-center gap-2 p-2 rounded"
+                     style="background:#e8f5e9;border-radius:8px;">
+                  <span>✅</span>
+                  <div class="small">
+                    <span class="fw-semibold">Account in good standing</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Progress to Silver -->
+              <div *ngIf="summary.tier === 'BRONZE'" class="mb-2">
+                <div class="d-flex justify-content-between small mb-1" style="color:#555;">
+                  <span>Progress to Silver</span>
+                  <span class="fw-semibold">{{ summary.totalEarned }}/500 pts</span>
+                </div>
+                <div class="progress" style="height:6px;border-radius:4px;background:#ffe0b2;">
+                  <div class="progress-bar" role="progressbar"
+                       [style.width]="Math.min(100, (summary.totalEarned / 500) * 100) + '%'"
+                       style="background:#f5a623;border-radius:4px;"></div>
+                </div>
+                <div class="small mt-1" style="color:#888;">
+                  {{ 500 - summary.totalEarned }} more points to unlock Pay Later
+                </div>
+              </div>
+            </ng-container>
+
+          </div>
+        </div>
       </div>
     </div>
 

@@ -462,14 +462,44 @@
           </div>
         </div>
 
+        <!-- Pay Later Option -->
+        <div *ngIf="prodPayLaterLoading" class="mb-3 text-muted small">
+          <span class="spinner-border spinner-border-sm me-1"></span> Checking Pay Later eligibility...
+        </div>
+        <div *ngIf="prodPayLaterChecked && !prodPayLaterLoading" class="mb-3">
+          <div *ngIf="prodPayLaterEligible" class="p-3 rounded border"
+               style="border-color:#c3d4e8 !important; background:#f0f5fb;">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-2">
+                <input class="form-check-input mt-0" type="checkbox" id="prod-payLater"
+                       [(ngModel)]="useProdPayLater"
+                       (change)="useProdPayLater && (useWallet = false)">
+                <label class="form-check-label fw-semibold mb-0" for="prod-payLater" style="cursor:pointer;">
+                  🕐 Pay Later (24h)
+                </label>
+              </div>
+              <span class="badge rounded-pill" style="background:#1a9e5c;font-size:.78rem;">Silver+ Eligible</span>
+            </div>
+            <div *ngIf="useProdPayLater" class="mt-2 pt-2 border-top small text-muted"
+                 style="border-color:#c3d4e8 !important;">
+              Pay within 24 hours. Deadline: <strong>{{ prodPayLaterDeadline }}</strong>.
+              Non-payment will zero your loyalty points and suspend your account.
+            </div>
+          </div>
+          <div *ngIf="!prodPayLaterEligible && prodPayLaterReason" class="small text-muted"
+               style="background:#f8f9fa;border-radius:6px;padding:8px 12px;">
+            🕐 Pay Later not available: {{ prodPayLaterReason }}
+          </div>
+        </div>
+
         <!-- Fully paid by wallet -->
         <div *ngIf="fullyPaidByWallet" class="alert py-2 small mb-3"
              style="background:#e6f4ec; border-left:4px solid #2d7a4f; color:#1a5c38;">
           ✅ Fully paid via Wallet — no Cash/Card needed.
         </div>
 
-        <!-- Payment method -->
-        <div *ngIf="!fullyPaidByWallet" class="mb-3">
+        <!-- Payment method (hidden when Pay Later or fully wallet) -->
+        <div *ngIf="!fullyPaidByWallet && !useProdPayLater" class="mb-3">
           <label class="form-label fw-semibold">Select Payment Method</label>
           <div class="d-flex gap-3">
             <div class="form-check">
@@ -485,28 +515,36 @@
           </div>
         </div>
 
-        <div *ngIf="!fullyPaidByWallet && payMethod === 'CASH'" class="alert alert-info py-2 small">
+        <div *ngIf="!fullyPaidByWallet && !useProdPayLater && payMethod === 'CASH'" class="alert alert-info py-2 small">
           Pay cash on delivery. Your order will be marked as delivered once payment is confirmed.
         </div>
 
-        <div *ngIf="!fullyPaidByWallet && payMethod === 'CARD'">
+        <div *ngIf="!fullyPaidByWallet && !useProdPayLater && payMethod === 'CARD'">
           <div class="mb-3">
             <label class="form-label fw-semibold">Card Number <span class="text-muted small">(12 digits)</span></label>
-            <input type="text" class="form-control" [value]="cardNumber"
-                   maxlength="12" placeholder="xxxx xxxx xxxx"
+            <input type="text" class="form-control"
+                   [class.is-invalid]="paySubmitted && cardNumber.length !== 12"
+                   [value]="cardNumber" maxlength="12" placeholder="xxxx xxxx xxxx"
+                   autocomplete="off"
                    (input)="onCardNumberInput($event)">
+            <div class="invalid-feedback">Card number must be exactly 12 digits (entered: {{ cardNumber.length }}).</div>
           </div>
           <div class="row g-3">
             <div class="col-6">
               <label class="form-label fw-semibold">Expiry <span class="text-muted small">(MM/YY)</span></label>
-              <input type="text" class="form-control" [(ngModel)]="cardExpiry"
-                     maxlength="5" placeholder="MM/YY">
+              <input type="text" class="form-control"
+                     [class.is-invalid]="paySubmitted && cardExpiry.length !== 5"
+                     [(ngModel)]="cardExpiry" maxlength="5" placeholder="MM/YY" autocomplete="off">
+              <div class="invalid-feedback">Enter a valid expiry date (MM/YY).</div>
             </div>
             <div class="col-6">
               <label class="form-label fw-semibold">CVV <span class="text-muted small">(3 digits)</span></label>
-              <input type="password" class="form-control" [value]="cardCvv"
-                     maxlength="3" placeholder="•••"
+              <input type="password" class="form-control"
+                     [class.is-invalid]="paySubmitted && cardCvv.length !== 3"
+                     [value]="cardCvv" maxlength="3" placeholder="•••"
+                     autocomplete="off"
                      (input)="onCvvInput($event)">
+              <div class="invalid-feedback">CVV must be 3 digits.</div>
             </div>
           </div>
         </div>
@@ -514,9 +552,17 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline-secondary" (click)="closePayment()">Cancel</button>
-        <button class="btn text-white fw-semibold" style="background:#244AFD;"
-                (click)="confirmPayment()"
-                [disabled]="payLoading || (!fullyPaidByWallet && !cardValid)">
+        <!-- Pay Later button -->
+        <button *ngIf="useProdPayLater" class="btn fw-semibold text-white"
+                style="background:#1a9e5c;"
+                (click)="onConfirmPaymentClick()" [disabled]="payLoading">
+          <span *ngIf="payLoading" class="spinner-border spinner-border-sm me-2"></span>
+          {{ payLoading ? 'Activating...' : '🕐 Confirm Pay Later — ₹' + payingOrder.totalPrice }}
+        </button>
+        <!-- Normal payment button -->
+        <button *ngIf="!useProdPayLater" class="btn text-white fw-semibold" style="background:#244AFD;"
+                (click)="onConfirmPaymentClick()"
+                [disabled]="payLoading">
           <span *ngIf="payLoading" class="spinner-border spinner-border-sm me-2"></span>
           {{ payLoading ? 'Processing...' : 'Confirm Payment — ₹' + (fullyPaidByWallet ? walletDeduction : remainingAmount) }}
         </button>

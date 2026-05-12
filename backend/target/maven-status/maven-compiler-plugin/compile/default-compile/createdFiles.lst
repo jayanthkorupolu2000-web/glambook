@@ -157,6 +157,7 @@ com\salon\dto\response\ProductReviewResponseDTO.class
 com\salon\entity\Loyalty$LoyaltyBuilder.class
 com\salon\repository\OrderRepository.class
 com\salon\dto\response\SalonOwnerResponse$SalonOwnerResponseBuilder.class
+com\salon\scheduler\PayLaterScheduler.class
 com\salon\controller\SalonOwnerManagementController.class
 com\salon\entity\ProfessionalAvailability.class
 com\salon\dto\response\OwnerReportResponse.class
@@ -179,6 +180,7 @@ com\salon\dto\response\CancellationStatsResponse.class
 com\salon\repository\SalonOwnerRepository.class
 com\salon\entity\Product.class
 com\salon\entity\OrderItem$OrderItemBuilder.class
+com\salon\controller\PayLaterController.class
 com\salon\entity\ConsultationTopic.class
 com\salon\entity\ResourceAvailability$ResourceAvailabilityBuilder.class
 com\salon\service\AdminNotificationService.class
@@ -314,6 +316,7 @@ com\salon\controller\CustomerController.class
 com\salon\entity\LoyaltyTransaction$LoyaltyTransactionBuilder.class
 com\salon\exception\SalonOwnerNotFoundException.class
 com\salon\repository\ProfessionalNotificationRepository.class
+com\salon\service\PayLaterService.class
 com\salon\dto\response\LoyaltyTransactionResponse.class
 com\salon\service\impl\ProductServiceImpl.class
 com\salon\dto\request\ComplaintRequest.class

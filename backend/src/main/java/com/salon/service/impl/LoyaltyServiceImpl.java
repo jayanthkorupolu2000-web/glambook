@@ -38,7 +38,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
     // ── Tier thresholds ───────────────────────────────────────────────────────
     @Override
     public LoyaltyTier calculateTier(int points) {
-        if (points >= 3000) return LoyaltyTier.PLATINUM;
+        if (points >= 3000) return LoyaltyTier.DIAMOND;
         if (points >= 1500) return LoyaltyTier.GOLD;
         if (points >= 500)  return LoyaltyTier.SILVER;
         return LoyaltyTier.BRONZE;
@@ -330,12 +330,12 @@ public class LoyaltyServiceImpl implements LoyaltyService {
                 "Early access to new services",
                 "Dedicated customer support"
             );
-            case PLATINUM -> List.of(
+            case DIAMOND -> List.of(
                 "All Gold benefits",
                 "15% discount on all bookings",
                 "Free monthly treatment",
                 "VIP early access to all new services",
-                "Exclusive Platinum-only promotions",
+                "Exclusive Diamond-only promotions",
                 "Personal style consultant"
             );
         };
@@ -346,7 +346,7 @@ public class LoyaltyServiceImpl implements LoyaltyService {
             case BRONZE -> List.of();
             case SILVER -> List.of("Keratin Treatment", "Scalp Therapy");
             case GOLD   -> List.of("Keratin Treatment", "Scalp Therapy", "Bridal Makeup Package", "Anti-Aging Facial");
-            case PLATINUM -> List.of("Keratin Treatment", "Scalp Therapy", "Bridal Makeup Package",
+            case DIAMOND -> List.of("Keratin Treatment", "Scalp Therapy", "Bridal Makeup Package",
                     "Anti-Aging Facial", "Luxury Spa Package", "Celebrity Styling Session");
         };
     }

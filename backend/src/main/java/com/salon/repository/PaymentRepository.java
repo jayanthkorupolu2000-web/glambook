@@ -26,4 +26,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     @Query("SELECT p FROM Payment p WHERE p.appointment.professional.id = :id AND p.appointment.dateTime BETWEEN :from AND :to AND p.status = 'PAID'")
     List<Payment> findPaidPaymentsByProfessionalAndDateRange(@Param("id") Long id, @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT p FROM Payment p WHERE p.status = com.salon.entity.PaymentStatus.PAY_LATER_PENDING")
+    List<Payment> findAllPayLaterPending();
 }

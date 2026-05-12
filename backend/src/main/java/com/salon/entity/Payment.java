@@ -33,4 +33,13 @@ public class Payment {
 
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
+
+    /** Deadline by which Pay Later must be settled (now + 24h at opt-in time). */
+    @Column(name = "pay_later_deadline")
+    private LocalDateTime payLaterDeadline;
+
+    /** Number of Pay Later reminders sent (0–2 before auto-suspension). */
+    @Column(name = "pay_later_reminder_count")
+    @Builder.Default
+    private Integer payLaterReminderCount = 0;
 }

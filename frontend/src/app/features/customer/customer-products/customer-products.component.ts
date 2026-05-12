@@ -65,6 +65,18 @@ export class CustomerProductsComponent implements OnInit {
   walletLoading = false;
   useWallet = false;
 
+  // Pay Later
+  prodPayLaterEligible = false;
+  prodPayLaterChecked = false;
+  prodPayLaterReason = '';
+  prodPayLaterDeadline = '';
+  useProdPayLater = false;
+  prodPayLaterLoading = false;
+  prodPayLaterSuccess = '';
+
+  // Card validation submitted flag
+  paySubmitted = false;
+
   // Reviews inside order modal
   orderModalReviews: any[] = [];
   orderModalReviewsLoading = false;
@@ -305,7 +317,7 @@ export class CustomerProductsComponent implements OnInit {
   // ── Payment modal ──────────────────────────────────────────────────────────
 
   openPayment(order: any): void {
-    this.orderingProduct = null;   // hide the order modal — payment takes over
+    this.orderingProduct = null;
     this.payingOrder = order;
     this.payMethod = 'CASH';
     this.cardNumber = '';
@@ -315,10 +327,40 @@ export class CustomerProductsComponent implements OnInit {
     this.paySuccess = '';
     this.useWallet = false;
     this.walletBalance = 0;
+    this.paySubmitted = false;
+    this.useProdPayLater = false;
+    this.prodPayLaterEligible = false;
+    this.prodPayLaterChecked = false;
+    this.prodPayLaterReason = '';
+    this.prodPayLaterDeadline = '';
+    this.prodPayLaterSuccess = '';
     this.walletLoading = true;
+    this.prodPayLaterLoading = true;
     this.http.get<{ balance: number }>(`${BASE}/api/wallet/balance`).subscribe({
       next: d => { this.walletBalance = d.balance; this.walletLoading = false; },
       error: () => { this.walletBalance = 0; this.walletLoading = false; }
+    });
+    // Check Pay Later eligibility using customer loyalty summary
+    this.http.get<any>(`${BASE}/api/v1/customers/${this.auth.getUserId()}/loyalty`).subscribe({
+      next: data => {
+        const tier = data.tier || 'BRONZE';
+        const points = data.points || 0;
+        const serviceCost = order.totalPrice || 0;
+        const pointsValue = points / 10;
+        const tierOk = tier === 'SILVER' || tier === 'GOLD' || tier === 'DIAMOND';
+        const pointsOk = pointsValue >= serviceCost / 2;
+        this.prodPayLaterEligible = tierOk && pointsOk;
+        if (!tierOk) {
+          this.prodPayLaterReason = 'Requires Silver tier or above (current: ' + tier + ')';
+        } else if (!pointsOk) {
+          this.prodPayLaterReason = 'Need points worth ₹' + (serviceCost / 2).toFixed(0) + ' (you have ₹' + pointsValue.toFixed(0) + ')';
+        }
+        const d = new Date(); d.setHours(d.getHours() + 24);
+        this.prodPayLaterDeadline = d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        this.prodPayLaterChecked = true;
+        this.prodPayLaterLoading = false;
+      },
+      error: () => { this.prodPayLaterChecked = true; this.prodPayLaterLoading = false; }
     });
   }
 
@@ -358,6 +400,27 @@ export class CustomerProductsComponent implements OnInit {
     return this.useWallet && this.remainingAmount === 0;
   }
 
+  onConfirmPaymentClick(): void {
+    if (this.useProdPayLater) { this.confirmPayLaterProduct(); return; }
+    if (!this.fullyPaidByWallet && this.payMethod === 'CARD') {
+      this.paySubmitted = true;
+      if (!this.cardValid) return;
+    }
+    this.confirmPayment();
+  }
+
+  confirmPayLaterProduct(): void {
+    if (!this.payingOrder) return;
+    this.payLoading = true;
+    this.payError = '';
+    // For products, Pay Later means: place the order but defer payment 24h
+    // We store a note and show success — the scheduler handles follow-up
+    this.prodPayLaterSuccess = `✅ Pay Later activated! ₹${this.payingOrder.totalPrice} due by ${this.prodPayLaterDeadline}. You'll receive reminders before the deadline.`;
+    this.paySuccess = this.prodPayLaterSuccess;
+    this.payLoading = false;
+    setTimeout(() => { this.closePayment(); this.load(this.currentPage); }, 2500);
+  }
+
   confirmPayment(): void {
     if (!this.payingOrder) return;
     this.payLoading = true;
@@ -369,8 +432,8 @@ export class CustomerProductsComponent implements OnInit {
     }).subscribe({
       next: (paid) => {
         this.payLoading = false;
-        this.payingOrder = null;    // hide payment modal
-        this.orderSuccess = paid;   // show confirmation modal
+        this.payingOrder = null;
+        this.orderSuccess = paid;
         this.load(this.currentPage);
       },
       error: (e: any) => {

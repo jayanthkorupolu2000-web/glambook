@@ -4,6 +4,7 @@ import com.salon.dto.request.AppointmentRequest;
 import com.salon.dto.request.UpdateAppointmentStatusRequest;
 import com.salon.dto.response.AppointmentResponse;
 import com.salon.dto.response.CustomerResponse;
+import com.salon.dto.response.PaymentResponse;
 import com.salon.dto.response.ProfessionalResponse;
 import com.salon.dto.response.SalonOwnerResponse;
 import com.salon.dto.response.ServiceResponse;
@@ -34,6 +35,7 @@ public class AppointmentService {
     private final ProfessionalRepository professionalRepository;
     private final ServiceRepository serviceRepository;
     private final ProfessionalAvailabilityRepository availabilityRepository;
+    private final PaymentRepository paymentRepository;
     private final ModelMapper modelMapper;
 
     @Transactional
@@ -216,6 +218,18 @@ public class AppointmentService {
             res.setServiceName(appointment.getService().getName());
             res.setServicePrice(appointment.getService().getPrice());
         }
+        // Include payment records so frontend can detect PAY_LATER_PENDING
+        paymentRepository.findByAppointmentId(appointment.getId()).ifPresent(p -> {
+            PaymentResponse pr = PaymentResponse.builder()
+                    .id(p.getId())
+                    .appointmentId(appointment.getId())
+                    .amount(p.getAmount())
+                    .method(p.getMethod() != null ? p.getMethod().name() : null)
+                    .status(p.getStatus() != null ? p.getStatus().name() : null)
+                    .paidAt(p.getPaidAt())
+                    .build();
+            res.setPayments(java.util.List.of(pr));
+        });
         return res;
     }
 

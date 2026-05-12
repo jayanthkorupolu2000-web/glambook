@@ -34,6 +34,27 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   walletLoading = false;
   useWallet = false;
 
+  // Pay Later
+  payLaterEligible = false;
+  payLaterEligibilityChecked = false;
+  payLaterEligibilityReason = '';
+  payLaterDeadline = '';
+  usePayLater = false;
+  payLaterLoading = false;
+  payLaterSuccess = '';
+  // Pay Later settlement modal
+  settlingAppt: AppointmentResponse | null = null;
+  settleMethod: 'CASH' | 'CARD' = 'CASH';
+  settleCardNumber = '';
+  settleCardExpiry = '';
+  settleCardCvv = '';
+  settleWalletBalance = 0;
+  settleUseWallet = false;
+  settleLoading = false;
+  settleError = '';
+  settleSuccess = '';
+  settleSubmitted = false;
+
   // Payment history
   paymentHistory: any[] = [];
   historyLoading = false;
@@ -201,10 +222,28 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
     this.useWallet = false;
     this.walletBalance = 0;
     this.paySubmitted = false;
+    this.usePayLater = false;
+    this.payLaterEligible = false;
+    this.payLaterEligibilityChecked = false;
+    this.payLaterEligibilityReason = '';
+    this.payLaterDeadline = '';
+    this.payLaterSuccess = '';
     this.walletLoading = true;
+    this.payLaterLoading = true;
+    // Fetch wallet balance and Pay Later eligibility in parallel
     this.http.get<{ balance: number; currency: string }>(`${BASE}/api/wallet/balance`).subscribe({
       next: data => { this.walletBalance = data.balance; this.walletLoading = false; },
       error: () => { this.walletBalance = 0; this.walletLoading = false; }
+    });
+    this.http.get<any>(`${BASE}/api/pay-later/eligibility/${appt.id}`).subscribe({
+      next: data => {
+        this.payLaterEligible = !!data.eligible;
+        this.payLaterEligibilityReason = data.reason || '';
+        this.payLaterDeadline = data.deadline || '';
+        this.payLaterEligibilityChecked = true;
+        this.payLaterLoading = false;
+      },
+      error: () => { this.payLaterEligibilityChecked = true; this.payLaterLoading = false; }
     });
   }
 
@@ -220,6 +259,11 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
   }
 
   onConfirmPayClick(): void {
+    // Route to Pay Later if selected
+    if (this.usePayLater) {
+      this.confirmPayLater();
+      return;
+    }
     if (!this.fullyPaidByWallet && this.payMethod === 'CARD') {
       this.paySubmitted = true;
       if (this.cardNumber.length !== 12 || !this.isValidExpiry(this.cardExpiry) || this.cardCvv.length !== 3) {
@@ -300,6 +344,117 @@ export class CustomerAppointmentsComponent implements OnInit, OnDestroy {
         this.payLoading = false;
       }
     });
+  }
+
+  /** Opt in to Pay Later — defers payment for 24 hours */
+  confirmPayLater(): void {
+    if (!this.payingAppt) return;
+    this.payLoading = true;
+    this.payError = '';
+    this.http.post<any>(`${BASE}/api/pay-later/opt-in/${this.payingAppt.id}`, {}).subscribe({
+      next: (res) => {
+        this.payLoading = false;
+        this.paySuccess = `✅ Pay Later activated! Amount ₹${res.amount} due by ${res.deadline}. You can settle anytime before the deadline.`;
+        // Reload appointments so the Settle button appears — don't mark complete
+        setTimeout(() => { this.closePay(); this.load(); }, 2500);
+      },
+      error: (err: any) => {
+        this.payError = err?.error?.message || 'Pay Later opt-in failed. Please try again.';
+        this.payLoading = false;
+      }
+    });
+  }
+
+  // ── Pay Later Settlement modal ─────────────────────────────────────────────
+
+  openSettle(appt: AppointmentResponse): void {
+    this.settlingAppt = appt;
+    this.settleMethod = 'CASH';
+    this.settleCardNumber = '';
+    this.settleCardExpiry = '';
+    this.settleCardCvv = '';
+    this.settleError = '';
+    this.settleSuccess = '';
+    this.settleUseWallet = false;
+    this.settleWalletBalance = 0;
+    this.settleLoading = false;
+    this.settleSubmitted = false;
+    this.http.get<{ balance: number }>(`${BASE}/api/wallet/balance`).subscribe({
+      next: d => { this.settleWalletBalance = d.balance; },
+      error: () => {}
+    });
+  }
+
+  closeSettle(): void { this.settlingAppt = null; }
+
+  get settleWalletDeduction(): number {
+    if (!this.settleUseWallet || !this.settlingAppt) return 0;
+    return Math.min(this.settleWalletBalance, this.settlingAppt.servicePrice);
+  }
+
+  get settleRemaining(): number {
+    if (!this.settlingAppt) return 0;
+    return Math.max(0, this.settlingAppt.servicePrice - this.settleWalletDeduction);
+  }
+
+  get settleFullyByWallet(): boolean {
+    return this.settleUseWallet && this.settleRemaining === 0;
+  }
+
+  get settleCardValid(): boolean {
+    if (this.settleMethod !== 'CARD') return true;
+    return this.settleCardNumber.length === 12 && this.settleCardExpiry.length === 5 && this.settleCardCvv.length === 3;
+  }
+
+  onConfirmSettleClick(): void {
+    if (!this.settleFullyByWallet && this.settleMethod === 'CARD') {
+      this.settleSubmitted = true;
+      if (!this.settleCardValid) return;
+    }
+    this.confirmSettle();
+  }
+
+  onSettleCardInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.settleCardNumber = val.replace(/[^0-9]/g, '').slice(0, 12);
+    (event.target as HTMLInputElement).value = this.settleCardNumber;
+  }
+
+  onSettleCvvInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value;
+    this.settleCardCvv = val.replace(/[^0-9]/g, '').slice(0, 3);
+    (event.target as HTMLInputElement).value = this.settleCardCvv;
+  }
+
+  confirmSettle(): void {
+    if (!this.settlingAppt) return;
+    this.settleLoading = true;
+    this.settleError = '';
+    const body: any = {
+      method: this.settleFullyByWallet ? 'WALLET' : this.settleMethod,
+      walletAmountUsed: this.settleWalletDeduction
+    };
+    this.http.post<any>(`${BASE}/api/pay-later/settle/${this.settlingAppt.id}`, body).subscribe({
+      next: () => {
+        // Mark appointment as completed after successful settlement
+        this.http.patch(`${BASE}/api/appointments/${this.settlingAppt!.id}/complete`, {}).subscribe({
+          next: () => {},
+          error: () => {}
+        });
+        this.settleLoading = false;
+        this.settleSuccess = '✅ Pay Later settled successfully! Service marked as completed.';
+        setTimeout(() => { this.closeSettle(); this.load(); this.loadPaymentHistory(); }, 1800);
+      },
+      error: (err: any) => {
+        this.settleError = err?.error?.message || 'Settlement failed. Please try again.';
+        this.settleLoading = false;
+      }
+    });
+  }
+
+  /** Check if an appointment has a pending Pay Later payment */
+  hasPayLaterPending(appt: AppointmentResponse): boolean {
+    return appt.payments?.some((p: any) => p.status === 'PAY_LATER_PENDING') ?? false;
   }
 
   // ── Review modal ──────────────────────────────────────────────────────────
