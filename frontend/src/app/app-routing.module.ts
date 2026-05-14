@@ -4,7 +4,11 @@ import { AuthGuard } from './guards/auth.guard';
 import { NoAuthGuard } from './guards/no-auth.guard';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'auth', pathMatch: 'full' },
+  {
+    path: '',
+    loadChildren: () =>
+      import('./features/home/home.module').then(m => m.HomeModule)
+  },
 
   {
     path: 'auth',

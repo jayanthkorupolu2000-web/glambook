@@ -142,12 +142,12 @@
 <!-- ══════════════════════════════════════════════════════════
      Edit Salon Owner Modal — all logic unchanged
      ══════════════════════════════════════════════════════════ -->
-<div class="modal-backdrop fade show" *ngIf="showEditModal" (click)="closeEditModal()"></div>
+<div class="modal-backdrop fade show" *ngIf="showEditModal" (click)="closeEditModal()" style="pointer-events:auto;"></div>
 
 <div class="modal fade show d-block" tabindex="-1" role="dialog"
-     *ngIf="showEditModal" aria-modal="true">
+     *ngIf="showEditModal" aria-modal="true" style="pointer-events:none;">
   <div class="modal-dialog modal-dialog-centered" role="document"
-       (click)="$event.stopPropagation()">
+       (click)="$event.stopPropagation()" style="pointer-events:auto;">
     <div class="so-modal">
 
       <!-- Header -->

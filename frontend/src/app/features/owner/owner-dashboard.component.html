@@ -1,32 +1,55 @@
-<div class="d-flex min-vh-100" style="background:#f8f9fa;">
+<div class="od-shell">
 
-  <!-- Sidebar -->
-  <div class="d-flex flex-column border-end bg-white shadow-sm"
-       style="width:220px;min-height:100vh;flex-shrink:0;">
+  <!-- Floating hamburger — shown when sidebar is closed -->
+  <button class="od-fab-hamburger" *ngIf="!sidebarOpen" (click)="toggleSidebar()" aria-label="Open sidebar">
+    <span></span><span></span><span></span>
+  </button>
 
-    <div class="text-center py-4 px-3 border-bottom">
-      <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
-           style="width:52px;height:52px;background:#334155;color:#fff;font-size:1.3rem;font-weight:700;">
-        {{ ownerName.charAt(0) }}
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="od-sidebar" [class.od-sidebar--open]="sidebarOpen">
+
+    <!-- Sticky topbar: Glambook brand + toggle button -->
+    <div class="od-sidebar__topbar">
+      <div class="od-sidebar__brand">
+        <div class="od-sidebar__brand-icon">✂</div>
+        <div class="od-sidebar__brand-text">
+          <span class="od-sidebar__brand-name">{{ ownerName }}</span>
+          <span class="od-sidebar__brand-sub">🏪 Salon Owner Portal</span>
+        </div>
       </div>
-      <div class="fw-semibold small">{{ ownerName }}</div>
-      <div class="text-muted" style="font-size:.75rem;">Salon Owner</div>
+      <button class="od-sidebar__toggle" (click)="toggleSidebar()" aria-label="Close sidebar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
 
-    <nav class="flex-fill py-2 px-2">
+    <!-- Scrollable content -->
+    <div class="od-sidebar__scroll">
+
+    <!-- Profile -->
+    <div class="od-sidebar__profile">
+      <div class="od-sidebar__avatar">{{ ownerName.charAt(0) }}</div>
+      <div class="od-sidebar__name">{{ ownerName }}</div>
+      <div class="od-sidebar__role">Salon Owner</div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="od-sidebar__nav">
       <button *ngFor="let link of sidebarLinks"
-              class="owner-nav-btn w-100 text-start rounded px-3 py-2 mb-1 d-flex align-items-center gap-2"
-              [class.owner-nav-active]="activeSection === link.id"
+              class="od-nav-btn"
+              [class.od-nav-active]="activeSection === link.id"
               (click)="navigate(link.id)">
-        <span>{{ link.icon }}</span>
-        <span class="small fw-semibold">{{ link.label }}</span>
+        <span class="od-nav-btn__icon">{{ link.icon }}</span>
+        <span class="od-nav-btn__label">{{ link.label }}</span>
       </button>
     </nav>
-  </div>
 
-  <!-- Main content -->
-  <div class="flex-fill overflow-auto">
+    </div>
+
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="od-main">
     <router-outlet></router-outlet>
-  </div>
+  </main>
 
 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminService, AdminUsersResponse, SalonOwnerEditResponse } from '../../services/admin.service';
 
@@ -15,7 +15,8 @@ interface UserTableRow {
 @Component({
   selector: 'app-user-management',
   templateUrl: './user-management.component.html',
-  styleUrls: ['./user-management.component.scss']
+  styleUrls: ['./user-management.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class UserManagementComponent implements OnInit {
   users: UserTableRow[] = [];
@@ -38,8 +39,9 @@ export class UserManagementComponent implements OnInit {
   ngOnInit(): void {
     this.loadUsers();
     this.editForm = this.fb.group({
-      name:  ['', [Validators.required, Validators.minLength(2)]],
-      phone: ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]]
+      name:      ['', [Validators.required, Validators.minLength(2)]],
+      phone:     ['', [Validators.required, Validators.pattern(/^[6-9]\d{9}$/)]],
+      salonName: ['', [Validators.required, Validators.minLength(2)]]
     });
   }
 
@@ -64,7 +66,7 @@ export class UserManagementComponent implements OnInit {
     this.editTarget = user;
     this.editError = null;
     this.editSuccess = null;
-    this.editForm.reset({ name: user.name, phone: user.phone ?? '' });
+    this.editForm.reset({ name: user.name, phone: user.phone ?? '', salonName: user.additionalInfo ?? '' });
     this.showEditModal = true;
   }
 
@@ -81,9 +83,9 @@ export class UserManagementComponent implements OnInit {
     this.editError = null;
     this.editSuccess = null;
 
-    const { name, phone } = this.editForm.value;
+    const { name, phone, salonName } = this.editForm.value;
 
-    this.adminService.editSalonOwner(this.editTarget.id, { name, phone }).subscribe({
+    this.adminService.editSalonOwner(this.editTarget.id, { name, phone, salonName }).subscribe({
       next: (updated: SalonOwnerEditResponse) => {
         const idx = this.users.findIndex(u => u.id === updated.id);
         if (idx !== -1) {
@@ -154,6 +156,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   // Convenience getters for template
-  get nameCtrl() { return this.editForm.get('name')!; }
-  get phoneCtrl() { return this.editForm.get('phone')!; }
+  get nameCtrl()      { return this.editForm.get('name')!; }
+  get phoneCtrl()     { return this.editForm.get('phone')!; }
+  get salonNameCtrl() { return this.editForm.get('salonName')!; }
 }

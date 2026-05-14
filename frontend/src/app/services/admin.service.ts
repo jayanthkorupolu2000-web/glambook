@@ -14,6 +14,7 @@ export interface AdminUsersResponse {
 export interface SalonOwnerEditRequest {
   name: string;
   phone: string;
+  salonName: string;
 }
 
 export interface SalonOwnerEditResponse {

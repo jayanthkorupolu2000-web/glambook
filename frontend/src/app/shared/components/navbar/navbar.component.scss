@@ -1,6 +1,40 @@
 nav.navbar.custom-navbar {
-  background-color: #334155 !important;
+  background: linear-gradient(135deg, #0d1b3e 0%, #1a3a6e 100%) !important;
   min-height: 56px;
+  box-shadow: 0 2px 16px rgba(13, 27, 62, 0.35);
+}
+
+/* ── Navbar hamburger button ──────────────────────────────────── */
+.nb-hamburger {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  border: 1.5px solid rgba(255,255,255,0.28);
+  background: rgba(255,255,255,0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.18s, border-color 0.18s;
+  padding: 0;
+
+  span {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: #ffffff;
+    border-radius: 2px;
+    transition: transform 0.22s ease, opacity 0.2s ease, width 0.2s ease;
+    transform-origin: center;
+  }
+
+  &:hover {
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.5);
+  }
 }
 
 .navbar-brand {
@@ -11,22 +45,22 @@ nav.navbar.custom-navbar {
 }
 
 .nav-link {
-  color: rgba(255, 255, 255, 0.85) !important;
+  color: rgba(255, 255, 255, 0.80) !important;
   font-weight: 500;
   font-size: 0.875rem;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 0.4rem 0.75rem !important;
   transition: background-color 0.15s ease, color 0.15s ease;
 
   &:hover {
     color: #ffffff !important;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.12);
   }
 
   &.active {
     color: #ffffff !important;
-    background-color: rgba(255, 255, 255, 0.15);
-    font-weight: 600;
+    background-color: rgba(255, 255, 255, 0.18);
+    font-weight: 700;
   }
 }
 
@@ -40,22 +74,32 @@ nav.navbar.custom-navbar {
 }
 
 .dropdown-menu {
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: #0d1b3e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(13, 27, 62, 0.45);
   border-radius: 10px;
 }
 
 .dropdown-item {
   font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.80);
   transition: background-color 0.15s ease;
   border-radius: 6px;
   margin: 2px 4px;
   width: calc(100% - 8px);
 
   &:hover {
-    background-color: #F1F5F9;
-    color: #1E293B;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
   }
+}
+
+.dropdown-item-text {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 @media (max-width: 991.98px) {

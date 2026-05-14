@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ComplaintResponse } from '../../../models/complaint.model';
 import { ComplaintService } from '../../../services/complaint.service';
@@ -6,7 +6,8 @@ import { ComplaintService } from '../../../services/complaint.service';
 @Component({
   selector: 'app-admin-complaints',
   templateUrl: './admin-complaints.component.html',
-  styleUrls: ['./admin-complaints.component.scss']
+  styleUrls: ['./admin-complaints.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class AdminComplaintsComponent implements OnInit {
   complaints: ComplaintResponse[] = [];
@@ -21,6 +22,7 @@ export class AdminComplaintsComponent implements OnInit {
   selectedComplaint: ComplaintResponse | null = null;
   resolutionNotes = '';
   mediating = false;
+  showMediateModal = false;
 
   constructor(private complaintService: ComplaintService) {}
 
@@ -64,7 +66,16 @@ export class AdminComplaintsComponent implements OnInit {
   }
 
   openMediate(complaint: ComplaintResponse): void {
-    this.selectedComplaint = complaint;
+    if (complaint.status === 'OPEN' || complaint.status === 'FORWARDED') {
+      this.selectedComplaint = complaint;
+      this.resolutionNotes = '';
+      this.showMediateModal = true;
+    }
+  }
+
+  closeMediate(): void {
+    this.showMediateModal = false;
+    this.selectedComplaint = null;
     this.resolutionNotes = '';
   }
 
@@ -76,7 +87,7 @@ export class AdminComplaintsComponent implements OnInit {
         const idx = this.complaints.findIndex(c => c.id === updated.id);
         if (idx !== -1) this.complaints[idx] = updated;
         this.applyFilter();
-        this.selectedComplaint = null;
+        this.closeMediate();
         this.mediating = false;
       },
       error: () => { alert('Failed to mediate.'); this.mediating = false; }

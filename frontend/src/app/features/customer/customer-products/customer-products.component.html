@@ -143,11 +143,11 @@
 
         <!-- Pagination -->
         <div *ngIf="totalPages > 1" class="prod-pagination">
-          <button class="btn-page" (click)="load(currentPage - 1)" [disabled]="currentPage === 0">‹</button>
-          <button *ngFor="let p of pageNumbers()" class="btn-page"
-                  [class.active]="p === currentPage"
-                  (click)="load(p)">{{ p + 1 }}</button>
-          <button class="btn-page" (click)="load(currentPage + 1)" [disabled]="currentPage === totalPages - 1">›</button>
+          <button class="btn-page btn-page--nav" (click)="load(currentPage - 1)" [disabled]="currentPage === 0">‹‹</button>
+          <span class="prod-pagination__info">
+            Page <strong>{{ currentPage + 1 }}</strong> of <strong>{{ totalPages }}</strong>
+          </span>
+          <button class="btn-page btn-page--nav" (click)="load(currentPage + 1)" [disabled]="currentPage === totalPages - 1">››</button>
         </div>
       </ng-container>
 
@@ -183,24 +183,24 @@
 
       <!-- Tabs -->
       <div class="px-3 pt-2">
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs prod-modal-tabs">
           <li class="nav-item">
-            <button class="nav-link fw-semibold"
-                    [class.active]="orderModalTab === 'order'"
+            <button class="nav-link prod-tab-btn"
+                    [class.prod-tab-btn--active]="orderModalTab === 'order'"
                     (click)="orderModalTab = 'order'">
               🛒 Order
             </button>
           </li>
           <li class="nav-item">
-            <button class="nav-link fw-semibold"
-                    [class.active]="orderModalTab === 'ingredients'"
+            <button class="nav-link prod-tab-btn"
+                    [class.prod-tab-btn--active]="orderModalTab === 'ingredients'"
                     (click)="orderModalTab = 'ingredients'">
               🧪 Ingredients
             </button>
           </li>
           <li class="nav-item">
-            <button class="nav-link fw-semibold"
-                    [class.active]="orderModalTab === 'reviews'"
+            <button class="nav-link prod-tab-btn"
+                    [class.prod-tab-btn--active]="orderModalTab === 'reviews'"
                     (click)="orderModalTab = 'reviews'">
               ⭐ Reviews
               <span *ngIf="orderModalReviews.length > 0"

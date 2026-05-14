@@ -1,0 +1,324 @@
+<!-- ═══════════════════════════════════════════════════════════
+     GLAMBOOK — Landing / Home Page
+     ═══════════════════════════════════════════════════════════ -->
+<div class="gh-page">
+
+  <!-- ── Top Nav ──────────────────────────────────────────── -->
+  <header class="gh-nav">
+    <div class="gh-nav__inner">
+      <div class="gh-nav__brand">
+        <i class="fa-solid fa-scissors gh-nav__brand-icon"></i>
+        <div>
+          <div class="gh-nav__brand-name">glambook</div>
+          <div class="gh-nav__brand-tagline">Look Good. Feel Confident.</div>
+        </div>
+      </div>
+      <nav class="gh-nav__links">
+        <a href="#services">Services</a>
+        <a href="#women">For Women</a>
+        <a href="#men">For Men</a>
+        <a href="#why">Why Us</a>
+      </nav>
+      <button class="gh-nav__cta" (click)="getStarted()">
+        Book Appointment
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Hero ─────────────────────────────────────────────── -->
+  <section class="gh-hero">
+    <div class="gh-hero__left">
+      <p class="gh-hero__eyebrow">Premium Salon Services</p>
+      <h1 class="gh-hero__title">
+        Your Style.<br>Our Expertise.
+      </h1>
+      <div class="gh-hero__divider">
+        <span></span><i class="fa-solid fa-star"></i><span></span>
+      </div>
+      <p class="gh-hero__sub">
+        Premium Salon Services for<br>
+        <em>Women &amp; Men</em>
+      </p>
+      <div class="gh-hero__actions">
+        <button class="gh-btn gh-btn--primary" (click)="getStarted()">
+          Get Started <i class="fa-solid fa-arrow-right ms-2"></i>
+        </button>
+        <button class="gh-btn gh-btn--outline" (click)="getStarted()">
+          Book Now <i class="fa-regular fa-calendar ms-2"></i>
+        </button>
+      </div>
+    </div>
+    <div class="gh-hero__right">
+      <div class="gh-hero__img-wrap">
+        <div class="gh-hero__salon-card">
+          <div class="gh-salon-logo">
+            <i class="fa-solid fa-scissors"></i>
+          </div>
+          <div class="gh-salon-name">glambook</div>
+          <div class="gh-salon-tag">Look Good. Feel Confident.</div>
+        </div>
+        <div class="gh-hero__blob gh-hero__blob--1"></div>
+        <div class="gh-hero__blob gh-hero__blob--2"></div>
+        <div class="gh-hero__blob gh-hero__blob--3"></div>
+        <!-- Floating stat cards -->
+        <div class="gh-stat gh-stat--1">
+          <span class="gh-stat__num">500+</span>
+          <span class="gh-stat__label">Happy Clients</span>
+        </div>
+        <div class="gh-stat gh-stat--2">
+          <span class="gh-stat__num">50+</span>
+          <span class="gh-stat__label">Professionals</span>
+        </div>
+        <div class="gh-stat gh-stat--3">
+          <i class="fa-solid fa-star"></i>
+          <span class="gh-stat__num">4.9</span>
+          <span class="gh-stat__label">Rating</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Services ─────────────────────────────────────────── -->
+  <section class="gh-services" id="services">
+
+    <!-- ── General & Premium ── -->
+    <div class="gh-svc-block">
+      <div class="gh-svc-block__header gh-svc-block__header--general">
+        <span class="gh-svc-block__badge">✦ General & Premium</span>
+        <h2 class="gh-svc-block__title">All-Round Services</h2>
+        <p class="gh-svc-block__sub">Available for everyone — walk in or book ahead</p>
+      </div>
+      <div class="gh-svc-grid gh-svc-grid--4">
+        <div class="gh-svc-card gh-svc-card--general">
+          <div class="gh-svc-card__emoji">✨</div>
+          <div class="gh-svc-card__name">Skin Care</div>
+          <div class="gh-svc-card__desc">Glow treatments & hydration therapy</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--both">Both</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--general">
+          <div class="gh-svc-card__emoji">💆</div>
+          <div class="gh-svc-card__name">Spa & Body</div>
+          <div class="gh-svc-card__desc">Relaxing massages & body scrubs</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--both">Both</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--general">
+          <div class="gh-svc-card__emoji">🎁</div>
+          <div class="gh-svc-card__name">Packages</div>
+          <div class="gh-svc-card__desc">Bridal, party & grooming bundles</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--both">Both</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--general">
+          <div class="gh-svc-card__emoji">🧖</div>
+          <div class="gh-svc-card__name">D-Tan & Waxing</div>
+          <div class="gh-svc-card__desc">Full body waxing & tan removal</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--both">Both</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── For Women ── -->
+    <div class="gh-svc-block" id="women">
+      <div class="gh-svc-block__header gh-svc-block__header--women">
+        <span class="gh-svc-block__badge">♀ For Women</span>
+        <h2 class="gh-svc-block__title">Women's Services</h2>
+        <p class="gh-svc-block__sub">Curated beauty treatments designed for her</p>
+      </div>
+      <div class="gh-svc-grid gh-svc-grid--4">
+        <div class="gh-svc-card gh-svc-card--women">
+          <div class="gh-svc-card__emoji">💇‍♀️</div>
+          <div class="gh-svc-card__name">Hair Care</div>
+          <div class="gh-svc-card__desc">Cut, colour, keratin & styling</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--women">Women</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--women">
+          <div class="gh-svc-card__emoji">💄</div>
+          <div class="gh-svc-card__name">Makeup</div>
+          <div class="gh-svc-card__desc">Bridal, party & everyday looks</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--women">Women</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--women">
+          <div class="gh-svc-card__emoji">💅</div>
+          <div class="gh-svc-card__name">Nail Art</div>
+          <div class="gh-svc-card__desc">Gel, acrylic & nail extensions</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--women">Women</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--women">
+          <div class="gh-svc-card__emoji">💆‍♀️</div>
+          <div class="gh-svc-card__name">Facial</div>
+          <div class="gh-svc-card__desc">Gold, fruit & brightening facials</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--women">Women</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--women">
+          <div class="gh-svc-card__emoji">🧵</div>
+          <div class="gh-svc-card__name">Threading</div>
+          <div class="gh-svc-card__desc">Eyebrow shaping & face threading</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--women">Women</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--women">
+          <div class="gh-svc-card__emoji">🌸</div>
+          <div class="gh-svc-card__name">Bleach & Cleanup</div>
+          <div class="gh-svc-card__desc">Skin brightening & deep cleanse</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--women">Women</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--women">
+          <div class="gh-svc-card__emoji">💎</div>
+          <div class="gh-svc-card__name">Manicure & Pedicure</div>
+          <div class="gh-svc-card__desc">Luxury hand & foot treatments</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--women">Women</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--women">
+          <div class="gh-svc-card__emoji">👰</div>
+          <div class="gh-svc-card__name">Bridal Package</div>
+          <div class="gh-svc-card__desc">Complete bridal beauty experience</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--women">Women</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── For Men ── -->
+    <div class="gh-svc-block" id="men">
+      <div class="gh-svc-block__header gh-svc-block__header--men">
+        <span class="gh-svc-block__badge">♂ For Men</span>
+        <h2 class="gh-svc-block__title">Men's Services</h2>
+        <p class="gh-svc-block__sub">Sharp grooming for the modern gentleman</p>
+      </div>
+      <div class="gh-svc-grid gh-svc-grid--4">
+        <div class="gh-svc-card gh-svc-card--men">
+          <div class="gh-svc-card__emoji">💈</div>
+          <div class="gh-svc-card__name">Hair Cut</div>
+          <div class="gh-svc-card__desc">Classic cuts, fades & styling</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--men">Men</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--men">
+          <div class="gh-svc-card__emoji">🧔</div>
+          <div class="gh-svc-card__name">Beard Care</div>
+          <div class="gh-svc-card__desc">Trim, shape, colour & styling</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--men">Men</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--men">
+          <div class="gh-svc-card__emoji">🪒</div>
+          <div class="gh-svc-card__name">Clean Shave</div>
+          <div class="gh-svc-card__desc">Hot towel & straight razor shave</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--men">Men</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--men">
+          <div class="gh-svc-card__emoji">💆‍♂️</div>
+          <div class="gh-svc-card__name">Head Massage</div>
+          <div class="gh-svc-card__desc">Scalp & stress relief therapy</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--men">Men</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--men">
+          <div class="gh-svc-card__emoji">🧴</div>
+          <div class="gh-svc-card__name">Hair Treatment</div>
+          <div class="gh-svc-card__desc">Anti-dandruff & hair loss care</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--men">Men</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--men">
+          <div class="gh-svc-card__emoji">🧖‍♂️</div>
+          <div class="gh-svc-card__name">Men's Facial</div>
+          <div class="gh-svc-card__desc">Deep cleanse & skin brightening</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--men">Men</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--men">
+          <div class="gh-svc-card__emoji">✂️</div>
+          <div class="gh-svc-card__name">Full Grooming</div>
+          <div class="gh-svc-card__desc">Complete head-to-toe package</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--men">Men</span>
+        </div>
+        <div class="gh-svc-card gh-svc-card--men">
+          <div class="gh-svc-card__emoji">👂</div>
+          <div class="gh-svc-card__name">Ear & Nose Wax</div>
+          <div class="gh-svc-card__desc">Quick & precise grooming</div>
+          <span class="gh-svc-card__pill gh-svc-card__pill--men">Men</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── Why Choose ───────────────────────────────────────── -->
+  <section class="gh-why" id="why">
+    <div class="gh-section-head">
+      <span></span>WHY CHOOSE GLAMBOOK?<span></span>
+    </div>
+    <div class="gh-why__grid">
+      <div class="gh-why-card">
+        <div class="gh-why-card__icon-wrap gh-why-card__icon-wrap--blue">
+          <span>🛡️</span>
+        </div>
+        <div class="gh-why-card__body">
+          <div class="gh-why-card__title">Expert Professionals</div>
+          <div class="gh-why-card__desc">Trained specialists dedicated to giving you the perfect look every time.</div>
+        </div>
+      </div>
+      <div class="gh-why-card">
+        <div class="gh-why-card__icon-wrap gh-why-card__icon-wrap--green">
+          <span>🌿</span>
+        </div>
+        <div class="gh-why-card__body">
+          <div class="gh-why-card__title">Premium Products</div>
+          <div class="gh-why-card__desc">We use only top-quality, skin-safe products for the best care.</div>
+        </div>
+      </div>
+      <div class="gh-why-card">
+        <div class="gh-why-card__icon-wrap gh-why-card__icon-wrap--teal">
+          <span>✅</span>
+        </div>
+        <div class="gh-why-card__body">
+          <div class="gh-why-card__title">Hygiene & Safety</div>
+          <div class="gh-why-card__desc">Your safety and comfort are our top priority at every visit.</div>
+        </div>
+      </div>
+      <div class="gh-why-card">
+        <div class="gh-why-card__icon-wrap gh-why-card__icon-wrap--rose">
+          <span>🎨</span>
+        </div>
+        <div class="gh-why-card__body">
+          <div class="gh-why-card__title">Customized Experience</div>
+          <div class="gh-why-card__desc">Personalized services tailored to your unique style and needs.</div>
+        </div>
+      </div>
+      <div class="gh-why-card">
+        <div class="gh-why-card__icon-wrap gh-why-card__icon-wrap--purple">
+          <span>📅</span>
+        </div>
+        <div class="gh-why-card__body">
+          <div class="gh-why-card__title">Easy Booking</div>
+          <div class="gh-why-card__desc">Book appointments in seconds, anytime from anywhere.</div>
+        </div>
+      </div>
+      <div class="gh-why-card">
+        <div class="gh-why-card__icon-wrap gh-why-card__icon-wrap--gold">
+          <span>⭐</span>
+        </div>
+        <div class="gh-why-card__body">
+          <div class="gh-why-card__title">Loyalty Rewards</div>
+          <div class="gh-why-card__desc">Earn points on every visit and enjoy exclusive member perks.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA Banner ───────────────────────────────────────── -->
+  <section class="gh-cta">
+    <div class="gh-cta__inner">
+      <h2 class="gh-cta__title">Ready to Look Your Best?</h2>
+      <p class="gh-cta__sub">Join thousands of happy clients. Book your first appointment today.</p>
+      <button class="gh-btn gh-btn--white" (click)="getStarted()">
+        Get Started — It's Free <i class="fa-solid fa-arrow-right ms-2"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Footer ───────────────────────────────────────────── -->
+  <footer class="gh-footer">
+    <div class="gh-footer__inner">
+      <div class="gh-footer__brand">
+        <i class="fa-solid fa-scissors me-2"></i>glambook
+        <div class="gh-footer__tagline">Look Good. Feel Confident.</div>
+      </div>
+      <div class="gh-footer__copy">© 2026 Glambook. All rights reserved.</div>
+    </div>
+  </footer>
+
+</div>

@@ -1,8 +1,9 @@
 <div class="dash-page">
 
-  <!-- ── Welcome ──────────────────────────────────────────────────────────── -->
+  <!-- ── Hero Header ──────────────────────────────────────────────────────── -->
   <div class="welcome-header">
     <div class="welcome-text">
+      <div class="welcome-eyebrow">Salon Owner</div>
       <h4 class="welcome-title">Welcome back, {{ ownerName }}!</h4>
       <p class="welcome-sub">Here's your salon's performance overview.</p>
     </div>
@@ -17,6 +18,8 @@
       {{ today | date:'EEEE, dd MMM yyyy' }}
     </div>
   </div>
+
+  <div class="dash-content">
 
   <!-- ── Loading ──────────────────────────────────────────────────────────── -->
   <div *ngIf="loading" class="loading-wrap">
@@ -263,5 +266,6 @@
       </div>
     </div>
 
-  </div>
+  </div><!-- /.dash-content -->
+
 </div>

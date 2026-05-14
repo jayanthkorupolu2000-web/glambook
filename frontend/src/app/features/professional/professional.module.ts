@@ -16,6 +16,7 @@ import { ProfProfileComponent } from './prof-profile/prof-profile.component';
 import { ProfReviewsComponent } from './prof-reviews/prof-reviews.component';
 import { ProfScheduleComponent } from './prof-schedule/prof-schedule.component';
 import { ProfServicesComponent } from './prof-services/prof-services.component';
+import { ProfSidebarComponent } from './prof-sidebar/prof-sidebar.component';
 import { ProfessionalDashboardComponent } from './professional-dashboard.component';
 
 const routes: Routes = [
@@ -42,6 +43,7 @@ const routes: Routes = [
 @NgModule({
   declarations: [
     ProfessionalDashboardComponent,
+    ProfSidebarComponent,
     ProfDashboardComponent,
     ProfProfileComponent,
     ProfServicesComponent,

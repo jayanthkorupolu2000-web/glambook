@@ -1,19 +1,22 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { CustomerDashboardDTO } from '../../models/customer.model';
 import { AuthService } from '../../services/auth.service';
 import { CustomerDashboardService } from '../../services/customer-dashboard.service';
+import { SidebarToggleService } from '../../services/sidebar-toggle.service';
 
 @Component({
   selector: 'app-customer-dashboard',
   templateUrl: './customer-dashboard.component.html',
   styleUrls: ['./customer-dashboard.component.scss']
 })
-export class CustomerDashboardComponent implements OnInit {
+export class CustomerDashboardComponent implements OnInit, OnDestroy {
   dashboard: CustomerDashboardDTO | null = null;
   activeSection = 'home';
   sidebarOpen = true;
+  private toggleSub?: Subscription;
 
   sidebarLinks = [
     { id: 'home',          icon: '🏠', label: 'Dashboard' },
@@ -32,7 +35,8 @@ export class CustomerDashboardComponent implements OnInit {
   constructor(
     private auth: AuthService,
     private router: Router,
-    private dashboardService: CustomerDashboardService
+    private dashboardService: CustomerDashboardService,
+    private sidebarToggleService: SidebarToggleService
   ) {}
 
   ngOnInit(): void {
@@ -56,6 +60,13 @@ export class CustomerDashboardComponent implements OnInit {
     this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe((e: any) => this.syncActiveSection(e.urlAfterRedirects || e.url));
+
+    // Listen to navbar hamburger
+    this.toggleSub = this.sidebarToggleService.toggle$.subscribe(() => this.toggleSidebar());
+  }
+
+  ngOnDestroy(): void {
+    this.toggleSub?.unsubscribe();
   }
 
   private syncActiveSection(url: string): void {

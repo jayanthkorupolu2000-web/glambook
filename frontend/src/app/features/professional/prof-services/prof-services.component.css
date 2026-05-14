@@ -1,207 +1,371 @@
 /* ═══════════════════════════════════════════════════════════════════
    Professional Services — Component Styles
-   Theme: Deep slate #2d4a6e + warm accents
+   Theme: Blush bg · navy hero · rose accent (matches Glambook palette)
 ═══════════════════════════════════════════════════════════════════ */
 
 :host {
   --primary:      #2d4a6e;
   --primary-lt:   #3a5f8a;
-  --accent:       #e8734a;
+  --rose:         #e8547a;
+  --rose-lt:      #fce8ee;
+  --rose-border:  #f4b8c8;
   --success:      #1a9e5c;
   --success-bg:   #e6f9f0;
   --warning:      #c77c00;
   --warning-bg:   #fff8e1;
   --danger:       #c0392b;
   --danger-bg:    #fdecea;
-  --border:       #e4e8f0;
-  --bg-page:      #f2f5fa;
+  --border:       #dde3ef;
+  --border-focus: #2d4a6e;
+  --bg-page:      #f7f0f4;
   --bg-card:      #ffffff;
+  --bg-input:     #fafbfd;
   --text-main:    #1e2340;
   --text-muted:   #8a90a0;
+  --text-label:   #3d4460;
+  --shadow-card:  0 4px 24px rgba(45,74,110,.10);
+  --shadow-focus: 0 0 0 3px rgba(45,74,110,.13);
 }
 
 /* ── Page ─────────────────────────────────────────────────────────── */
-.svc-page {
+.ps-page {
   background: var(--bg-page);
   min-height: 100vh;
-  padding: 2rem 1.5rem;
+  padding: 0 0 3rem;
 }
 
-/* ── Header ───────────────────────────────────────────────────────── */
-.page-header {
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.ps-hero {
+  background: linear-gradient(135deg, #1e2d45 0%, #2d4a6e 60%, #3a5f8a 100%);
+  padding: 2.2rem 2rem 2rem;
+  margin-bottom: 1.75rem;
+}
+.ps-hero__inner {
+  max-width: 1100px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
-.page-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--primary);
+.ps-hero__eyebrow {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.65);
+  margin: 0 0 .35rem;
+}
+.ps-hero__title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 .25rem;
+  letter-spacing: -.01em;
+}
+.ps-hero__sub {
+  font-size: .88rem;
+  color: rgba(255,255,255,.7);
   margin: 0;
 }
 
-/* ── Alert banners ────────────────────────────────────────────────── */
-.svc-alert {
-  padding: .6rem 1rem;
-  border-radius: 8px;
-  font-size: .88rem;
-  font-weight: 500;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-}
-.svc-alert.success { background: var(--success-bg); color: var(--success); border-left: 3px solid var(--success); }
-.svc-alert.warning { background: var(--warning-bg); color: var(--warning); border-left: 3px solid #f5a623; }
-.svc-alert.danger  { background: var(--danger-bg);  color: var(--danger);  border-left: 3px solid var(--danger); }
-.svc-alert.error   { background: var(--danger-bg);  color: var(--danger);  border-left: 3px solid var(--danger); }
-
-/* ── Add Service card ─────────────────────────────────────────────── */
-.form-card {
-  background: var(--bg-card);
-  border-radius: 14px;
-  box-shadow: 0 2px 16px rgba(45,74,110,.09);
-  padding: 1.75rem;
-  margin-bottom: 1.5rem;
-}
-.form-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 1.25rem;
-}
-
-/* Quick-pick panel */
-.quick-pick {
-  background: linear-gradient(135deg, #eef2f8 0%, #e4eaf5 100%);
-  border: 1px solid #c5d0e0;
-  border-radius: 10px;
-  padding: .9rem 1.1rem;
-  margin-bottom: 1.25rem;
-}
-.quick-pick-label {
-  font-size: .8rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: .5rem;
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-}
-.quick-pick-label svg { width: 14px; height: 14px; }
-
-/* Form controls */
-.form-label {
-  font-size: .8rem;
-  font-weight: 600;
-  color: #444;
-  margin-bottom: .3rem;
-}
-.form-control, .form-select {
-  border-radius: 8px;
-  border: 1.5px solid var(--border);
-  font-size: .88rem;
-  transition: border-color .2s, box-shadow .2s;
-}
-.form-control:focus, .form-select:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(45,74,110,.1);
-  outline: none;
-}
-
-/* ── Buttons ──────────────────────────────────────────────────────── */
-.btn-primary {
-  background: var(--primary);
+/* ── Hero add/cancel button ───────────────────────────────────────── */
+.ps-add-btn {
+  background: var(--rose);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: .5rem 1.3rem;
-  font-size: .85rem;
-  font-weight: 600;
+  border-radius: 10px;
+  padding: .6rem 1.4rem;
+  font-size: .88rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background .2s;
   display: inline-flex;
   align-items: center;
   gap: .4rem;
+  transition: background .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 3px 12px rgba(232,84,122,.35);
+  white-space: nowrap;
 }
-.btn-primary:hover:not(:disabled) { background: var(--primary-lt); }
-.btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+.ps-add-btn:hover { background: #d43d6a; transform: translateY(-1px); box-shadow: 0 5px 16px rgba(232,84,122,.4); }
+.ps-add-btn--cancel { background: rgba(255,255,255,.15); box-shadow: none; border: 1.5px solid rgba(255,255,255,.35); }
+.ps-add-btn--cancel:hover { background: rgba(255,255,255,.25); transform: none; box-shadow: none; }
 
-.btn-toggle {
-  background: transparent;
+/* ── Alerts ───────────────────────────────────────────────────────── */
+.ps-alerts {
+  max-width: 1100px;
+  margin: 0 auto 1rem;
+  padding: 0 2rem;
+}
+.ps-alert {
+  padding: .7rem 1.1rem;
+  border-radius: 10px;
+  font-size: .88rem;
+  font-weight: 500;
+  margin-bottom: .75rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  border-left: 4px solid transparent;
+}
+.ps-alert--success { background: var(--success-bg); color: var(--success); border-left-color: var(--success); }
+.ps-alert--warning { background: var(--warning-bg); color: var(--warning); border-left-color: #f5a623; }
+.ps-alert--danger  { background: var(--danger-bg);  color: var(--danger);  border-left-color: var(--danger); }
+
+/* ── Form card ────────────────────────────────────────────────────── */
+.ps-form-card {
+  max-width: 1100px;
+  margin: 0 auto 1.75rem;
+  padding: 0 2rem;
+}
+.ps-form-card__header {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--rose);
+  padding: 1rem 1.5rem .85rem;
+  border-bottom: 1px solid #f0e4ea;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+  border: 1.5px solid #f0e4ea;
+  border-bottom: none;
+}
+.ps-form-card__body {
+  background: var(--bg-card);
+  border-radius: 0 0 14px 14px;
+  border: 1.5px solid #f0e4ea;
+  border-top: 1px solid #f5edf1;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+/* ── Quick pick panel ─────────────────────────────────────────────── */
+.ps-quick-pick {
+  background: linear-gradient(135deg, #f8f2f5 0%, #f2eaf0 100%);
+  border: 1.5px solid var(--rose-border);
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.ps-quick-pick__label {
+  font-size: .82rem;
+  font-weight: 700;
   color: var(--primary);
-  border: 1.5px solid var(--primary);
-  border-radius: 8px;
-  padding: .45rem 1.1rem;
-  font-size: .85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s;
+  margin-bottom: .6rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
 }
-.btn-toggle:hover { background: var(--primary); color: #fff; }
-.btn-toggle.cancel { color: #666; border-color: #ccc; }
-.btn-toggle.cancel:hover { background: #f0f0f0; color: #333; }
+.ps-quick-pick__hint {
+  display: block;
+  font-size: .76rem;
+  color: var(--rose);
+  margin-top: .45rem;
+  font-style: italic;
+}
 
-/* ── Services table card ──────────────────────────────────────────── */
-.table-card {
+/* ── Form labels ──────────────────────────────────────────────────── */
+.form-label {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--text-label);
+  margin-bottom: .35rem;
+  display: block;
+  letter-spacing: .01em;
+}
+
+/* ── Form controls — the key fix ─────────────────────────────────── */
+.form-control,
+.form-select {
+  background: var(--bg-input);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-size: .88rem;
+  color: var(--text-main);
+  padding: .55rem .85rem;
+  width: 100%;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+  box-shadow: inset 0 1px 3px rgba(45,74,110,.05);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Visible border on hover */
+.form-control:hover,
+.form-select:hover {
+  border-color: #b8c4d8;
+  background: #fff;
+}
+
+/* Strong highlight on focus */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--border-focus);
+  background: #fff;
+  box-shadow: var(--shadow-focus);
+  outline: none;
+}
+
+/* Placeholder text */
+.form-control::placeholder {
+  color: #b0b8cc;
+  font-style: italic;
+}
+
+/* Select arrow */
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M0 0l6 7 6-7z' fill='%232d4a6e'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .85rem center;
+  padding-right: 2.2rem;
+}
+
+/* Disabled select */
+.form-select:disabled,
+.form-control:disabled {
+  background: #f0f2f7;
+  border-color: #e0e4ee;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Quick-pick select gets a slightly different treatment */
+.ps-quick-pick .form-select {
+  border-color: var(--rose-border);
+  background-color: #fff;
+}
+.ps-quick-pick .form-select:focus {
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3px rgba(232,84,122,.12);
+}
+
+/* ── Submit button ────────────────────────────────────────────────── */
+.ps-submit-btn {
+  background: linear-gradient(135deg, var(--rose) 0%, #d43d6a 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .65rem 1.6rem;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  box-shadow: 0 3px 12px rgba(232,84,122,.3);
+  letter-spacing: .01em;
+}
+.ps-submit-btn:hover:not(:disabled) {
+  opacity: .92;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(232,84,122,.38);
+}
+.ps-submit-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+
+/* ── Loading ──────────────────────────────────────────────────────── */
+.ps-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+  font-size: .9rem;
+}
+.ps-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e4e8f0;
+  border-top-color: var(--rose);
+  border-radius: 50%;
+  animation: ps-spin .7s linear infinite;
+}
+@keyframes ps-spin { to { transform: rotate(360deg); } }
+
+/* ── Table wrapper ────────────────────────────────────────────────── */
+.ps-table-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 2rem;
   background: var(--bg-card);
   border-radius: 14px;
-  box-shadow: 0 2px 16px rgba(45,74,110,.09);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
-.svc-table {
+.ps-table-header {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 1.1rem 1.5rem;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--primary);
+  border-bottom: 1.5px solid var(--border);
+  background: #f8f9fc;
+}
+.ps-table-header__count {
+  background: var(--rose-lt);
+  color: var(--rose);
+  border-radius: 20px;
+  padding: .1rem .6rem;
+  font-size: .75rem;
+  font-weight: 700;
+  margin-left: .25rem;
+}
+
+/* ── Table ────────────────────────────────────────────────────────── */
+.ps-table {
   width: 100%;
   border-collapse: collapse;
   font-size: .88rem;
 }
-.svc-table thead tr {
+.ps-table thead tr {
   background: #f4f6fb;
   border-bottom: 2px solid var(--border);
 }
-.svc-table thead th {
+.ps-table thead th {
   padding: .75rem 1rem;
   font-size: .7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .6px;
+  letter-spacing: .06em;
   color: var(--text-muted);
   white-space: nowrap;
 }
-.svc-table tbody tr {
+.ps-table tbody tr {
   border-bottom: 1px solid var(--border);
   transition: background .15s;
 }
-.svc-table tbody tr:last-child { border-bottom: none; }
-.svc-table tbody tr:hover { background: #f8f9fc; }
-.svc-table td {
+.ps-table tbody tr:last-child { border-bottom: none; }
+.ps-table tbody tr:hover { background: #fdf7fa; }
+.ps-table td {
   padding: .85rem 1rem;
   color: var(--text-main);
   vertical-align: middle;
 }
-.svc-name { font-weight: 600; color: var(--text-main); }
 
-/* Target group pill */
-.tg-pill {
+.ps-cell--name { font-weight: 600; color: var(--text-main); }
+.ps-cell--meta { color: var(--text-muted); font-size: .84rem; }
+.ps-cell--price { font-weight: 600; color: var(--primary); }
+.ps-cell--effective { font-weight: 700; color: var(--success); }
+
+/* ── Target group pill ────────────────────────────────────────────── */
+.ps-tg-pill {
   display: inline-block;
-  padding: .2rem .65rem;
+  padding: .22rem .7rem;
   border-radius: 20px;
-  font-size: .75rem;
-  font-weight: 600;
-}
-
-/* Effective price */
-.price-effective {
+  font-size: .74rem;
   font-weight: 700;
-  color: var(--success);
+  letter-spacing: .02em;
 }
 
 /* ── Status select ────────────────────────────────────────────────── */
-.status-select {
+.ps-status-select {
   appearance: none;
   -webkit-appearance: none;
-  border: none;
   border-radius: 20px;
   padding: .28rem .75rem .28rem .6rem;
   font-size: .78rem;
@@ -212,32 +376,22 @@
   background-position: right .5rem center;
   padding-right: 1.5rem;
   transition: all .2s;
+  border: 1.5px solid transparent;
 }
-.status-select.active-status {
+.ps-status-select--active {
   background-color: var(--success-bg);
   color: var(--success);
-  border: 1.5px solid #a8e6c8;
+  border-color: #a8e6c8;
 }
-.status-select.inactive-status {
+.ps-status-select--inactive {
   background-color: #f2f3f7;
   color: #666;
-  border: 1.5px solid #d0d3de;
+  border-color: #d0d3de;
 }
-
-/* ── Status indicator dot ─────────────────────────────────────────── */
-.status-dot {
-  display: inline-block;
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  margin-right: .35rem;
-  vertical-align: middle;
-}
-.status-dot.active  { background: var(--success); }
-.status-dot.inactive { background: #b0b5c0; }
 
 /* ── Delete button ────────────────────────────────────────────────── */
-.btn-delete {
-  width: 30px; height: 30px;
+.ps-delete-btn {
+  width: 32px; height: 32px;
   border-radius: 8px;
   border: 1.5px solid #f5c6c2;
   background: var(--danger-bg);
@@ -247,19 +401,33 @@
   align-items: center;
   justify-content: center;
   transition: all .2s;
+  font-size: .82rem;
 }
-.btn-delete:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-.btn-delete svg { width: 14px; height: 14px; }
+.ps-delete-btn:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
 
 /* ── Empty state ──────────────────────────────────────────────────── */
-.empty-state {
+.ps-empty {
   text-align: center;
   padding: 3rem 1rem;
   color: var(--text-muted);
   font-size: .9rem;
 }
-.empty-state svg {
-  width: 48px; height: 48px;
+.ps-empty i {
+  display: block;
+  font-size: 2rem;
   margin-bottom: .75rem;
-  opacity: .35;
+  opacity: .3;
+}
+
+/* ── Row ──────────────────────────────────────────────────────────── */
+.ps-row { cursor: default; }
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .ps-hero { padding: 1.5rem 1rem; }
+  .ps-form-card,
+  .ps-alerts,
+  .ps-table-wrap { padding: 0 1rem; }
+  .ps-hero__title { font-size: 1.35rem; }
+  .ps-table-wrap { border-radius: 10px; }
 }

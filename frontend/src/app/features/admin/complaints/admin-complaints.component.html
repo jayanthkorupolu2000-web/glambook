@@ -138,13 +138,14 @@
             <td>
               <div class="cm-action-row">
                 <button class="cm-action-btn cm-action-btn--forward"
-                        [disabled]="c.status !== 'OPEN'"
+                        [disabled]="c.status === 'FORWARDED' || c.status === 'RESOLVED'"
+                        [title]="c.status === 'FORWARDED' ? 'Already forwarded — use Mediate to resolve' : c.status === 'RESOLVED' ? 'Complaint resolved' : 'Forward to salon owner'"
                         (click)="forward(c.id)">
                   <i class="fa-solid fa-share me-1"></i>Forward
                 </button>
                 <button class="cm-action-btn cm-action-btn--mediate"
-                        [disabled]="c.status !== 'FORWARDED'"
-                        data-bs-toggle="modal" data-bs-target="#mediateModal"
+                        [disabled]="c.status === 'RESOLVED'"
+                        [title]="c.status === 'RESOLVED' ? 'Complaint already resolved' : 'Resolve via mediation'"
                         (click)="openMediate(c)">
                   <i class="fa-solid fa-gavel me-1"></i>Mediate
                 </button>
@@ -167,10 +168,12 @@
 
 
 <!-- ══════════════════════════════════════════════════════════
-     Mediation Modal — all logic unchanged
+     Mediation Modal — Angular *ngIf (no Bootstrap JS)
      ══════════════════════════════════════════════════════════ -->
-<div class="modal fade" id="mediateModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
+<div class="modal-backdrop fade show" *ngIf="showMediateModal" (click)="closeMediate()" style="pointer-events:auto;"></div>
+
+<div class="modal fade show d-block" tabindex="-1" *ngIf="showMediateModal" aria-modal="true" style="pointer-events:none;">
+  <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()" style="pointer-events:auto;">
     <div class="cm-modal">
 
       <div class="cm-modal__header">
@@ -183,7 +186,7 @@
             {{ selectedComplaint?.customerName }} → {{ selectedComplaint?.professionalName }}
           </p>
         </div>
-        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close btn-close-white ms-auto" (click)="closeMediate()"></button>
       </div>
 
       <div class="cm-modal__body">
@@ -201,11 +204,10 @@
       </div>
 
       <div class="cm-modal__footer">
-        <button class="cm-modal__btn cm-modal__btn--cancel" data-bs-dismiss="modal">
+        <button class="cm-modal__btn cm-modal__btn--cancel" (click)="closeMediate()">
           Cancel
         </button>
         <button class="cm-modal__btn cm-modal__btn--resolve"
-                data-bs-dismiss="modal"
                 [disabled]="!resolutionNotes.trim() || mediating"
                 (click)="submitMediation()">
           <span *ngIf="mediating" class="spinner-border spinner-border-sm me-2"></span>

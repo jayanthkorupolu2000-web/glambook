@@ -19,6 +19,7 @@ import { CustomerOrdersComponent } from './customer-orders/customer-orders.compo
 import { CustomerProductsComponent } from './customer-products/customer-products.component';
 import { CustomerProfileComponent } from './customer-profile/customer-profile.component';
 import { ProfessionalBrowseComponent } from './professional-browse/professional-browse.component';
+import { ProfessionalProfileViewComponent } from './professional-profile-view/professional-profile-view.component';
 import { ServiceSearchComponent } from './service-search/service-search.component';
 
 const routes: Routes = [
@@ -31,6 +32,7 @@ const routes: Routes = [
       { path: 'search', component: ServiceSearchComponent },
       { path: 'browse', component: ProfessionalBrowseComponent },
       { path: 'book/:professionalId', component: AppointmentBookingComponent },
+      { path: 'professional/:professionalId', component: ProfessionalProfileViewComponent },
       { path: 'appointments', component: CustomerAppointmentsComponent },
       { path: 'profile', component: CustomerProfileComponent },
       { path: 'notifications', component: CustomerNotificationsComponent },
@@ -63,7 +65,8 @@ const routes: Routes = [
     CustomerOrdersComponent,
     CustomerLoyaltyComponent,
     CustomerFavoritesComponent,
-    CustomerComplaintsComponent
+    CustomerComplaintsComponent,
+    ProfessionalProfileViewComponent
   ],
   imports: [
     CommonModule,

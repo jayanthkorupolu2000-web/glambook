@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SalonOwner } from '../../models';
 import { AdminService, SalonOwnerManagementResponse } from '../../services/admin.service';
@@ -6,7 +6,8 @@ import { AdminService, SalonOwnerManagementResponse } from '../../services/admin
 @Component({
   selector: 'app-salon-owner-list',
   templateUrl: './salon-owner-list.component.html',
-  styleUrls: ['./salon-owner-list.component.scss']
+  styleUrls: ['./salon-owner-list.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class SalonOwnerListComponent implements OnInit {
   owners: SalonOwner[] = [];

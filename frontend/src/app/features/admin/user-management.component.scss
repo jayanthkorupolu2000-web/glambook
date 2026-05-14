@@ -405,7 +405,7 @@
   z-index: 1040;
 }
 
-.modal { z-index: 1050; }
+.modal { z-index: 1050; pointer-events: auto; }
 
 .um-modal {
   border: none;
@@ -413,6 +413,7 @@
   overflow: hidden;
   font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
   box-shadow: 0 20px 60px rgba(13,27,62,0.20);
+  pointer-events: auto;
 }
 
 .um-modal__header {
@@ -452,6 +453,7 @@
 .um-modal__body {
   padding: 1.5rem;
   background: #ffffff;
+  pointer-events: auto;
 }
 
 .um-modal__alert {
@@ -513,6 +515,7 @@
 .um-modal__input {
   width: 100%;
   padding: 0.62rem 0.9rem;
+  pointer-events: auto;
   border-radius: 10px;
   border: 1.5px solid #e2e8f0;
   font-family: inherit;
@@ -556,6 +559,7 @@
 .um-modal__footer {
   display: flex;
   align-items: center;
+  pointer-events: auto;
   justify-content: flex-end;
   gap: 0.65rem;
   padding: 1rem 1.5rem;
@@ -566,6 +570,8 @@
 .um-modal__btn {
   display: inline-flex;
   align-items: center;
+  cursor: pointer;
+  pointer-events: auto;
   padding: 0.55rem 1.1rem;
   border-radius: 10px;
   border: none;

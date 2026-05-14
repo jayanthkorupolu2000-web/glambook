@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { AdminService } from '../../../services/admin.service';
 
 // Extended interfaces with status field
@@ -23,7 +23,8 @@ interface ProfessionalWithStatus {
 @Component({
   selector: 'app-admin-user-management',
   templateUrl: './admin-user-management.component.html',
-  styleUrls: ['./admin-user-management.component.scss']
+  styleUrls: ['./admin-user-management.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class AdminUserManagementComponent implements OnInit {
   activeTab: 'customers' | 'professionals' = 'customers';

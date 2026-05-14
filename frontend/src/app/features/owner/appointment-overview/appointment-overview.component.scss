@@ -298,8 +298,9 @@
 /* ══════════════════════════════════════════════════════════════
    Assign Modal
    ══════════════════════════════════════════════════════════════ */
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1040; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1040; pointer-events: auto; }
 .modal { z-index: 1050; }
+.modal .modal-dialog { position: relative; z-index: 1055; pointer-events: auto; }
 
 .ap-modal {
   border: none;
@@ -372,17 +373,25 @@
 
 .ap-modal__select {
   width: 100%;
-  padding: 0.62rem 0.9rem;
+  padding: 0.62rem 2.2rem 0.62rem 0.9rem;
   border-radius: 10px;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #c8d3e8;
   font-family: inherit;
   font-size: 0.88rem;
   color: #0d1b3e;
+  background: #f8fafc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M0 0l6 7 6-7z' fill='%231a3a6e'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  appearance: none;
+  -webkit-appearance: none;
   outline: none;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
 }
 
-.ap-modal__select:focus { border-color: #1e6fd9; box-shadow: 0 0 0 3px rgba(30,111,217,0.12); }
+.ap-modal__select:hover { border-color: #8fa8cc; background-color: #fff; }
+.ap-modal__select:focus { border-color: #1e6fd9; background-color: #fff; box-shadow: 0 0 0 3px rgba(30,111,217,0.12); }
 
 .ap-modal__hint { font-size: 0.78rem; color: #94a3b8; margin-top: 0.4rem; }
 

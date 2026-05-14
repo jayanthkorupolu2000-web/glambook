@@ -1,0 +1,64 @@
+<!-- ── Backdrop (mobile only) ─────────────────────────────── -->
+<div class="psb-backdrop" *ngIf="isOpen" (click)="close()"></div>
+
+<!-- ── Sidebar panel ──────────────────────────────────────── -->
+<div class="psb" [class.psb--open]="isOpen">
+
+  <!-- ── Sticky brand bar with close/open button ──────────── -->
+  <div class="psb__topbar">
+    <div class="psb__brand">
+      <div class="psb__brand-icon">
+        <i class="fa-solid fa-scissors"></i>
+      </div>
+      <div class="psb__brand-text" *ngIf="isOpen">
+        <span class="psb__brand-name">{{ userName }}</span>
+        <span class="psb__brand-sub">✂️ Professional Portal</span>
+      </div>
+    </div>
+    <button class="psb__toggle-btn" (click)="toggle()" aria-label="Toggle menu">
+      <i class="fa-solid" [class.fa-xmark]="isOpen" [class.fa-bars]="!isOpen"></i>
+    </button>
+  </div>
+
+  <!-- ── Scrollable content below topbar ───────────────────── -->
+  <div class="psb__scroll">
+
+    <!-- User card -->
+    <div class="psb__user" *ngIf="isOpen">
+      <div class="psb__avatar">{{ userInitial }}</div>
+      <div class="psb__user-name">{{ userName }}</div>
+      <div class="psb__user-badge">
+        <i class="fa-solid fa-location-dot me-1"></i>Professional
+      </div>
+    </div>
+
+    <div class="psb__divider" *ngIf="isOpen"></div>
+
+    <!-- Nav links -->
+    <nav class="psb__nav">
+      <a *ngFor="let link of links"
+         class="psb__link"
+         [routerLink]="link.route"
+         routerLinkActive="psb__link--active"
+         [routerLinkActiveOptions]="{ exact: link.route === '/dashboard/professional' }"
+         (click)="onLinkClick()">
+        <span class="psb__link-emoji">{{ link.emoji }}</span>
+        <span class="psb__link-label" *ngIf="isOpen">{{ link.label }}</span>
+      </a>
+    </nav>
+
+    <!-- Footer -->
+    <div class="psb__footer" *ngIf="isOpen">
+      <div class="psb__divider"></div>
+      <button class="psb__logout" (click)="logout()">
+        <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Hamburger shown only when sidebar is fully closed ─────── -->
+<button class="psb-hamburger" *ngIf="!isOpen" (click)="toggle()" aria-label="Open menu">
+  <span></span><span></span><span></span>
+</button>

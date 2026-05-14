@@ -167,12 +167,12 @@
 <!-- ══════════════════════════════════════════════════════════
      Edit Salon Owner Modal — all logic unchanged
      ══════════════════════════════════════════════════════════ -->
-<div class="modal-backdrop fade show" *ngIf="showEditModal" (click)="closeEditModal()"></div>
+<div class="modal-backdrop fade show" *ngIf="showEditModal" (click)="closeEditModal()" style="pointer-events:auto;"></div>
 
 <div class="modal fade show d-block" tabindex="-1" role="dialog"
-     *ngIf="showEditModal" aria-modal="true">
+     *ngIf="showEditModal" aria-modal="true" style="pointer-events:none;">
   <div class="modal-dialog modal-dialog-centered" role="document"
-       (click)="$event.stopPropagation()">
+       (click)="$event.stopPropagation()" style="pointer-events:auto;">
     <div class="um-modal">
 
       <!-- Modal header -->
@@ -251,6 +251,22 @@
             <div *ngIf="nameCtrl.invalid && nameCtrl.touched" class="um-modal__field-error">
               <span *ngIf="nameCtrl.errors?.['required']">Name is required.</span>
               <span *ngIf="nameCtrl.errors?.['minlength']">At least 2 characters required.</span>
+            </div>
+          </div>
+
+          <div class="um-modal__field-group">
+            <label class="um-modal__field-label" for="editSalonName">
+              Salon Name <span class="text-danger">*</span>
+            </label>
+            <input
+              id="editSalonName"
+              type="text"
+              class="um-modal__input"
+              [class.um-modal__input--error]="salonNameCtrl.invalid && salonNameCtrl.touched"
+              formControlName="salonName"
+              placeholder="Enter salon name">
+            <div *ngIf="salonNameCtrl.invalid && salonNameCtrl.touched" class="um-modal__field-error">
+              Salon name is required.
             </div>
           </div>
 

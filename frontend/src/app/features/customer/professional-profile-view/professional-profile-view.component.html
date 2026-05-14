@@ -1,0 +1,168 @@
+<div class="ppv-page">
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="ppv-loading">
+    <div class="ppv-spinner"></div>
+    <span>Loading profile…</span>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="ppv-error">
+    <i class="fa-solid fa-circle-exclamation me-2"></i>{{ error }}
+  </div>
+
+  <ng-container *ngIf="professional && !loading">
+
+    <!-- ── Hero ──────────────────────────────────────────────── -->
+    <div class="ppv-hero">
+      <div class="ppv-hero__inner">
+        <button class="ppv-back" (click)="goBack()">
+          <i class="fa-solid fa-arrow-left me-2"></i>Back
+        </button>
+
+        <div class="ppv-hero__profile">
+          <div class="ppv-avatar">
+            <img *ngIf="professional.profilePhotoUrl" [src]="professional.profilePhotoUrl" alt="Profile" class="ppv-avatar__img">
+            <span *ngIf="!professional.profilePhotoUrl" class="ppv-avatar__initial">
+              {{ professional.name.charAt(0).toUpperCase() }}
+            </span>
+          </div>
+          <div class="ppv-hero__info">
+            <h1 class="ppv-hero__name">{{ professional.name }}</h1>
+            <p class="ppv-hero__spec">
+              <i class="fa-solid fa-scissors me-2"></i>{{ professional.specialization }}
+              <span class="ppv-dot">·</span>
+              <i class="fa-solid fa-location-dot me-1"></i>{{ professional.city }}
+            </p>
+            <div class="ppv-stars-row">
+              <span *ngFor="let filled of stars(averageRating)" class="ppv-star" [class.ppv-star--filled]="filled">★</span>
+              <span class="ppv-rating-text">{{ averageRating | number:'1.1-1' }} ({{ totalReviews }} reviews)</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="ppv-book-btn" (click)="bookNow()">
+          <i class="fa-solid fa-calendar-check me-2"></i>Book Now
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Content ───────────────────────────────────────────── -->
+    <div class="ppv-content">
+
+      <!-- ── Stats row ──────────────────────────────────────── -->
+      <div class="ppv-stats">
+        <div class="ppv-stat-card">
+          <div class="ppv-stat-card__val">{{ professional.experienceYears || 0 }}</div>
+          <div class="ppv-stat-card__label">Years Exp.</div>
+        </div>
+        <div class="ppv-stat-card">
+          <div class="ppv-stat-card__val">{{ totalReviews }}</div>
+          <div class="ppv-stat-card__label">Reviews</div>
+        </div>
+        <div class="ppv-stat-card">
+          <div class="ppv-stat-card__val">{{ averageRating | number:'1.1-1' }}</div>
+          <div class="ppv-stat-card__label">Avg Rating</div>
+        </div>
+        <div class="ppv-stat-card">
+          <div class="ppv-stat-card__val">{{ professional.responseTimeHrs || '—' }}</div>
+          <div class="ppv-stat-card__label">Resp. Time (hrs)</div>
+        </div>
+      </div>
+
+      <div class="ppv-grid">
+
+        <!-- ── Left column ──────────────────────────────────── -->
+        <div class="ppv-col">
+
+          <!-- About -->
+          <div class="ppv-card" *ngIf="professional.bio">
+            <div class="ppv-card__title"><i class="fa-solid fa-user me-2"></i>About</div>
+            <p class="ppv-bio">{{ professional.bio }}</p>
+          </div>
+
+          <!-- Services -->
+          <div class="ppv-card" *ngIf="professional.services?.length">
+            <div class="ppv-card__title"><i class="fa-solid fa-scissors me-2"></i>Services Offered</div>
+            <div class="ppv-services-list">
+              <div *ngFor="let svc of professional.services" class="ppv-svc-row">
+                <div class="ppv-svc-row__left">
+                  <span class="ppv-svc-row__name">{{ svc.name }}</span>
+                  <span class="ppv-svc-row__meta">{{ svc.durationMins }} min</span>
+                </div>
+                <span class="ppv-svc-row__price">₹{{ svc.price }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Certifications -->
+          <div class="ppv-card" *ngIf="certificates.length">
+            <div class="ppv-card__title"><i class="fa-solid fa-certificate me-2"></i>Certifications</div>
+            <div class="ppv-cert-list">
+              <div *ngFor="let cert of certificates" class="ppv-cert-item">
+                <div class="ppv-cert-item__icon">
+                  <i class="fa-solid" [class.fa-file-pdf]="cert.isPdf" [class.fa-image]="!cert.isPdf"></i>
+                </div>
+                <span class="ppv-cert-item__name">{{ cert.name }}</span>
+                <a [href]="cert.fileUrl" target="_blank" class="ppv-cert-item__view">View</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── Right column ─────────────────────────────────── -->
+        <div class="ppv-col">
+
+          <!-- Rating breakdown -->
+          <div class="ppv-card" *ngIf="totalReviews > 0">
+            <div class="ppv-card__title"><i class="fa-solid fa-star me-2"></i>Rating Breakdown</div>
+            <div class="ppv-rating-breakdown">
+              <div class="ppv-rb-row">
+                <span class="ppv-rb-label">Overall</span>
+                <div class="ppv-rb-bar"><div class="ppv-rb-fill ppv-rb-fill--overall" [style.width.%]="(averageRating/5)*100"></div></div>
+                <span class="ppv-rb-val">{{ averageRating | number:'1.1-1' }}</span>
+              </div>
+              <div class="ppv-rb-row">
+                <span class="ppv-rb-label">Quality</span>
+                <div class="ppv-rb-bar"><div class="ppv-rb-fill ppv-rb-fill--quality" [style.width.%]="(averageQuality/5)*100"></div></div>
+                <span class="ppv-rb-val">{{ averageQuality | number:'1.1-1' }}</span>
+              </div>
+              <div class="ppv-rb-row">
+                <span class="ppv-rb-label">Timeliness</span>
+                <div class="ppv-rb-bar"><div class="ppv-rb-fill ppv-rb-fill--time" [style.width.%]="(averageTimeliness/5)*100"></div></div>
+                <span class="ppv-rb-val">{{ averageTimeliness | number:'1.1-1' }}</span>
+              </div>
+              <div class="ppv-rb-row">
+                <span class="ppv-rb-label">Professionalism</span>
+                <div class="ppv-rb-bar"><div class="ppv-rb-fill ppv-rb-fill--prof" [style.width.%]="(averageProfessionalism/5)*100"></div></div>
+                <span class="ppv-rb-val">{{ averageProfessionalism | number:'1.1-1' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reviews -->
+          <div class="ppv-card">
+            <div class="ppv-card__title"><i class="fa-solid fa-comments me-2"></i>Customer Reviews</div>
+            <div *ngIf="reviews.length === 0" class="ppv-empty">No reviews yet.</div>
+            <div *ngFor="let r of reviews" class="ppv-review">
+              <div class="ppv-review__header">
+                <div class="ppv-review__avatar">{{ r.customerName.charAt(0).toUpperCase() }}</div>
+                <div class="ppv-review__meta">
+                  <span class="ppv-review__name">{{ r.customerName }}</span>
+                  <span class="ppv-review__date">{{ r.createdAt | date:'dd MMM yyyy' }}</span>
+                </div>
+                <div class="ppv-review__stars">
+                  <span *ngFor="let filled of stars(r.rating)" class="ppv-star ppv-star--sm" [class.ppv-star--filled]="filled">★</span>
+                </div>
+              </div>
+              <p class="ppv-review__comment">{{ r.comment }}</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

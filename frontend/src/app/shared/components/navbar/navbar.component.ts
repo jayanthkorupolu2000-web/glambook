@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { Role } from '../../../models';
 import { AuthService } from '../../../services/auth.service';
+import { SidebarToggleService } from '../../../services/sidebar-toggle.service';
 
 @Component({
   selector: 'app-navbar',
@@ -18,7 +19,16 @@ export class NavbarComponent implements OnInit, OnDestroy {
   roleDisplayName = '';
   private sub?: Subscription;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  /** Roles that have a sidebar (hamburger shown in navbar) */
+  get hasSidebar(): boolean {
+    return this.currentRole === 'CUSTOMER' || this.currentRole === 'SALON_OWNER';
+  }
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private sidebarToggle: SidebarToggleService
+  ) {}
 
   ngOnInit(): void {
     this.updateAuthState();
@@ -42,55 +52,65 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (!this.isLoggedIn || !this.currentRole) return [];
     switch (this.currentRole) {
       case 'CUSTOMER': return [
-        { label: 'Dashboard', route: '/dashboard/customer' },
+        { label: 'Dashboard',    route: '/dashboard/customer' },
         { label: 'Book Service', route: '/dashboard/customer/search' },
         { label: 'Appointments', route: '/dashboard/customer/appointments' },
-        { label: 'Profile', route: '/dashboard/customer/profile' },
-        { label: '🔔', route: '/dashboard/customer/notifications' }
+        { label: 'Favorites',    route: '/dashboard/customer/favorites' },
+        { label: 'Loyalty',      route: '/dashboard/customer/loyalty' },
+        { label: 'Orders',       route: '/dashboard/customer/orders' },
+        { label: 'Profile',      route: '/dashboard/customer/profile' },
+        { label: '🔔',           route: '/dashboard/customer/notifications' }
       ];
       case 'SALON_OWNER': return [
-        { label: 'Dashboard', route: '/dashboard/owner' },
-        { label: 'Staff', route: '/dashboard/owner/staff' },
-        { label: 'Services', route: '/dashboard/owner/services' },
+        { label: 'Dashboard',    route: '/dashboard/owner' },
+        { label: 'Staff',        route: '/dashboard/owner/staff' },
+        { label: 'Services',     route: '/dashboard/owner/services' },
         { label: 'Appointments', route: '/dashboard/owner/appointments' },
-        { label: 'Promotions', route: '/dashboard/owner/promotions' },
-        { label: 'Loyalty', route: '/dashboard/owner/loyalty' },
-        { label: 'Policies', route: '/dashboard/owner/policies' },
-        { label: 'Complaints', route: '/dashboard/owner/complaints' },
-        { label: 'Reports', route: '/dashboard/owner/reports' },
-        { label: '🔔', route: '/dashboard/owner/notifications' }
+        { label: 'Promotions',   route: '/dashboard/owner/promotions' },
+        { label: 'Loyalty',      route: '/dashboard/owner/loyalty' },
+        { label: 'Policies',     route: '/dashboard/owner/policies' },
+        { label: 'Complaints',   route: '/dashboard/owner/complaints' },
+        { label: 'Reports',      route: '/dashboard/owner/reports' },
+        { label: '🔔',           route: '/dashboard/owner/notifications' }
       ];
       case 'PROFESSIONAL': return [
-        { label: '🏠 Dashboard', route: '/dashboard/professional' },
-        { label: '👤 Profile', route: '/dashboard/professional/profile' },
-        { label: '✂️ Services', route: '/dashboard/professional/services' },
-        { label: '📅 Availability', route: '/dashboard/professional/availability' },
-        { label: '🗓️ Schedule', route: '/dashboard/professional/schedule' },
-        { label: '📋 Policies', route: '/dashboard/professional/policies' },
-        { label: '⭐ Reviews', route: '/dashboard/professional/reviews' },
-        { label: '📊 Analytics', route: '/dashboard/professional/analytics' },
-        { label: '🔔 Notifications', route: '/dashboard/professional/notifications' }
+        { label: 'Dashboard',     route: '/dashboard/professional' },
+        { label: 'Appointments',  route: '/dashboard/professional/appointments' },
+        { label: 'Services',      route: '/dashboard/professional/services' },
+        { label: 'Schedule',      route: '/dashboard/professional/schedule' },
+        { label: 'Availability',  route: '/dashboard/professional/availability' },
+        { label: 'Reviews',       route: '/dashboard/professional/reviews' },
+        { label: 'Analytics',     route: '/dashboard/professional/analytics' },
+        { label: '🔔',            route: '/dashboard/professional/notifications' },
       ];
       case 'ADMIN': return [
-        { label: 'Dashboard', route: '/dashboard/admin' },
-        { label: 'Users', route: '/dashboard/admin/users' },
-        { label: 'Owners', route: '/dashboard/admin/owners' },
-        { label: 'Reports', route: '/dashboard/admin/reports' },
-        { label: 'Complaints', route: '/dashboard/admin/complaints' },
+        { label: 'Dashboard',   route: '/dashboard/admin' },
+        { label: 'Users',       route: '/dashboard/admin/users' },
+        { label: 'Owners',      route: '/dashboard/admin/owners' },
+        { label: 'Reports',     route: '/dashboard/admin/reports' },
+        { label: 'Complaints',  route: '/dashboard/admin/complaints' },
         { label: 'Suspensions', route: '/dashboard/admin/user-management' },
-        { label: 'Analytics', route: '/dashboard/admin/analytics' },
-        { label: 'Policies', route: '/dashboard/admin/policy' }
+        { label: 'Analytics',   route: '/dashboard/admin/analytics' },
+        { label: 'Policies',    route: '/dashboard/admin/policy' }
       ];
       default: return [];
     }
   }
 
   private buildRoleDisplayName(): string {
+    if (this.currentRole === 'PROFESSIONAL' ||
+        this.currentRole === 'CUSTOMER' ||
+        this.currentRole === 'SALON_OWNER') {
+      return this.authService.getUserName() || this.currentRole;
+    }
     const map: Record<string, string> = {
-      CUSTOMER: 'Customer', SALON_OWNER: 'Salon Owner',
-      PROFESSIONAL: 'Professional', ADMIN: 'Admin'
+      ADMIN: 'Admin'
     };
     return this.currentRole ? (map[this.currentRole] ?? '') : '';
+  }
+
+  toggleSidebar(): void {
+    this.sidebarToggle.toggle();
   }
 
   logout(): void {

@@ -142,7 +142,7 @@ export class ServiceSearchComponent implements OnInit {
   get minPriceValue(): number { return Math.max(0, +this.form.value.minPrice || 0); }
 
   viewProfile(profId: number): void {
-    this.router.navigate(['/dashboard/customer/book', profId]);
+    this.router.navigate(['/dashboard/customer/professional', profId]);
   }
 
   bookNow(profId: number): void {

@@ -1,15 +1,32 @@
 <div class="cd-shell">
 
+  <!-- Floating hamburger — shown when sidebar is closed -->
+  <button class="cd-fab-hamburger" *ngIf="!sidebarOpen" (click)="toggleSidebar()" aria-label="Open sidebar">
+    <span></span><span></span><span></span>
+  </button>
+
   <!-- Mobile overlay -->
   <div class="cd-overlay" [class.cd-overlay--visible]="sidebarOpen" (click)="toggleSidebar()"></div>
 
   <!-- ══ SIDEBAR ══ -->
   <aside class="cd-sidebar" [class.cd-sidebar--open]="sidebarOpen">
 
-    <div class="cd-sidebar__brand">
-      <div class="cd-sidebar__brand-icon">✂</div>
-      Glambook
+    <!-- Sticky topbar: Glambook brand + toggle button -->
+    <div class="cd-sidebar__topbar">
+      <div class="cd-sidebar__brand">
+        <div class="cd-sidebar__brand-icon">✂</div>
+        <div class="cd-sidebar__brand-text">
+          <span class="cd-sidebar__brand-name">{{ dashboard?.customerName || 'My Menu' }}</span>
+          <span class="cd-sidebar__brand-sub">🛍️ Customer Portal</span>
+        </div>
+      </div>
+      <button class="cd-sidebar__toggle" (click)="toggleSidebar()" aria-label="Close sidebar">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
     </div>
+
+    <!-- Scrollable content -->
+    <div class="cd-sidebar__scroll">
 
     <div *ngIf="dashboard" class="cd-sidebar__profile">
       <div class="cd-sidebar__avatar">{{ dashboard.customerName.charAt(0) }}</div>
@@ -36,23 +53,12 @@
       </button>
     </nav>
 
+    </div>
+
   </aside>
 
   <!-- ══ MAIN ══ -->
   <main class="cd-shell__main">
-
-    <!-- Top bar with hamburger — sits above all child page content -->
-    <div class="cd-topbar">
-      <button class="cd-hamburger"
-              (click)="toggleSidebar()"
-              [class.cd-hamburger--open]="sidebarOpen"
-              title="Toggle menu">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-    </div>
-
     <router-outlet></router-outlet>
   </main>
 

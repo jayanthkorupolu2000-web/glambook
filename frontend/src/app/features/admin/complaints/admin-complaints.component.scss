@@ -420,6 +420,7 @@
 .cm-modal {
   border: none;
   border-radius: 20px;
+  pointer-events: auto;
   overflow: hidden;
   font-family: 'DM Sans', 'Inter', system-ui, sans-serif;
   box-shadow: 0 20px 60px rgba(13,27,62,0.20);

@@ -632,3 +632,13 @@
   .um-hero__inner { flex-direction: column; align-items: flex-start; }
   .um-chip { min-width: calc(50% - 0.5rem); }
 }
+
+/* ── Modal pointer-events fix (ViewEncapsulation.None) ──────── */
+.modal.fade.show.d-block { z-index: 1050; pointer-events: auto; }
+.modal-backdrop.fade.show { z-index: 1040; }
+.um-modal { pointer-events: auto; }
+.um-modal__body,
+.um-modal__footer,
+.um-modal__btn,
+.um-modal__textarea { pointer-events: auto; cursor: auto; }
+.um-modal__btn { cursor: pointer; }

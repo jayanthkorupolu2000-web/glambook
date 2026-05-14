@@ -92,7 +92,8 @@
 
         <!-- ════ VIEW MODE ════ -->
         <div *ngIf="!editMode">
-          <div class="pp-info-grid">            <div class="pp-info-item">
+          <div class="pp-info-grid">
+            <div class="pp-info-item">
               <label class="pp-info-label">Name</label>
               <p class="pp-info-value">{{ profile.name }}</p>
             </div>
@@ -139,9 +140,8 @@
           <!-- Certifications -->
           <div class="pp-section">
             <div class="pp-section-title">
-              <i class="fa-solid fa-certificate me-2"></i>Certifications
-            </div>            <div *ngIf="certificates.length === 0" class="pp-empty-text">—</div>
-            <div class="pp-cert-list">
+              <i class="fa-solid "></i>Certifications
+            </div>            <div *ngIf="certificates.length === 0" class="pp-empty-text">—</div>            <div class="pp-cert-list">
               <div *ngFor="let cert of certificates" class="pp-cert-row">
                 <div class="pp-cert-icon" [class.pp-cert-icon--img]="!cert.isPdf" [class.pp-cert-icon--pdf]="cert.isPdf">
                   <svg *ngIf="!cert.isPdf" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -164,7 +164,7 @@
 
           <!-- Availability -->
           <div class="pp-section-title">
-            <i class="fa-solid fa-clock me-2"></i>Availability
+            <i class="fa-solid"></i><br> Availability
           </div>
           <div class="pp-info-grid">
             <div class="pp-info-item">
