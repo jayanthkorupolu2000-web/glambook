@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" width="300" height="200">
+  <rect width="300" height="200" fill="#f0f6ff" rx="12"/>
+  <rect x="20" y="20" width="260" height="160" fill="#d8e8ff" rx="8"/>
+  <!-- Jade roller handle -->
+  <rect x="140" y="45" width="12" height="90" fill="#2d9e7a" rx="6"/>
+  <!-- Roller head large -->
+  <ellipse cx="146" cy="65" rx="28" ry="18" fill="#3db890"/>
+  <ellipse cx="146" cy="65" rx="22" ry="13" fill="#5dd4a8"/>
+  <!-- Roller head small -->
+  <ellipse cx="146" cy="120" rx="18" ry="12" fill="#3db890"/>
+  <ellipse cx="146" cy="120" rx="13" ry="8" fill="#5dd4a8"/>
+  <!-- Brush -->
+  <rect x="195" y="50" width="10" height="75" fill="#c8566a" rx="5"/>
+  <ellipse cx="200" cy="50" rx="12" ry="20" fill="#e8547a"/>
+  <!-- Gua sha -->
+  <path d="M 75 60 Q 95 55 100 80 Q 95 110 75 115 Q 60 110 58 80 Q 60 55 75 60 Z" fill="#f5a0b8"/>
+  <text x="150" y="158" font-family="Arial" font-size="11" fill="#2d9e7a" text-anchor="middle" font-weight="bold">Beauty Tools</text>
+</svg>

@@ -514,20 +514,55 @@ export class CustomerProductsComponent implements OnInit {
 
   stars(n: number): number[] { return [1, 2, 3, 4, 5]; }
 
-  /** Returns a real product image URL — uses stored imageUrl or a category-based Unsplash photo */
+  /** Returns local asset image paths — save images to assets/products/ with these filenames */
   productImageUrl(product: any): string {
     if (product?.imageUrl) return product.imageUrl;
-    // Category-based curated Unsplash images (stable source IDs)
-    const map: Record<string, string> = {
-      HAIRCARE:   'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=300&h=200&fit=crop',
-      SKINCARE:   'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=200&fit=crop',
-      MAKEUP:     'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=300&h=200&fit=crop',
-      NAILCARE:   'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=200&fit=crop',
-      FRAGRANCE:  'https://images.unsplash.com/photo-1541643600914-78b084683702?w=300&h=200&fit=crop',
-      TOOLS:      'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=200&fit=crop',
+
+    const byName: Record<string, string> = {
+      // HAIRCARE
+      'Argan Oil Shampoo':                    'assets/products/argan-oil-shampoo.jpg',
+      'Keratin Repair Conditioner':           'assets/products/keratin-conditioner.jpg',
+      'Hair Growth Serum':                    'assets/products/hair-growth-serum.jpg',
+      'Protein Hair Mask':                    'assets/products/protein-hair-mask.jpg',
+      'Anti-Dandruff Scalp Oil':              'assets/products/anti-dandruff-oil.jpg',
+      // SKINCARE
+      'Vitamin C Brightening Serum':          'assets/products/vitamin-c-serum.jpg',
+      'Hyaluronic Acid Moisturiser':          'assets/products/hyaluronic-moisturiser.jpg',
+      'SPF 50 PA+++ Sunscreen':               'assets/products/spf50-sunscreen.jpg',
+      'Retinol Night Cream':                  'assets/products/retinol-night-cream.jpg',
+      'Niacinamide 10% Toner':                'assets/products/niacinamide-toner.jpg',
+      // MAKEUP
+      'HD Matte Foundation':                  'assets/products/hd-foundation.jpg',
+      'Matte Lipstick Collection':            'assets/products/matte-lipstick.jpg',
+      'Waterproof Volume Mascara':            'assets/products/mascara.jpg',
+      'Eyeshadow Palette — Nude Glam':        'assets/products/eyeshadow-palette.jpg',
+      // NAILCARE
+      'Gel Nail Polish Starter Kit':          'assets/products/gel-nail-polish.jpg',
+      'Nourishing Cuticle Oil':               'assets/products/cuticle-oil.jpg',
+      'Nail Strengthener & Growth Treatment': 'assets/products/nail-strengthener.jpg',
+      // FRAGRANCE
+      'Rose & Oud Body Mist':                 'assets/products/rose-oud-mist.jpg',
+      'Jasmine Eau de Parfum':                'assets/products/jasmine-perfume.jpg',
+      'Oud & Amber Perfume Oil':              'assets/products/oud-amber-oil.jpg',
+      // TOOLS
+      'Jade Facial Roller':                   'assets/products/jade-roller.jpg',
+      'Gua Sha Facial Sculpting Tool':        'assets/products/gua-sha.jpg',
+      'Professional Makeup Brush Set':        'assets/products/makeup-brushes.jpg',
+    };
+
+    if (product?.name && byName[product.name]) return byName[product.name];
+
+    // Category fallback
+    const byCategory: Record<string, string> = {
+      HAIRCARE:  'assets/products/category-haircare.jpg',
+      SKINCARE:  'assets/products/category-skincare.jpg',
+      MAKEUP:    'assets/products/category-makeup.jpg',
+      NAILCARE:  'assets/products/category-nailcare.jpg',
+      FRAGRANCE: 'assets/products/category-fragrance.jpg',
+      TOOLS:     'assets/products/category-tools.jpg',
     };
     const cat = (product?.category || '').toUpperCase();
-    return map[cat] || map['HAIRCARE'];
+    return byCategory[cat] || 'assets/products/category-haircare.jpg';
   }
 
   stockBadge(stock: number): string {
