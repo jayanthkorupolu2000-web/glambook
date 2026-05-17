@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Payment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.entity</a> &gt; <span class="el_source">Payment.java</span></div><h1>Payment.java</h1><pre class="source lang-java linenums">package com.salon.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+<span class="nc bnc" id="L9" title="All 70 branches missed.">@Data</span>
+<span class="nc bnc" id="L10" title="All 4 branches missed.">@Builder</span>
+<span class="nc" id="L11">@NoArgsConstructor</span>
+<span class="nc" id="L12">@AllArgsConstructor</span>
+@Entity
+@Table(name = &quot;Payments&quot;)
+public class Payment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+<span class="nc" id="L19">    private Long id;</span>
+
+    @OneToOne
+    @JoinColumn(name = &quot;appointment_id&quot;)
+<span class="nc" id="L23">    private Appointment appointment;</span>
+
+<span class="nc" id="L25">    private BigDecimal amount;</span>
+
+    @Enumerated(EnumType.STRING)
+<span class="nc" id="L28">    private PaymentMethod method;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+<span class="nc" id="L32">    private PaymentStatus status = PaymentStatus.PENDING;</span>
+
+    @Column(name = &quot;paid_at&quot;)
+<span class="nc" id="L35">    private LocalDateTime paidAt;</span>
+
+    /** Deadline by which Pay Later must be settled (now + 24h at opt-in time). */
+    @Column(name = &quot;pay_later_deadline&quot;)
+<span class="nc" id="L39">    private LocalDateTime payLaterDeadline;</span>
+
+    /** Number of Pay Later reminders sent (0–2 before auto-suspension). */
+    @Column(name = &quot;pay_later_reminder_count&quot;)
+    @Builder.Default
+<span class="nc" id="L44">    private Integer payLaterReminderCount = 0;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

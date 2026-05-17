@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseMigrationRunner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.config</a> &gt; <span class="el_source">DatabaseMigrationRunner.java</span></div><h1>DatabaseMigrationRunner.java</h1><pre class="source lang-java linenums">package com.salon.config;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+/**
+ * Runs one-time DDL fixes on startup that Hibernate ddl-auto=update cannot handle
+ * (e.g. expanding MySQL ENUM columns to VARCHAR so new enum values are accepted).
+ * Each statement is wrapped in its own try/catch so a single failure doesn't
+ * prevent the application from starting.
+ */
+@Component
+<span class="nc" id="L17">@RequiredArgsConstructor</span>
+<span class="nc" id="L18">@Slf4j</span>
+public class DatabaseMigrationRunner implements ApplicationRunner {
+
+    private final JdbcTemplate jdbc;
+
+    @Override
+    public void run(ApplicationArguments args) {
+        // Fix 1: customer_notifications.type — change from ENUM to VARCHAR(50)
+        // so any CustomerNotificationType value (including PAYMENT_REMINDER) is accepted.
+<span class="nc" id="L27">        runSilently(</span>
+            &quot;ALTER TABLE customer_notifications MODIFY COLUMN type VARCHAR(50) NOT NULL&quot;,
+            &quot;customer_notifications.type → VARCHAR(50)&quot;
+        );
+
+        // Fix 2: loyalty.tier — change from ENUM to VARCHAR(20)
+        // so PLATINUM (added later) is accepted without a schema change.
+<span class="nc" id="L34">        runSilently(</span>
+            &quot;ALTER TABLE loyalty MODIFY COLUMN tier VARCHAR(20) NOT NULL DEFAULT 'BRONZE'&quot;,
+            &quot;loyalty.tier → VARCHAR(20)&quot;
+        );
+
+        // Fix 3: owner_notifications.type — change from ENUM to VARCHAR(50)
+<span class="nc" id="L40">        runSilently(</span>
+            &quot;ALTER TABLE owner_notifications MODIFY COLUMN type VARCHAR(50) NOT NULL&quot;,
+            &quot;owner_notifications.type → VARCHAR(50)&quot;
+        );
+
+        // Fix 4: professional_notifications.type — change from ENUM to VARCHAR(50)
+<span class="nc" id="L46">        runSilently(</span>
+            &quot;ALTER TABLE professional_notifications MODIFY COLUMN type VARCHAR(50) NOT NULL&quot;,
+            &quot;professional_notifications.type → VARCHAR(50)&quot;
+        );
+
+        // Fix 5: services.gender — add column if missing (fresh installs from old schema)
+<span class="nc" id="L52">        runSilently(</span>
+            &quot;ALTER TABLE services ADD COLUMN gender ENUM('MEN','WOMEN','KIDS') NOT NULL DEFAULT 'WOMEN'&quot;,
+            &quot;services.gender column&quot;
+        );
+
+        // Fix 6: services.professional_id — add column if missing
+<span class="nc" id="L58">        runSilently(</span>
+            &quot;ALTER TABLE services ADD COLUMN professional_id BIGINT NULL&quot;,
+            &quot;services.professional_id column&quot;
+        );
+
+        // Fix 7: services.is_active — add column if missing
+<span class="nc" id="L64">        runSilently(</span>
+            &quot;ALTER TABLE services ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1&quot;,
+            &quot;services.is_active column&quot;
+        );
+
+        // Fix 8: appointments.reminder_count — add column if missing
+<span class="nc" id="L70">        runSilently(</span>
+            &quot;ALTER TABLE appointments ADD COLUMN reminder_count INT NOT NULL DEFAULT 0&quot;,
+            &quot;appointments.reminder_count column&quot;
+        );
+
+        // Fix 9: appointments.last_reminder_sent_at — add column if missing
+<span class="nc" id="L76">        runSilently(</span>
+            &quot;ALTER TABLE appointments ADD COLUMN last_reminder_sent_at DATETIME NULL&quot;,
+            &quot;appointments.last_reminder_sent_at column&quot;
+        );
+
+        // Fix 9b: professional_availability.slot_status — add column if missing
+<span class="nc" id="L82">        runSilently(</span>
+            &quot;ALTER TABLE professional_availability ADD COLUMN slot_status VARCHAR(20) NOT NULL DEFAULT 'AVAILABLE'&quot;,
+            &quot;professional_availability.slot_status column&quot;
+        );
+
+        // Fix 9e: portfolio.file_path and portfolio.tags — metadata-only columns
+<span class="nc" id="L88">        runSilently(&quot;ALTER TABLE portfolio ADD COLUMN file_path VARCHAR(500) NULL&quot;, &quot;portfolio.file_path&quot;);</span>
+<span class="nc" id="L89">        runSilently(&quot;ALTER TABLE portfolio ADD COLUMN tags VARCHAR(255) NULL&quot;, &quot;portfolio.tags&quot;);</span>
+
+        // Fix 9c: beauty_profile.hair_texture — add column if missing
+<span class="nc" id="L92">        runSilently(</span>
+            &quot;ALTER TABLE beauty_profile ADD COLUMN hair_texture VARCHAR(50) NULL&quot;,
+            &quot;beauty_profile.hair_texture column&quot;
+        );
+
+        // Fix 9d: beauty_profile.notes — add column if missing
+<span class="nc" id="L98">        runSilently(</span>
+            &quot;ALTER TABLE beauty_profile ADD COLUMN notes TEXT NULL&quot;,
+            &quot;beauty_profile.notes column&quot;
+        );
+
+        // Fix 10: reviews.appointment_id — add column if missing
+<span class="nc" id="L104">        runSilently(</span>
+            &quot;ALTER TABLE reviews ADD COLUMN appointment_id BIGINT NULL&quot;,
+            &quot;reviews.appointment_id column&quot;
+        );
+
+        // Fix 11: reviews.photos — add JSON column if missing
+<span class="nc" id="L110">        runSilently(</span>
+            &quot;ALTER TABLE reviews ADD COLUMN photos JSON NULL&quot;,
+            &quot;reviews.photos column&quot;
+        );
+
+        // Fix 12: reviews.status — add column if missing
+<span class="nc" id="L116">        runSilently(</span>
+            &quot;ALTER TABLE reviews ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'&quot;,
+            &quot;reviews.status column&quot;
+        );
+
+        // Fix 13: consultations — add missing columns
+<span class="nc" id="L122">        runSilently(&quot;ALTER TABLE consultations ADD COLUMN topic VARCHAR(20) NOT NULL DEFAULT 'GENERAL'&quot;, &quot;consultations.topic&quot;);</span>
+<span class="nc" id="L123">        runSilently(&quot;ALTER TABLE consultations ADD COLUMN question TEXT NULL&quot;, &quot;consultations.question&quot;);</span>
+<span class="nc" id="L124">        runSilently(&quot;ALTER TABLE consultations ADD COLUMN notes TEXT NULL&quot;, &quot;consultations.notes&quot;);</span>
+<span class="nc" id="L125">        runSilently(&quot;ALTER TABLE consultations ADD COLUMN photo_url VARCHAR(500) NULL&quot;, &quot;consultations.photo_url&quot;);</span>
+<span class="nc" id="L126">        runSilently(&quot;ALTER TABLE consultations ADD COLUMN updated_at DATETIME NULL ON UPDATE CURRENT_TIMESTAMP&quot;, &quot;consultations.updated_at&quot;);</span>
+
+        // Fix 14: favorite tables
+<span class="nc" id="L129">        runSilently(&quot;&quot;&quot;</span>
+            CREATE TABLE IF NOT EXISTS favorite_products (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                customer_id BIGINT NOT NULL,
+                product_id BIGINT NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_fav_product (customer_id, product_id),
+                FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+                FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+            )&quot;&quot;&quot;, &quot;favorite_products table&quot;);
+
+<span class="nc" id="L140">        runSilently(&quot;&quot;&quot;</span>
+            CREATE TABLE IF NOT EXISTS favorite_services (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                customer_id BIGINT NOT NULL,
+                service_id BIGINT NOT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_fav_service (customer_id, service_id),
+                FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+                FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
+            )&quot;&quot;&quot;, &quot;favorite_services table&quot;);
+
+        // Fix 15: loyalty_transactions table
+<span class="nc" id="L152">        runSilently(&quot;&quot;&quot;</span>
+            CREATE TABLE IF NOT EXISTS loyalty_transactions (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                customer_id BIGINT NOT NULL,
+                type VARCHAR(10) NOT NULL,
+                points INT NOT NULL,
+                description TEXT NULL,
+                appointment_id BIGINT NULL,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (customer_id) REFERENCES customer(id) ON DELETE CASCADE,
+                FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL
+            )&quot;&quot;&quot;, &quot;loyalty_transactions table&quot;);
+
+        // Fix 16: admin_notifications table
+<span class="nc" id="L166">        runSilently(&quot;&quot;&quot;</span>
+            CREATE TABLE IF NOT EXISTS admin_notifications (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                message TEXT NOT NULL,
+                reference_id BIGINT NULL,
+                is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )&quot;&quot;&quot;, &quot;admin_notifications table&quot;);
+<span class="nc" id="L174">    }</span>
+
+    private void runSilently(String sql, String description) {
+        try {
+<span class="nc" id="L178">            jdbc.execute(sql);</span>
+<span class="nc" id="L179">            log.info(&quot;DatabaseMigrationRunner: applied — {}&quot;, description);</span>
+<span class="nc" id="L180">        } catch (Exception e) {</span>
+            // Column may already be VARCHAR — safe to ignore
+<span class="nc" id="L182">            log.debug(&quot;DatabaseMigrationRunner: skipped ({}): {}&quot;, description, e.getMessage());</span>
+<span class="nc" id="L183">        }</span>
+<span class="nc" id="L184">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReviewController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">ReviewController.java</span></div><h1>ReviewController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.ReviewRequest;
+import com.salon.dto.request.ReviewUpdateRequest;
+import com.salon.dto.response.ReviewResponse;
+import com.salon.exception.UnauthorizedException;
+import com.salon.security.JwtUtil;
+import com.salon.service.ReviewService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping(&quot;/api/reviews&quot;)
+<span class="nc" id="L26">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Review&quot;, description = &quot;Review management endpoints&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+public class ReviewController {
+
+    private final ReviewService reviewService;
+    private final JwtUtil jwtUtil;
+
+    // ── Create review (with optional photos) ─────────────────────────────────
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Create a review with optional photos&quot;)
+    public ResponseEntity&lt;ReviewResponse&gt; createReview(
+            @RequestPart(&quot;data&quot;) @Valid ReviewRequest request,
+            @RequestPart(value = &quot;photos&quot;, required = false) List&lt;MultipartFile&gt; photos,
+            HttpServletRequest httpRequest) {
+
+<span class="nc" id="L44">        Long customerId = extractCustomerId(httpRequest);</span>
+<span class="nc" id="L45">        ReviewResponse response = reviewService.createReview(customerId, request, photos);</span>
+<span class="nc" id="L46">        return ResponseEntity.status(201).body(response);</span>
+    }
+
+    // ── Also support JSON-only (no photos) for backward compatibility ─────────
+
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Create a review (JSON, no photos)&quot;)
+    public ResponseEntity&lt;ReviewResponse&gt; createReviewJson(
+            @Valid @RequestBody ReviewRequest request,
+            HttpServletRequest httpRequest) {
+
+<span class="nc" id="L58">        Long customerId = extractCustomerId(httpRequest);</span>
+<span class="nc" id="L59">        ReviewResponse response = reviewService.createReview(customerId, request, null);</span>
+<span class="nc" id="L60">        return ResponseEntity.status(201).body(response);</span>
+    }
+
+    // ── Update review (append photos, edit comment) ───────────────────────────
+
+    @PatchMapping(value = &quot;/{reviewId}&quot;, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Update a review — edit comment and/or add more photos&quot;)
+    public ResponseEntity&lt;ReviewResponse&gt; updateReview(
+            @PathVariable Long reviewId,
+            @RequestPart(&quot;data&quot;) ReviewUpdateRequest dto,
+            @RequestPart(value = &quot;photos&quot;, required = false) List&lt;MultipartFile&gt; photos,
+            HttpServletRequest httpRequest) {
+
+<span class="nc" id="L74">        Long customerId = extractCustomerId(httpRequest);</span>
+<span class="nc" id="L75">        return ResponseEntity.ok(reviewService.updateReview(customerId, reviewId, dto, photos));</span>
+    }
+
+    @PatchMapping(value = &quot;/{reviewId}&quot;, consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Update a review (JSON, no new photos)&quot;)
+    public ResponseEntity&lt;ReviewResponse&gt; updateReviewJson(
+            @PathVariable Long reviewId,
+            @RequestBody ReviewUpdateRequest dto,
+            HttpServletRequest httpRequest) {
+
+<span class="nc" id="L86">        Long customerId = extractCustomerId(httpRequest);</span>
+<span class="nc" id="L87">        return ResponseEntity.ok(reviewService.updateReview(customerId, reviewId, dto, null));</span>
+    }
+
+    // ── Get reviews by professional ───────────────────────────────────────────
+
+    @GetMapping
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get reviews and average rating for a professional&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; getReviewsByProfessional(
+            @RequestParam Long professionalId) {
+<span class="nc" id="L97">        return ResponseEntity.ok(reviewService.getReviewsByProfessional(professionalId));</span>
+    }
+
+    // ── Get reviews by customer ───────────────────────────────────────────────
+
+    @GetMapping(&quot;/my&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get all reviews written by the logged-in customer&quot;)
+    public ResponseEntity&lt;List&lt;ReviewResponse&gt;&gt; getMyReviews(HttpServletRequest httpRequest) {
+<span class="nc" id="L106">        Long customerId = extractCustomerId(httpRequest);</span>
+<span class="nc" id="L107">        return ResponseEntity.ok(reviewService.getReviewsByCustomer(customerId));</span>
+    }
+
+    // ── Check if review exists for appointment ────────────────────────────────
+
+    @GetMapping(&quot;/exists&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Check if a review exists for a given appointment&quot;)
+    public ResponseEntity&lt;Map&lt;String, Boolean&gt;&gt; existsByAppointment(@RequestParam Long appointmentId) {
+<span class="nc" id="L116">        return ResponseEntity.ok(Map.of(&quot;exists&quot;, reviewService.existsByAppointmentId(appointmentId)));</span>
+    }
+
+    // ── Helper ────────────────────────────────────────────────────────────────
+
+    private Long extractCustomerId(HttpServletRequest req) {
+<span class="nc" id="L122">        String auth = req.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L123" title="All 4 branches missed.">        if (auth == null || !auth.startsWith(&quot;Bearer &quot;))</span>
+<span class="nc" id="L124">            throw new UnauthorizedException(&quot;Missing or invalid authorization header&quot;);</span>
+<span class="nc" id="L125">        return jwtUtil.extractUserId(auth.substring(7));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

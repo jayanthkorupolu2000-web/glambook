@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppointmentService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">AppointmentService.java</span></div><h1>AppointmentService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.request.AppointmentRequest;
+import com.salon.dto.request.UpdateAppointmentStatusRequest;
+import com.salon.dto.response.AppointmentResponse;
+import com.salon.dto.response.CustomerResponse;
+import com.salon.dto.response.PaymentResponse;
+import com.salon.dto.response.ProfessionalResponse;
+import com.salon.dto.response.SalonOwnerResponse;
+import com.salon.dto.response.ServiceResponse;
+import com.salon.entity.*;
+import com.salon.exception.ConflictException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.exception.UnauthorizedException;
+import com.salon.exception.ValidationException;
+import com.salon.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L29">@RequiredArgsConstructor</span>
+<span class="nc" id="L30">@Slf4j</span>
+public class AppointmentService {
+
+    private final AppointmentRepository appointmentRepository;
+    private final CustomerRepository customerRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final ServiceRepository serviceRepository;
+    private final ProfessionalAvailabilityRepository availabilityRepository;
+    private final PaymentRepository paymentRepository;
+    private final ModelMapper modelMapper;
+
+    @Transactional
+    public AppointmentResponse createAppointment(AppointmentRequest request) {
+<span class="nc" id="L43">        log.info(&quot;Creating appointment for customer: {}, professional: {}&quot;, </span>
+<span class="nc" id="L44">                request.getCustomerId(), request.getProfessionalId());</span>
+
+        // Validate customer exists
+<span class="nc" id="L47">        Customer customer = customerRepository.findById(request.getCustomerId())</span>
+<span class="nc" id="L48">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+
+        // Validate professional exists
+<span class="nc" id="L51">        Professional professional = professionalRepository.findById(request.getProfessionalId())</span>
+<span class="nc" id="L52">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found&quot;));</span>
+
+        // Validate service exists
+<span class="nc" id="L55">        com.salon.entity.Service service = serviceRepository.findById(request.getServiceId())</span>
+<span class="nc" id="L56">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Service not found&quot;));</span>
+
+        // Check for time slot conflict using service duration
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        int durationMins = service.getDurationMins() != null ? service.getDurationMins() : 30;</span>
+<span class="nc" id="L60">        LocalDate apptDate = request.getDateTime().toLocalDate();</span>
+<span class="nc" id="L61">        LocalTime apptStart = request.getDateTime().toLocalTime();</span>
+<span class="nc" id="L62">        LocalTime apptEnd = apptStart.plusMinutes(durationMins);</span>
+
+        // Check if any existing confirmed/pending appointment overlaps this time window
+<span class="nc" id="L65">        boolean hasConflict = appointmentRepository</span>
+<span class="nc" id="L66">                .findByProfessionalIdAndDateTimeBetween(</span>
+<span class="nc" id="L67">                        request.getProfessionalId(),</span>
+<span class="nc" id="L68">                        request.getDateTime().toLocalDate().atStartOfDay(),</span>
+<span class="nc" id="L69">                        request.getDateTime().toLocalDate().atTime(23, 59))</span>
+<span class="nc" id="L70">                .stream()</span>
+<span class="nc bnc" id="L71" title="All 4 branches missed.">                .filter(a -&gt; a.getStatus() == AppointmentStatus.PENDING || a.getStatus() == AppointmentStatus.CONFIRMED)</span>
+<span class="nc" id="L72">                .anyMatch(a -&gt; {</span>
+<span class="nc" id="L73">                    LocalTime existStart = a.getDateTime().toLocalTime();</span>
+<span class="nc bnc" id="L74" title="All 4 branches missed.">                    int existDur = a.getService() != null &amp;&amp; a.getService().getDurationMins() != null</span>
+<span class="nc" id="L75">                            ? a.getService().getDurationMins() : 30;</span>
+<span class="nc" id="L76">                    LocalTime existEnd = existStart.plusMinutes(existDur);</span>
+<span class="nc bnc" id="L77" title="All 4 branches missed.">                    return apptStart.isBefore(existEnd) &amp;&amp; apptEnd.isAfter(existStart);</span>
+                });
+
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (hasConflict) {</span>
+<span class="nc" id="L81">            throw new ConflictException(&quot;This time slot is already booked. Please choose a different time.&quot;);</span>
+        }
+
+        // Check if the selected slot overlaps any break/lunch/blocked slot
+<span class="nc" id="L85">        boolean overlapsBreak = availabilityRepository</span>
+<span class="nc" id="L86">                .findByProfessionalIdAndAvailDate(request.getProfessionalId(), apptDate)</span>
+<span class="nc" id="L87">                .stream()</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                .filter(s -&gt; s.getSlotType() != null</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">                        &amp;&amp; s.getSlotType() != com.salon.entity.SlotType.WORKING)</span>
+<span class="nc" id="L90">                .anyMatch(s -&gt; {</span>
+<span class="nc" id="L91">                    LocalTime bStart = s.getStartTime();</span>
+<span class="nc" id="L92">                    LocalTime bEnd = s.getEndTime();</span>
+<span class="nc bnc" id="L93" title="All 4 branches missed.">                    return apptStart.isBefore(bEnd) &amp;&amp; apptEnd.isAfter(bStart);</span>
+                });
+
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (overlapsBreak) {</span>
+<span class="nc" id="L97">            throw new ConflictException(</span>
+                &quot;The selected time slot overlaps a break or lunch period. &quot; +
+                &quot;Please choose a time that doesn't overlap with scheduled breaks.&quot;);
+        }
+<span class="nc" id="L101">        availabilityRepository</span>
+<span class="nc" id="L102">                .findByProfessionalIdAndAvailDateAndStartTime(</span>
+<span class="nc" id="L103">                        request.getProfessionalId(), apptDate, apptStart)</span>
+<span class="nc" id="L104">                .ifPresent(slot -&gt; {</span>
+<span class="nc" id="L105">                    slot.setBooked(true);</span>
+<span class="nc" id="L106">                    availabilityRepository.save(slot);</span>
+<span class="nc" id="L107">                });</span>
+
+        // Create appointment
+<span class="nc" id="L110">        Appointment appointment = Appointment.builder()</span>
+<span class="nc" id="L111">                .customer(customer)</span>
+<span class="nc" id="L112">                .professional(professional)</span>
+<span class="nc" id="L113">                .service(service)</span>
+<span class="nc" id="L114">                .dateTime(request.getDateTime())</span>
+<span class="nc" id="L115">                .status(AppointmentStatus.PENDING)</span>
+<span class="nc" id="L116">                .build();</span>
+
+<span class="nc" id="L118">        Appointment savedAppointment = appointmentRepository.save(appointment);</span>
+<span class="nc" id="L119">        log.info(&quot;Created appointment with ID: {}&quot;, savedAppointment.getId());</span>
+
+<span class="nc" id="L121">        return mapToAppointmentResponse(savedAppointment);</span>
+    }
+
+    public List&lt;AppointmentResponse&gt; getAppointmentsByCustomer(Long customerId) {
+<span class="nc" id="L125">        log.info(&quot;Fetching appointments for customer: {}&quot;, customerId);</span>
+        
+<span class="nc" id="L127">        List&lt;Appointment&gt; appointments = appointmentRepository.findByCustomerId(customerId);</span>
+<span class="nc" id="L128">        return appointments.stream()</span>
+<span class="nc" id="L129">                .map(this::mapToAppointmentResponse)</span>
+<span class="nc" id="L130">                .collect(Collectors.toList());</span>
+    }
+
+    public List&lt;AppointmentResponse&gt; getAppointmentsBySalonOwner(Long salonOwnerId) {
+<span class="nc" id="L134">        log.info(&quot;Fetching appointments for salon owner: {}&quot;, salonOwnerId);</span>
+        
+<span class="nc" id="L136">        List&lt;Appointment&gt; appointments = appointmentRepository.findByProfessionalSalonOwnerId(salonOwnerId);</span>
+<span class="nc" id="L137">        return appointments.stream()</span>
+<span class="nc" id="L138">                .map(this::mapToAppointmentResponse)</span>
+<span class="nc" id="L139">                .collect(Collectors.toList());</span>
+    }
+
+    public List&lt;AppointmentResponse&gt; getAppointmentsByProfessional(Long professionalId) {
+<span class="nc" id="L143">        log.info(&quot;Fetching appointments for professional: {}&quot;, professionalId);</span>
+<span class="nc" id="L144">        return appointmentRepository.findByProfessionalIdOrderByDateTimeDesc(professionalId)</span>
+<span class="nc" id="L145">                .stream().map(this::mapToAppointmentResponse).collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public AppointmentResponse updateAppointmentStatus(Long appointmentId, UpdateAppointmentStatusRequest request) {
+<span class="nc" id="L150">        log.info(&quot;Updating appointment {} status to: {}&quot;, appointmentId, request.getStatus());</span>
+
+<span class="nc" id="L152">        Appointment appointment = appointmentRepository.findById(appointmentId)</span>
+<span class="nc" id="L153">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Appointment not found&quot;));</span>
+
+        // Validate status transition
+<span class="nc" id="L156">        validateStatusTransition(appointment.getStatus(), request.getStatus());</span>
+
+<span class="nc" id="L158">        appointment.setStatus(request.getStatus());</span>
+<span class="nc" id="L159">        Appointment savedAppointment = appointmentRepository.save(appointment);</span>
+
+<span class="nc" id="L161">        log.info(&quot;Updated appointment {} status to: {}&quot;, appointmentId, request.getStatus());</span>
+<span class="nc" id="L162">        return mapToAppointmentResponse(savedAppointment);</span>
+    }
+
+    @Transactional
+    public AppointmentResponse cancelAppointment(Long appointmentId) {
+<span class="nc" id="L167">        log.info(&quot;Cancelling appointment: {}&quot;, appointmentId);</span>
+
+<span class="nc" id="L169">        Appointment appointment = appointmentRepository.findById(appointmentId)</span>
+<span class="nc" id="L170">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Appointment not found&quot;));</span>
+
+<span class="nc" id="L172">        appointment.setStatus(AppointmentStatus.CANCELLED);</span>
+<span class="nc" id="L173">        Appointment savedAppointment = appointmentRepository.save(appointment);</span>
+
+<span class="nc" id="L175">        log.info(&quot;Cancelled appointment: {}&quot;, appointmentId);</span>
+<span class="nc" id="L176">        return mapToAppointmentResponse(savedAppointment);</span>
+    }
+
+    private void validateStatusTransition(AppointmentStatus currentStatus, AppointmentStatus newStatus) {
+        // Valid transitions: PENDING → CONFIRMED → COMPLETED; any → CANCELLED
+<span class="nc bnc" id="L181" title="All 5 branches missed.">        switch (currentStatus) {</span>
+            case PENDING:
+<span class="nc bnc" id="L183" title="All 4 branches missed.">                if (newStatus != AppointmentStatus.CONFIRMED &amp;&amp; newStatus != AppointmentStatus.CANCELLED) {</span>
+<span class="nc" id="L184">                    throw new ValidationException(&quot;Invalid status transition from PENDING to &quot; + newStatus);</span>
+                }
+                break;
+            case CONFIRMED:
+<span class="nc bnc" id="L188" title="All 4 branches missed.">                if (newStatus != AppointmentStatus.COMPLETED &amp;&amp; newStatus != AppointmentStatus.CANCELLED) {</span>
+<span class="nc" id="L189">                    throw new ValidationException(&quot;Invalid status transition from CONFIRMED to &quot; + newStatus);</span>
+                }
+                break;
+            case COMPLETED:
+<span class="nc bnc" id="L193" title="All 2 branches missed.">                if (newStatus != AppointmentStatus.CANCELLED) {</span>
+<span class="nc" id="L194">                    throw new ValidationException(&quot;Invalid status transition from COMPLETED to &quot; + newStatus);</span>
+                }
+                break;
+            case CANCELLED:
+<span class="nc" id="L198">                throw new ValidationException(&quot;Cannot change status of a cancelled appointment&quot;);</span>
+        }
+<span class="nc" id="L200">    }</span>
+
+    private AppointmentResponse mapToAppointmentResponse(Appointment appointment) {
+<span class="nc" id="L203">        AppointmentResponse res = new AppointmentResponse();</span>
+<span class="nc" id="L204">        res.setId(appointment.getId());</span>
+<span class="nc" id="L205">        res.setStatus(appointment.getStatus().name());</span>
+<span class="nc" id="L206">        res.setScheduledAt(appointment.getDateTime());</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        if (appointment.getCustomer() != null) {</span>
+<span class="nc" id="L208">            res.setCustomerId(appointment.getCustomer().getId());</span>
+<span class="nc" id="L209">            res.setCustomerName(appointment.getCustomer().getName());</span>
+        }
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        if (appointment.getProfessional() != null) {</span>
+<span class="nc" id="L212">            res.setProfessionalId(appointment.getProfessional().getId());</span>
+<span class="nc" id="L213">            res.setProfessionalName(appointment.getProfessional().getName());</span>
+<span class="nc" id="L214">            res.setProfessionalPhotoUrl(appointment.getProfessional().getProfilePhotoUrl());</span>
+        }
+<span class="nc bnc" id="L216" title="All 2 branches missed.">        if (appointment.getService() != null) {</span>
+<span class="nc" id="L217">            res.setServiceId(appointment.getService().getId());</span>
+<span class="nc" id="L218">            res.setServiceName(appointment.getService().getName());</span>
+<span class="nc" id="L219">            res.setServicePrice(appointment.getService().getPrice());</span>
+        }
+        // Include payment records so frontend can detect PAY_LATER_PENDING
+<span class="nc" id="L222">        paymentRepository.findByAppointmentId(appointment.getId()).ifPresent(p -&gt; {</span>
+<span class="nc" id="L223">            PaymentResponse pr = PaymentResponse.builder()</span>
+<span class="nc" id="L224">                    .id(p.getId())</span>
+<span class="nc" id="L225">                    .appointmentId(appointment.getId())</span>
+<span class="nc" id="L226">                    .amount(p.getAmount())</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">                    .method(p.getMethod() != null ? p.getMethod().name() : null)</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                    .status(p.getStatus() != null ? p.getStatus().name() : null)</span>
+<span class="nc" id="L229">                    .paidAt(p.getPaidAt())</span>
+<span class="nc" id="L230">                    .build();</span>
+<span class="nc" id="L231">            res.setPayments(java.util.List.of(pr));</span>
+<span class="nc" id="L232">        });</span>
+<span class="nc" id="L233">        return res;</span>
+    }
+
+    private CustomerResponse mapToCustomerResponse(Customer customer) {
+<span class="nc" id="L237">        return CustomerResponse.builder()</span>
+<span class="nc" id="L238">                .id(customer.getId())</span>
+<span class="nc" id="L239">                .name(customer.getName())</span>
+<span class="nc" id="L240">                .email(customer.getEmail())</span>
+<span class="nc" id="L241">                .phone(customer.getPhone())</span>
+<span class="nc" id="L242">                .city(customer.getCity())</span>
+<span class="nc" id="L243">                .build();</span>
+    }
+
+    private ProfessionalResponse mapToProfessionalResponse(Professional professional) {
+<span class="nc" id="L247">        return ProfessionalResponse.builder()</span>
+<span class="nc" id="L248">                .id(professional.getId())</span>
+<span class="nc" id="L249">                .name(professional.getName())</span>
+<span class="nc" id="L250">                .email(professional.getEmail())</span>
+<span class="nc" id="L251">                .city(professional.getCity())</span>
+<span class="nc" id="L252">                .specialization(professional.getSpecialization())</span>
+<span class="nc" id="L253">                .experienceYears(professional.getExperienceYears())</span>
+<span class="nc" id="L254">                .salonOwner(mapToSalonOwnerResponse(professional.getSalonOwner()))</span>
+<span class="nc" id="L255">                .build();</span>
+    }
+
+    private SalonOwnerResponse mapToSalonOwnerResponse(SalonOwner salonOwner) {
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        if (salonOwner == null) {</span>
+<span class="nc" id="L260">            return null;</span>
+        }
+<span class="nc" id="L262">        return SalonOwnerResponse.builder()</span>
+<span class="nc" id="L263">                .id(salonOwner.getId())</span>
+<span class="nc" id="L264">                .name(salonOwner.getName())</span>
+<span class="nc" id="L265">                .salonName(salonOwner.getSalonName())</span>
+<span class="nc" id="L266">                .city(salonOwner.getCity())</span>
+<span class="nc" id="L267">                .email(salonOwner.getEmail())</span>
+<span class="nc" id="L268">                .phone(salonOwner.getPhone())</span>
+<span class="nc" id="L269">                .build();</span>
+    }
+
+    private ServiceResponse mapToServiceResponse(com.salon.entity.Service service) {
+<span class="nc" id="L273">        return ServiceResponse.builder()</span>
+<span class="nc" id="L274">                .id(service.getId())</span>
+<span class="nc" id="L275">                .name(service.getName())</span>
+<span class="nc" id="L276">                .category(service.getCategory())</span>
+<span class="nc" id="L277">                .gender(service.getGender().name())</span>
+<span class="nc" id="L278">                .price(service.getPrice())</span>
+<span class="nc" id="L279">                .durationMins(service.getDurationMins())</span>
+<span class="nc" id="L280">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

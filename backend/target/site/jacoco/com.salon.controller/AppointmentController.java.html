@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppointmentController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">AppointmentController.java</span></div><h1>AppointmentController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.AppointmentRequest;
+import com.salon.dto.request.UpdateAppointmentStatusRequest;
+import com.salon.dto.response.AppointmentResponse;
+import com.salon.exception.UnauthorizedException;
+import com.salon.security.JwtUtil;
+import com.salon.service.AppointmentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/appointments&quot;)
+<span class="nc" id="L24">@RequiredArgsConstructor</span>
+<span class="nc" id="L25">@Slf4j</span>
+@Tag(name = &quot;Appointments&quot;, description = &quot;Appointment management endpoints&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+public class AppointmentController {
+
+    private final AppointmentService appointmentService;
+    private final JwtUtil jwtUtil;
+
+    @PostMapping
+    @Operation(summary = &quot;Create a new appointment&quot;, description = &quot;Book an appointment with a professional for a specific service&quot;)
+    public ResponseEntity&lt;AppointmentResponse&gt; createAppointment(
+            @Valid @RequestBody AppointmentRequest request,
+            HttpServletRequest httpRequest) {
+<span class="nc" id="L38">        log.info(&quot;Creating appointment request: {}&quot;, request);</span>
+        
+        // Extract JWT token from Authorization header
+<span class="nc" id="L41">        String authHeader = httpRequest.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L42" title="All 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L43">            throw new UnauthorizedException(&quot;Missing or invalid authorization header&quot;);</span>
+        }
+        
+<span class="nc" id="L46">        String token = authHeader.substring(7);</span>
+<span class="nc" id="L47">        String userRole = jwtUtil.extractRole(token);</span>
+<span class="nc" id="L48">        Long authenticatedUserId = jwtUtil.extractUserId(token);</span>
+        
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (!&quot;CUSTOMER&quot;.equals(userRole)) {</span>
+<span class="nc" id="L51">            throw new UnauthorizedException(&quot;Only customers can create appointments&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (!authenticatedUserId.equals(request.getCustomerId())) {</span>
+<span class="nc" id="L55">            throw new UnauthorizedException(&quot;Cannot create appointment for another customer&quot;);</span>
+        }
+
+<span class="nc" id="L58">        AppointmentResponse response = appointmentService.createAppointment(request);</span>
+<span class="nc" id="L59">        return ResponseEntity.status(HttpStatus.CREATED).body(response);</span>
+    }
+
+    @GetMapping
+    @Operation(summary = &quot;Get appointments&quot;, description = &quot;Get appointments by customer ID or salon owner ID&quot;)
+    public ResponseEntity&lt;List&lt;AppointmentResponse&gt;&gt; getAppointments(
+            @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false) Long salonOwnerId,
+            @RequestParam(required = false) Long professionalId,
+            HttpServletRequest httpRequest) {
+
+<span class="nc" id="L70">        String authHeader = httpRequest.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L71" title="All 4 branches missed.">        if (authHeader == null || !authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L72">            throw new UnauthorizedException(&quot;Missing or invalid authorization header&quot;);</span>
+        }
+
+<span class="nc" id="L75">        String token = authHeader.substring(7);</span>
+<span class="nc" id="L76">        String userRole = jwtUtil.extractRole(token);</span>
+<span class="nc" id="L77">        Long authenticatedUserId = jwtUtil.extractUserId(token);</span>
+
+        // Explicit professionalId param
+<span class="nc bnc" id="L80" title="All 2 branches missed.">        if (professionalId != null) {</span>
+<span class="nc bnc" id="L81" title="All 4 branches missed.">            if (&quot;PROFESSIONAL&quot;.equals(userRole) &amp;&amp; !authenticatedUserId.equals(professionalId)) {</span>
+<span class="nc" id="L82">                throw new UnauthorizedException(&quot;Cannot access another professional's appointments&quot;);</span>
+            }
+<span class="nc" id="L84">            return ResponseEntity.ok(appointmentService.getAppointmentsByProfessional(professionalId));</span>
+        }
+
+<span class="nc bnc" id="L87" title="All 4 branches missed.">        if (customerId != null &amp;&amp; salonOwnerId != null) {</span>
+<span class="nc" id="L88">            throw new IllegalArgumentException(&quot;Cannot specify both customerId and salonOwnerId&quot;);</span>
+        }
+
+        // If no params, use the JWT userId for the current user's role
+<span class="nc bnc" id="L92" title="All 4 branches missed.">        if (customerId == null &amp;&amp; salonOwnerId == null) {</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">            if (&quot;CUSTOMER&quot;.equals(userRole)) {</span>
+<span class="nc" id="L94">                return ResponseEntity.ok(appointmentService.getAppointmentsByCustomer(authenticatedUserId));</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            } else if (&quot;SALON_OWNER&quot;.equals(userRole)) {</span>
+<span class="nc" id="L96">                return ResponseEntity.ok(appointmentService.getAppointmentsBySalonOwner(authenticatedUserId));</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            } else if (&quot;PROFESSIONAL&quot;.equals(userRole)) {</span>
+<span class="nc" id="L98">                return ResponseEntity.ok(appointmentService.getAppointmentsByProfessional(authenticatedUserId));</span>
+            }
+<span class="nc" id="L100">            throw new IllegalArgumentException(&quot;Must specify customerId or salonOwnerId&quot;);</span>
+        }
+
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (customerId != null) {</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">            if (&quot;CUSTOMER&quot;.equals(userRole) &amp;&amp; !authenticatedUserId.equals(customerId)) {</span>
+<span class="nc" id="L105">                throw new UnauthorizedException(&quot;Cannot access another customer's appointments&quot;);</span>
+            }
+<span class="nc" id="L107">            return ResponseEntity.ok(appointmentService.getAppointmentsByCustomer(customerId));</span>
+        }
+
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (salonOwnerId != null) {</span>
+<span class="nc bnc" id="L111" title="All 4 branches missed.">            if (!&quot;SALON_OWNER&quot;.equals(userRole) || !authenticatedUserId.equals(salonOwnerId)) {</span>
+<span class="nc" id="L112">                throw new UnauthorizedException(&quot;Cannot access another salon owner's appointments&quot;);</span>
+            }
+<span class="nc" id="L114">            return ResponseEntity.ok(appointmentService.getAppointmentsBySalonOwner(salonOwnerId));</span>
+        }
+
+<span class="nc" id="L117">        throw new IllegalArgumentException(&quot;Must specify either customerId or salonOwnerId&quot;);</span>
+    }
+
+    @PatchMapping(&quot;/{id}/status&quot;)
+    @Operation(summary = &quot;Update appointment status&quot;, description = &quot;Update the status of an appointment with transition validation&quot;)
+    public ResponseEntity&lt;AppointmentResponse&gt; updateAppointmentStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateAppointmentStatusRequest request) {
+        
+<span class="nc" id="L126">        log.info(&quot;Updating appointment {} status to: {}&quot;, id, request.getStatus());</span>
+        
+<span class="nc" id="L128">        AppointmentResponse response = appointmentService.updateAppointmentStatus(id, request);</span>
+<span class="nc" id="L129">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PatchMapping(&quot;/{id}/cancel&quot;)
+    @Operation(summary = &quot;Cancel appointment&quot;)
+    public ResponseEntity&lt;AppointmentResponse&gt; cancelAppointment(@PathVariable Long id) {
+<span class="nc" id="L135">        log.info(&quot;Cancelling appointment: {}&quot;, id);</span>
+<span class="nc" id="L136">        AppointmentResponse response = appointmentService.cancelAppointment(id);</span>
+<span class="nc" id="L137">        return ResponseEntity.ok(response);</span>
+    }
+
+    @PatchMapping(&quot;/{id}/complete&quot;)
+    @Operation(summary = &quot;Mark appointment as completed — called by customer after service is done&quot;)
+    public ResponseEntity&lt;AppointmentResponse&gt; completeAppointment(@PathVariable Long id) {
+<span class="nc" id="L143">        log.info(&quot;Completing appointment: {}&quot;, id);</span>
+<span class="nc" id="L144">        UpdateAppointmentStatusRequest req = new UpdateAppointmentStatusRequest();</span>
+<span class="nc" id="L145">        req.setStatus(com.salon.entity.AppointmentStatus.COMPLETED);</span>
+<span class="nc" id="L146">        return ResponseEntity.ok(appointmentService.updateAppointmentStatus(id, req));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

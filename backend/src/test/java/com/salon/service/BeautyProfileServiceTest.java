@@ -8,7 +8,6 @@ import com.salon.exception.ResourceNotFoundException;
 import com.salon.repository.BeautyProfileRepository;
 import com.salon.repository.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,115 +16,145 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Updated BeautyProfileServiceTest — aligned with the current BeautyProfileService
+ * which uses upsert logic and returns an empty response (not 404) when no profile exists.
+ */
 @ExtendWith(MockitoExtension.class)
 class BeautyProfileServiceTest {
 
-    @Mock BeautyProfileRepository beautyProfileRepository;
-    @Mock CustomerRepository customerRepository;
+    @Mock private BeautyProfileRepository beautyProfileRepository;
+    @Mock private CustomerRepository customerRepository;
 
-    @InjectMocks BeautyProfileService beautyProfileService;
+    @InjectMocks private BeautyProfileService beautyProfileService;
 
     private Customer customer;
-    private BeautyProfileRequest validRequest;
+    private BeautyProfileRequest request;
 
     @BeforeEach
     void setUp() {
-        customer = new Customer();
-        customer.setId(1L);
-        customer.setName("Test Customer");
+        customer = Customer.builder().id(1L).name("Alice").email("alice@gmail.com").build();
 
-        validRequest = new BeautyProfileRequest();
-        validRequest.setSkinType("Oily");
-        validRequest.setHairType("Wavy");
-        validRequest.setHairTexture("Medium");
-        validRequest.setAllergies("Ammonia");
-        validRequest.setPreferredServices("Hair Color");
-        validRequest.setNotes("No harsh chemicals");
+        request = new BeautyProfileRequest();
+        request.setSkinType("Oily");
+        request.setHairType("Curly");
+        request.setHairTexture("Thick");
+        request.setAllergies("None");
+        request.setPreferredServices("Facial, Hair Spa");
+        request.setNotes("Prefer organic products");
     }
 
-    // ── saveProfile_success ───────────────────────────────────────────────────
+    // ── saveProfile (create) ──────────────────────────────────────────────────
 
     @Test
-    @DisplayName("saveProfile: creates new profile when none exists")
-    void saveProfile_createsNew_success() {
+    void saveProfile_NewProfile_ShouldCreateAndReturn() {
+        BeautyProfile saved = BeautyProfile.builder()
+                .id(1L).customer(customer)
+                .skinType("Oily").hairType("Curly").hairTexture("Thick")
+                .allergies("None").preferredServices("Facial, Hair Spa")
+                .notes("Prefer organic products").build();
+
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(beautyProfileRepository.findByCustomerId(1L)).thenReturn(Optional.empty());
-        when(beautyProfileRepository.save(any(BeautyProfile.class))).thenAnswer(inv -> {
-            BeautyProfile p = inv.getArgument(0);
-            p.setId(10L);
-            return p;
-        });
+        when(beautyProfileRepository.save(any(BeautyProfile.class))).thenReturn(saved);
 
-        BeautyProfileResponse result = beautyProfileService.saveProfile(1L, validRequest);
+        BeautyProfileResponse response = beautyProfileService.saveProfile(1L, request);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getSkinType()).isEqualTo("Oily");
-        assertThat(result.getHairType()).isEqualTo("Wavy");
-        assertThat(result.getHairTexture()).isEqualTo("Medium");
-        assertThat(result.getAllergies()).isEqualTo("Ammonia");
+        assertNotNull(response);
+        assertEquals(1L, response.getCustomerId());
+        assertEquals("Oily", response.getSkinType());
+        assertEquals("Curly", response.getHairType());
+        assertEquals("Thick", response.getHairTexture());
+        assertEquals("None", response.getAllergies());
+        assertEquals("Facial, Hair Spa", response.getPreferredServices());
         verify(beautyProfileRepository).save(any(BeautyProfile.class));
     }
 
     @Test
-    @DisplayName("saveProfile: updates existing profile")
-    void saveProfile_updatesExisting_success() {
+    void saveProfile_ExistingProfile_ShouldUpdateInPlace() {
         BeautyProfile existing = BeautyProfile.builder()
-                .id(10L).customer(customer).skinType("Dry").build();
+                .id(1L).customer(customer)
+                .skinType("Dry").hairType("Straight").build();
+
+        BeautyProfile updated = BeautyProfile.builder()
+                .id(1L).customer(customer)
+                .skinType("Oily").hairType("Curly").hairTexture("Thick")
+                .allergies("None").preferredServices("Facial, Hair Spa")
+                .notes("Prefer organic products").build();
 
         when(customerRepository.findById(1L)).thenReturn(Optional.of(customer));
         when(beautyProfileRepository.findByCustomerId(1L)).thenReturn(Optional.of(existing));
-        when(beautyProfileRepository.save(any(BeautyProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(beautyProfileRepository.save(any(BeautyProfile.class))).thenReturn(updated);
 
-        BeautyProfileResponse result = beautyProfileService.saveProfile(1L, validRequest);
+        BeautyProfileResponse response = beautyProfileService.saveProfile(1L, request);
 
-        assertThat(result.getSkinType()).isEqualTo("Oily"); // updated from Dry
-        assertThat(result.getHairTexture()).isEqualTo("Medium");
-        verify(beautyProfileRepository).save(existing);
+        assertEquals("Oily", response.getSkinType());
+        assertEquals("Curly", response.getHairType());
+        // Verify save was called once (upsert, not insert+update)
+        verify(beautyProfileRepository, times(1)).save(any(BeautyProfile.class));
     }
 
-    // ── saveProfile_invalidData ───────────────────────────────────────────────
-
     @Test
-    @DisplayName("saveProfile: throws ResourceNotFoundException when customer not found")
-    void saveProfile_customerNotFound_throwsException() {
+    void saveProfile_CustomerNotFound_ShouldThrowResourceNotFoundException() {
         when(customerRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> beautyProfileService.saveProfile(99L, validRequest))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Customer not found");
-
+        assertThrows(ResourceNotFoundException.class,
+                () -> beautyProfileService.saveProfile(99L, request));
         verify(beautyProfileRepository, never()).save(any());
     }
 
     // ── getProfile ────────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("getProfile: returns profile when it exists")
-    void getProfile_exists_returnsProfile() {
+    void getProfile_Exists_ShouldReturnProfile() {
         BeautyProfile profile = BeautyProfile.builder()
-                .id(10L).customer(customer).skinType("Normal").hairType("Straight").build();
+                .id(1L).customer(customer)
+                .skinType("Oily").hairType("Curly").build();
 
         when(beautyProfileRepository.findByCustomerId(1L)).thenReturn(Optional.of(profile));
 
-        BeautyProfileResponse result = beautyProfileService.getProfile(1L);
+        BeautyProfileResponse response = beautyProfileService.getProfile(1L);
 
-        assertThat(result.getSkinType()).isEqualTo("Normal");
-        assertThat(result.getCustomerId()).isEqualTo(1L);
+        assertNotNull(response);
+        assertEquals(1L, response.getCustomerId());
+        assertEquals("Oily", response.getSkinType());
     }
 
     @Test
-    @DisplayName("getProfile: returns empty response when no profile exists")
-    void getProfile_notExists_returnsEmpty() {
+    void getProfile_NotExists_ShouldReturnEmptyResponseWithCustomerId() {
         when(beautyProfileRepository.findByCustomerId(1L)).thenReturn(Optional.empty());
 
-        BeautyProfileResponse result = beautyProfileService.getProfile(1L);
+        BeautyProfileResponse response = beautyProfileService.getProfile(1L);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getSkinType()).isNull();
-        assertThat(result.getCustomerId()).isEqualTo(1L);
+        // Should NOT throw — returns empty response
+        assertNotNull(response);
+        assertEquals(1L, response.getCustomerId());
+        assertNull(response.getSkinType());
+        assertNull(response.getHairType());
+    }
+
+    @Test
+    void getProfile_AllFieldsMapped_ShouldReturnComplete() {
+        BeautyProfile profile = BeautyProfile.builder()
+                .id(5L).customer(customer)
+                .skinType("Normal").hairType("Wavy").hairTexture("Fine")
+                .allergies("Sulfates").preferredServices("Keratin")
+                .notes("Sensitive scalp").build();
+
+        when(beautyProfileRepository.findByCustomerId(1L)).thenReturn(Optional.of(profile));
+
+        BeautyProfileResponse response = beautyProfileService.getProfile(1L);
+
+        assertEquals(5L, response.getId());
+        assertEquals("Normal", response.getSkinType());
+        assertEquals("Wavy", response.getHairType());
+        assertEquals("Fine", response.getHairTexture());
+        assertEquals("Sulfates", response.getAllergies());
+        assertEquals("Keratin", response.getPreferredServices());
+        assertEquals("Sensitive scalp", response.getNotes());
     }
 }

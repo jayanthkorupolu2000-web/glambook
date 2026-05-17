@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">ProductController.java</span></div><h1>ProductController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.ProductOrderRequest;
+import com.salon.dto.request.ProductReviewRequest;
+import com.salon.dto.response.FavoriteResponseDTO;
+import com.salon.dto.response.ProductOrderResponseDTO;
+import com.salon.dto.response.ProductResponseDTO;
+import com.salon.dto.response.ProductReviewResponseDTO;
+import com.salon.exception.UnauthorizedException;
+import com.salon.security.JwtUtil;
+import com.salon.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/products&quot;)
+<span class="nc" id="L31">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Products&quot;, description = &quot;Product catalog, ordering, favorites and reviews&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+public class ProductController {
+
+    private final ProductService productService;
+    private final JwtUtil jwtUtil;
+
+    // ── Public endpoints ──────────────────────────────────────────────────────
+
+    @GetMapping
+    @Operation(summary = &quot;Browse all products with optional filters and pagination&quot;)
+    public ResponseEntity&lt;Page&lt;ProductResponseDTO&gt;&gt; getAllProducts(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false) String brand,
+            @RequestParam(defaultValue = &quot;0&quot;)  int page,
+            @RequestParam(defaultValue = &quot;12&quot;) int size,
+            @RequestParam(defaultValue = &quot;name&quot;) String sortBy,
+            HttpServletRequest req) {
+
+        // Validate price range
+<span class="nc bnc" id="L54" title="All 4 branches missed.">        if (minPrice != null &amp;&amp; minPrice.compareTo(BigDecimal.ZERO) &lt; 0)</span>
+<span class="nc" id="L55">            throw new com.salon.exception.ValidationException(</span>
+                    &quot;Please provide a valid minPrice — must be greater than or equal to 0&quot;);
+<span class="nc bnc" id="L57" title="All 4 branches missed.">        if (maxPrice != null &amp;&amp; maxPrice.compareTo(BigDecimal.ZERO) &lt; 0)</span>
+<span class="nc" id="L58">            throw new com.salon.exception.ValidationException(</span>
+                    &quot;Please provide a valid maxPrice — must be greater than or equal to 0&quot;);
+<span class="nc bnc" id="L60" title="All 6 branches missed.">        if (minPrice != null &amp;&amp; maxPrice != null &amp;&amp; maxPrice.compareTo(minPrice) &lt; 0)</span>
+<span class="nc" id="L61">            throw new com.salon.exception.ValidationException(</span>
+                    &quot;maxPrice must be greater than or equal to minPrice&quot;);
+
+<span class="nc" id="L64">        Long customerId = extractCustomerIdOptional(req);</span>
+<span class="nc" id="L65">        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));</span>
+<span class="nc" id="L66">        return ResponseEntity.ok(</span>
+<span class="nc" id="L67">                productService.getAllProducts(category, minPrice, maxPrice, brand, customerId, pageable));</span>
+    }
+
+    @GetMapping(&quot;/{id}&quot;)
+    @Operation(summary = &quot;Get product details by ID&quot;)
+    public ResponseEntity&lt;ProductResponseDTO&gt; getProductById(
+            @PathVariable Long id, HttpServletRequest req) {
+<span class="nc" id="L74">        Long customerId = extractCustomerIdOptional(req);</span>
+<span class="nc" id="L75">        return ResponseEntity.ok(productService.getProductById(id, customerId));</span>
+    }
+
+    @GetMapping(&quot;/search&quot;)
+    @Operation(summary = &quot;Search products by keyword (name, brand, description)&quot;)
+    public ResponseEntity&lt;List&lt;ProductResponseDTO&gt;&gt; searchProducts(
+            @RequestParam(&quot;q&quot;) String keyword, HttpServletRequest req) {
+<span class="nc" id="L82">        Long customerId = extractCustomerIdOptional(req);</span>
+<span class="nc" id="L83">        return ResponseEntity.ok(productService.searchProducts(keyword, customerId));</span>
+    }
+
+    @GetMapping(&quot;/{id}/reviews&quot;)
+    @Operation(summary = &quot;Get all reviews for a product&quot;)
+    public ResponseEntity&lt;List&lt;ProductReviewResponseDTO&gt;&gt; getReviews(@PathVariable Long id) {
+<span class="nc" id="L89">        return ResponseEntity.ok(productService.getReviews(id));</span>
+    }
+
+    @GetMapping(&quot;/{id}/can-review&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Check if the logged-in customer can review this product (must have a DELIVERED order)&quot;)
+    public ResponseEntity&lt;java.util.Map&lt;String, Object&gt;&gt; canReview(
+            @PathVariable Long id, HttpServletRequest req) {
+<span class="nc" id="L97">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L98">        boolean delivered = productService.hasDeliveredOrder(customerId, id);</span>
+<span class="nc" id="L99">        boolean alreadyReviewed = productService.hasReviewed(customerId, id);</span>
+<span class="nc bnc" id="L100" title="All 4 branches missed.">        return ResponseEntity.ok(java.util.Map.of(</span>
+<span class="nc" id="L101">                &quot;canReview&quot;, delivered &amp;&amp; !alreadyReviewed,</span>
+<span class="nc" id="L102">                &quot;hasDeliveredOrder&quot;, delivered,</span>
+<span class="nc" id="L103">                &quot;alreadyReviewed&quot;, alreadyReviewed</span>
+        ));
+    }
+
+    // ── Auth-required endpoints ───────────────────────────────────────────────
+
+    @GetMapping(&quot;/recommended&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get recommended products based on customer's appointment history&quot;)
+    public ResponseEntity&lt;List&lt;ProductResponseDTO&gt;&gt; getRecommended(HttpServletRequest req) {
+<span class="nc" id="L113">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L114">        return ResponseEntity.ok(productService.getRecommendedProducts(customerId));</span>
+    }
+
+    @PostMapping(&quot;/orders&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Place a product order&quot;)
+    public ResponseEntity&lt;ProductOrderResponseDTO&gt; placeOrder(
+            @Valid @RequestBody ProductOrderRequest request,
+            HttpServletRequest req) {
+<span class="nc" id="L123">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L124">        return ResponseEntity.status(201).body(productService.placeOrder(customerId, request));</span>
+    }
+
+    @GetMapping(&quot;/orders&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get order history for the logged-in customer&quot;)
+    public ResponseEntity&lt;List&lt;ProductOrderResponseDTO&gt;&gt; getOrderHistory(HttpServletRequest req) {
+<span class="nc" id="L131">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L132">        return ResponseEntity.ok(productService.getOrderHistory(customerId));</span>
+    }
+
+    @GetMapping(&quot;/orders/{orderId}&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get a specific order by ID&quot;)
+    public ResponseEntity&lt;ProductOrderResponseDTO&gt; getOrderById(
+            @PathVariable Long orderId, HttpServletRequest req) {
+<span class="nc" id="L140">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L141">        return ResponseEntity.ok(productService.getOrderById(customerId, orderId));</span>
+    }
+
+    @PostMapping(&quot;/orders/{orderId}/pay&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Pay for a product order (marks it as DELIVERED and awards loyalty points)&quot;)
+    public ResponseEntity&lt;ProductOrderResponseDTO&gt; payOrder(
+            @PathVariable Long orderId,
+            @RequestBody java.util.Map&lt;String, Object&gt; body,
+            HttpServletRequest req) {
+<span class="nc" id="L151">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L152">        String method = (String) body.getOrDefault(&quot;method&quot;, &quot;CASH&quot;);</span>
+<span class="nc" id="L153">        java.math.BigDecimal walletAmountUsed = java.math.BigDecimal.ZERO;</span>
+<span class="nc" id="L154">        Object w = body.get(&quot;walletAmountUsed&quot;);</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">        if (w != null) {</span>
+<span class="nc" id="L156">            try { walletAmountUsed = new java.math.BigDecimal(w.toString()); } catch (Exception ignored) {}</span>
+        }
+<span class="nc" id="L158">        com.salon.service.impl.ProductServiceImpl impl =</span>
+                (com.salon.service.impl.ProductServiceImpl) productService;
+<span class="nc" id="L160">        return ResponseEntity.ok(impl.payOrder(customerId, orderId, method, walletAmountUsed));</span>
+    }
+
+    @PostMapping(&quot;/{id}/favorites&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Add product to favorites&quot;)
+    public ResponseEntity&lt;FavoriteResponseDTO&gt; addToFavorites(
+            @PathVariable Long id, HttpServletRequest req) {
+<span class="nc" id="L168">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L169">        return ResponseEntity.status(201).body(productService.addToFavorites(customerId, id));</span>
+    }
+
+    @DeleteMapping(&quot;/{id}/favorites&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Remove product from favorites&quot;)
+    public ResponseEntity&lt;Void&gt; removeFromFavorites(
+            @PathVariable Long id, HttpServletRequest req) {
+<span class="nc" id="L177">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L178">        productService.removeFromFavorites(customerId, id);</span>
+<span class="nc" id="L179">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @GetMapping(&quot;/favorites&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get all favorited products for the logged-in customer&quot;)
+    public ResponseEntity&lt;List&lt;FavoriteResponseDTO&gt;&gt; getFavorites(HttpServletRequest req) {
+<span class="nc" id="L186">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L187">        return ResponseEntity.ok(productService.getFavorites(customerId));</span>
+    }
+
+    @PostMapping(&quot;/{id}/reviews&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Add a review for a product (must have ordered it)&quot;)
+    public ResponseEntity&lt;ProductReviewResponseDTO&gt; addReview(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductReviewRequest request,
+            HttpServletRequest req) {
+<span class="nc" id="L197">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L198">        return ResponseEntity.status(201).body(productService.addReview(customerId, id, request));</span>
+    }
+
+    @PatchMapping(&quot;/{id}/reviews&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Update your review for a product&quot;)
+    public ResponseEntity&lt;ProductReviewResponseDTO&gt; updateReview(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductReviewRequest request,
+            HttpServletRequest req) {
+<span class="nc" id="L208">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L209">        return ResponseEntity.ok(productService.updateReview(customerId, id, request));</span>
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private Long extractCustomerId(HttpServletRequest req) {
+<span class="nc" id="L215">        String auth = req.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L216" title="All 4 branches missed.">        if (auth == null || !auth.startsWith(&quot;Bearer &quot;))</span>
+<span class="nc" id="L217">            throw new UnauthorizedException(&quot;Missing or invalid authorization header&quot;);</span>
+<span class="nc" id="L218">        return jwtUtil.extractUserId(auth.substring(7));</span>
+    }
+
+    private Long extractCustomerIdOptional(HttpServletRequest req) {
+        try {
+<span class="nc" id="L223">            String auth = req.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L224" title="All 4 branches missed.">            if (auth != null &amp;&amp; auth.startsWith(&quot;Bearer &quot;))</span>
+<span class="nc" id="L225">                return jwtUtil.extractUserId(auth.substring(7));</span>
+<span class="nc" id="L226">        } catch (Exception ignored) {}</span>
+<span class="nc" id="L227">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

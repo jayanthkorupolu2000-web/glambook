@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServiceController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">ServiceController.java</span></div><h1>ServiceController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.response.ServiceResponse;
+import com.salon.entity.Gender;
+import com.salon.entity.Service;
+import com.salon.repository.ServiceRepository;
+import com.salon.service.FavoritesService;
+import com.salon.service.ServiceService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping(&quot;/api/services&quot;)
+<span class="nc" id="L23">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Services&quot;, description = &quot;Service management endpoints&quot;)
+public class ServiceController {
+
+    private final ServiceService serviceService;
+    private final ServiceRepository serviceRepository;
+    private final FavoritesService favoritesService;
+
+    @GetMapping
+    @Operation(summary = &quot;Get all services grouped by gender and category&quot;)
+    public ResponseEntity&lt;Map&lt;String, Map&lt;String, List&lt;ServiceResponse&gt;&gt;&gt;&gt; getAllServices() {
+<span class="nc" id="L34">        return ResponseEntity.ok(serviceService.getAllServicesGrouped());</span>
+    }
+
+    @GetMapping(&quot;/list&quot;)
+    @Operation(summary = &quot;Get all services as a flat list&quot;)
+    public ResponseEntity&lt;List&lt;ServiceResponse&gt;&gt; getAllServicesList(
+            @RequestParam(required = false) Long customerId) {
+<span class="nc" id="L41">        List&lt;ServiceResponse&gt; services = serviceService.getAllServicesList();</span>
+<span class="nc" id="L42">        return ResponseEntity.ok(favoritesService.enrichServices(services, customerId));</span>
+    }
+
+    @PostMapping
+    @PreAuthorize(&quot;hasRole('SALON_OWNER')&quot;)
+    @Operation(summary = &quot;Add a new service (Salon Owner only)&quot;)
+    public ResponseEntity&lt;ServiceResponse&gt; addService(@RequestBody Map&lt;String, Object&gt; body) {
+<span class="nc" id="L49">        Service s = new Service();</span>
+<span class="nc" id="L50">        s.setName((String) body.get(&quot;name&quot;));</span>
+<span class="nc" id="L51">        s.setCategory((String) body.get(&quot;category&quot;));</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (body.get(&quot;price&quot;) != null)</span>
+<span class="nc" id="L53">            s.setPrice(new BigDecimal(body.get(&quot;price&quot;).toString()));</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (body.get(&quot;durationMins&quot;) != null)</span>
+<span class="nc" id="L55">            s.setDurationMins(Integer.parseInt(body.get(&quot;durationMins&quot;).toString()));</span>
+        try {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            String gender = body.get(&quot;gender&quot;) != null ? body.get(&quot;gender&quot;).toString() : &quot;WOMEN&quot;;</span>
+<span class="nc" id="L58">            s.setGender(Gender.valueOf(gender));</span>
+<span class="nc" id="L59">        } catch (Exception e) {</span>
+<span class="nc" id="L60">            s.setGender(Gender.WOMEN);</span>
+<span class="nc" id="L61">        }</span>
+<span class="nc" id="L62">        s.setIsActive(true);</span>
+<span class="nc" id="L63">        Service saved = serviceRepository.save(s);</span>
+<span class="nc" id="L64">        return ResponseEntity.status(HttpStatus.CREATED).body(ServiceResponse.builder()</span>
+<span class="nc" id="L65">                .id(saved.getId()).name(saved.getName()).category(saved.getCategory())</span>
+<span class="nc bnc" id="L66" title="All 2 branches missed.">                .gender(saved.getGender() != null ? saved.getGender().name() : null)</span>
+<span class="nc" id="L67">                .price(saved.getPrice()).durationMins(saved.getDurationMins()).build());</span>
+    }
+
+    @PatchMapping(&quot;/{id}/toggle&quot;)
+    @PreAuthorize(&quot;hasRole('SALON_OWNER')&quot;)
+    @Operation(summary = &quot;Toggle service active/inactive (Salon Owner)&quot;)
+    public ResponseEntity&lt;ServiceResponse&gt; toggleService(@PathVariable Long id) {
+<span class="nc" id="L74">        Service s = serviceRepository.findById(id)</span>
+<span class="nc" id="L75">                .orElseThrow(() -&gt; new com.salon.exception.ResourceNotFoundException(&quot;Service not found&quot;));</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        s.setIsActive(!Boolean.TRUE.equals(s.getIsActive()));</span>
+<span class="nc" id="L77">        Service saved = serviceRepository.save(s);</span>
+<span class="nc" id="L78">        return ResponseEntity.ok(ServiceResponse.builder()</span>
+<span class="nc" id="L79">                .id(saved.getId()).name(saved.getName()).category(saved.getCategory())</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                .gender(saved.getGender() != null ? saved.getGender().name() : null)</span>
+<span class="nc" id="L81">                .price(saved.getPrice()).durationMins(saved.getDurationMins())</span>
+<span class="nc" id="L82">                .isActive(Boolean.TRUE.equals(saved.getIsActive())).build());</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    @PreAuthorize(&quot;hasRole('SALON_OWNER')&quot;)
+    @Operation(summary = &quot;Delete a service (Salon Owner only)&quot;)
+    public ResponseEntity&lt;Void&gt; deleteService(@PathVariable Long id) {
+<span class="nc" id="L89">        serviceRepository.deleteById(id);</span>
+<span class="nc" id="L90">        return ResponseEntity.noContent().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">AuthService.java</span></div><h1>AuthService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.request.AdminLoginRequest;
+import com.salon.dto.request.CustomerRegisterRequest;
+import com.salon.dto.request.LoginRequest;
+import com.salon.dto.request.ProfessionalRegisterRequest;
+import com.salon.dto.response.AuthResponse;
+import com.salon.entity.Admin;
+import com.salon.entity.Customer;
+import com.salon.entity.Professional;
+import com.salon.entity.SalonOwner;
+import com.salon.exception.ConflictException;
+import com.salon.exception.UnauthorizedException;
+import com.salon.exception.ValidationException;
+import com.salon.repository.AdminRepository;
+import com.salon.repository.CustomerRepository;
+import com.salon.repository.ProfessionalRepository;
+import com.salon.repository.SalonOwnerRepository;
+import com.salon.repository.ServiceRepository;
+import com.salon.security.JwtUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+<span class="nc" id="L26">@RequiredArgsConstructor</span>
+public class AuthService {
+
+    private final CustomerRepository customerRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final SalonOwnerRepository salonOwnerRepository;
+    private final AdminRepository adminRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final ServiceRepository serviceRepository;
+
+    public AuthResponse registerCustomer(CustomerRegisterRequest request) {
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        if (customerRepository.findByEmail(request.getEmail()).isPresent()) {</span>
+<span class="nc" id="L39">            throw new ValidationException(&quot;Email already registered&quot;);</span>
+        }
+<span class="nc" id="L41">        Customer customer = Customer.builder()</span>
+<span class="nc" id="L42">                .name(request.getName())</span>
+<span class="nc" id="L43">                .email(request.getEmail())</span>
+<span class="nc" id="L44">                .password(passwordEncoder.encode(request.getPassword()))</span>
+<span class="nc" id="L45">                .city(request.getCity())</span>
+<span class="nc" id="L46">                .build();</span>
+<span class="nc" id="L47">        customer = customerRepository.save(customer);</span>
+<span class="nc" id="L48">        String token = jwtUtil.generateToken(customer.getEmail(), &quot;CUSTOMER&quot;, customer.getId(), customer.getCity());</span>
+<span class="nc" id="L49">        return AuthResponse.builder()</span>
+<span class="nc" id="L50">                .token(token)</span>
+<span class="nc" id="L51">                .role(&quot;CUSTOMER&quot;)</span>
+<span class="nc" id="L52">                .userId(customer.getId())</span>
+<span class="nc" id="L53">                .name(customer.getName())</span>
+<span class="nc" id="L54">                .build();</span>
+    }
+
+    public AuthResponse loginCustomer(LoginRequest request) {
+<span class="nc" id="L58">        Customer customer = customerRepository.findByEmail(request.getEmail())</span>
+<span class="nc" id="L59">                .orElseThrow(() -&gt; new UnauthorizedException(&quot;Invalid credentials&quot;));</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (!passwordEncoder.matches(request.getPassword(), customer.getPassword())) {</span>
+<span class="nc" id="L61">            throw new UnauthorizedException(&quot;Invalid credentials&quot;);</span>
+        }
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (com.salon.entity.UserStatus.SUSPENDED.equals(customer.getStatus())) {</span>
+<span class="nc" id="L64">            throw new UnauthorizedException(&quot;Your account has been suspended. Please contact support.&quot;);</span>
+        }
+<span class="nc" id="L66">        String token = jwtUtil.generateToken(customer.getEmail(), &quot;CUSTOMER&quot;, customer.getId(), customer.getCity());</span>
+<span class="nc" id="L67">        return AuthResponse.builder()</span>
+<span class="nc" id="L68">                .token(token)</span>
+<span class="nc" id="L69">                .role(&quot;CUSTOMER&quot;)</span>
+<span class="nc" id="L70">                .userId(customer.getId())</span>
+<span class="nc" id="L71">                .name(customer.getName())</span>
+<span class="nc" id="L72">                .build();</span>
+    }
+
+    public AuthResponse loginOwner(LoginRequest request) {
+<span class="nc" id="L76">        SalonOwner owner = salonOwnerRepository.findByEmail(request.getEmail())</span>
+<span class="nc" id="L77">                .orElseThrow(() -&gt; new UnauthorizedException(&quot;Invalid credentials&quot;));</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        if (!passwordEncoder.matches(request.getPassword(), owner.getPassword())) {</span>
+<span class="nc" id="L79">            throw new UnauthorizedException(&quot;Invalid credentials&quot;);</span>
+        }
+<span class="nc" id="L81">        String token = jwtUtil.generateToken(owner.getEmail(), &quot;SALON_OWNER&quot;, owner.getId(), owner.getCity());</span>
+<span class="nc" id="L82">        return AuthResponse.builder()</span>
+<span class="nc" id="L83">                .token(token)</span>
+<span class="nc" id="L84">                .role(&quot;SALON_OWNER&quot;)</span>
+<span class="nc" id="L85">                .userId(owner.getId())</span>
+<span class="nc" id="L86">                .name(owner.getName())</span>
+<span class="nc" id="L87">                .build();</span>
+    }
+
+    public AuthResponse loginProfessional(LoginRequest request) {
+<span class="nc" id="L91">        Professional professional = professionalRepository.findByEmail(request.getEmail())</span>
+<span class="nc" id="L92">                .orElseThrow(() -&gt; new UnauthorizedException(&quot;Invalid credentials&quot;));</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (!passwordEncoder.matches(request.getPassword(), professional.getPassword())) {</span>
+<span class="nc" id="L94">            throw new UnauthorizedException(&quot;Invalid credentials&quot;);</span>
+        }
+<span class="nc" id="L96">        String token = jwtUtil.generateToken(professional.getEmail(), &quot;PROFESSIONAL&quot;, professional.getId(), professional.getCity());</span>
+<span class="nc" id="L97">        return AuthResponse.builder()</span>
+<span class="nc" id="L98">                .token(token)</span>
+<span class="nc" id="L99">                .role(&quot;PROFESSIONAL&quot;)</span>
+<span class="nc" id="L100">                .userId(professional.getId())</span>
+<span class="nc" id="L101">                .name(professional.getName())</span>
+<span class="nc" id="L102">                .build();</span>
+    }
+
+    public AuthResponse registerProfessional(ProfessionalRegisterRequest request) {
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (professionalRepository.findByEmail(request.getEmail()).isPresent()) {</span>
+<span class="nc" id="L107">            throw new ValidationException(&quot;Email already registered&quot;);</span>
+        }
+<span class="nc" id="L109">        SalonOwner owner = salonOwnerRepository.findByCity(request.getCity())</span>
+<span class="nc" id="L110">                .orElseThrow(() -&gt; new ValidationException(&quot;No salon available in selected city&quot;));</span>
+
+        // Resolve specialization from service if serviceId provided
+<span class="nc" id="L113">        String specialization = request.getSpecialization();</span>
+<span class="nc" id="L114">        com.salon.entity.Service linkedService = null;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (request.getServiceId() != null) {</span>
+<span class="nc" id="L116">            linkedService = serviceRepository.findById(request.getServiceId()).orElse(null);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (linkedService != null) {</span>
+<span class="nc" id="L118">                specialization = linkedService.getName();</span>
+            }
+        }
+
+<span class="nc" id="L122">        Professional professional = Professional.builder()</span>
+<span class="nc" id="L123">                .name(request.getName())</span>
+<span class="nc" id="L124">                .email(request.getEmail())</span>
+<span class="nc" id="L125">                .password(passwordEncoder.encode(request.getPassword()))</span>
+<span class="nc" id="L126">                .city(request.getCity())</span>
+<span class="nc" id="L127">                .specialization(specialization)</span>
+<span class="nc" id="L128">                .salonOwner(owner)</span>
+<span class="nc" id="L129">                .build();</span>
+<span class="nc" id="L130">        professional = professionalRepository.save(professional);</span>
+
+        // Link the service to this professional
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (linkedService != null) {</span>
+<span class="nc" id="L134">            linkedService.setProfessionalId(professional.getId());</span>
+<span class="nc" id="L135">            linkedService.setIsActive(true);  // ensure active</span>
+<span class="nc" id="L136">            serviceRepository.save(linkedService);</span>
+        }
+
+<span class="nc" id="L139">        String token = jwtUtil.generateToken(professional.getEmail(), &quot;PROFESSIONAL&quot;, professional.getId(), professional.getCity());</span>
+<span class="nc" id="L140">        return AuthResponse.builder()</span>
+<span class="nc" id="L141">                .token(token)</span>
+<span class="nc" id="L142">                .role(&quot;PROFESSIONAL&quot;)</span>
+<span class="nc" id="L143">                .userId(professional.getId())</span>
+<span class="nc" id="L144">                .name(professional.getName())</span>
+<span class="nc" id="L145">                .build();</span>
+    }
+
+    public AuthResponse loginAdmin(AdminLoginRequest request) {
+<span class="nc" id="L149">        Admin admin = adminRepository.findByUsername(request.getUsername())</span>
+<span class="nc" id="L150">                .orElseThrow(() -&gt; new UnauthorizedException(&quot;Invalid credentials&quot;));</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {</span>
+<span class="nc" id="L152">            throw new UnauthorizedException(&quot;Invalid credentials&quot;);</span>
+        }
+<span class="nc" id="L154">        String token = jwtUtil.generateToken(admin.getUsername(), &quot;ADMIN&quot;, admin.getId(), null);</span>
+<span class="nc" id="L155">        return AuthResponse.builder()</span>
+<span class="nc" id="L156">                .token(token)</span>
+<span class="nc" id="L157">                .role(&quot;ADMIN&quot;)</span>
+<span class="nc" id="L158">                .userId(admin.getId())</span>
+<span class="nc" id="L159">                .name(admin.getUsername())</span>
+<span class="nc" id="L160">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfessionalProfileServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">ProfessionalProfileServiceImpl.java</span></div><h1>ProfessionalProfileServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.request.ProfessionalProfileUpdateRequest;
+import com.salon.dto.response.PortfolioResponse;
+import com.salon.dto.response.ProfessionalProfileResponse;
+import com.salon.entity.Professional;
+import com.salon.entity.UserStatus;
+import com.salon.exception.InvalidOperationException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.PortfolioRepository;
+import com.salon.repository.ProfessionalRepository;
+import com.salon.repository.ReviewRepository;
+import com.salon.repository.ServiceRepository;
+import com.salon.service.FileStorageService;
+import com.salon.service.ProfessionalProfileService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L25">@RequiredArgsConstructor</span>
+public class ProfessionalProfileServiceImpl implements ProfessionalProfileService {
+
+    private final ProfessionalRepository professionalRepository;
+    private final ReviewRepository reviewRepository;
+    private final PortfolioRepository portfolioRepository;
+    private final FileStorageService fileStorageService;
+    private final ServiceRepository serviceRepository;
+
+    @Override
+    @Transactional
+    public ProfessionalProfileResponse updateProfile(Long professionalId, ProfessionalProfileUpdateRequest dto) {
+<span class="nc" id="L37">        Professional professional = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L38">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found: &quot; + professionalId));</span>
+
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (professional.getStatus() == UserStatus.SUSPENDED) {</span>
+<span class="nc" id="L41">            throw new InvalidOperationException(&quot;Suspended professionals cannot update their profile&quot;);</span>
+        }
+
+<span class="nc" id="L44">        professional.setSpecialization(dto.getSpecialization());</span>
+<span class="nc" id="L45">        professional.setExperienceYears(dto.getExperienceYears());</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        if (dto.getCertifications() != null) professional.setCertifications(dto.getCertifications());</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        if (dto.getTrainingDetails() != null) professional.setTrainingDetails(dto.getTrainingDetails());</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (dto.getServiceAreas() != null) professional.setServiceAreas(dto.getServiceAreas());</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (dto.getTravelRadiusKm() != null) professional.setTravelRadiusKm(dto.getTravelRadiusKm());</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (dto.getBio() != null) professional.setBio(dto.getBio());</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        if (dto.getInstagramHandle() != null) professional.setInstagramHandle(dto.getInstagramHandle());</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (dto.getIsAvailableHome() != null) professional.setAvailableHome(dto.getIsAvailableHome());</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (dto.getIsAvailableSalon() != null) professional.setAvailableSalon(dto.getIsAvailableSalon());</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (dto.getResponseTimeHrs() != null) professional.setResponseTimeHrs(dto.getResponseTimeHrs());</span>
+
+<span class="nc" id="L56">        return toResponse(professionalRepository.save(professional));</span>
+    }
+
+    @Override
+    public ProfessionalProfileResponse getProfileById(Long professionalId) {
+<span class="nc" id="L61">        Professional professional = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L62">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found: &quot; + professionalId));</span>
+<span class="nc" id="L63">        return toResponse(professional);</span>
+    }
+
+    @Override
+    @Transactional
+    public String uploadProfilePhoto(Long professionalId, MultipartFile file) {
+<span class="nc" id="L69">        Professional professional = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L70">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found: &quot; + professionalId));</span>
+
+<span class="nc" id="L72">        String url = fileStorageService.storePhoto(file, &quot;profiles&quot;);</span>
+<span class="nc" id="L73">        professional.setProfilePhotoUrl(url);</span>
+<span class="nc" id="L74">        professionalRepository.save(professional);</span>
+<span class="nc" id="L75">        return url;</span>
+    }
+
+    @Override
+    public List&lt;ProfessionalProfileResponse&gt; searchProfessionals(String city, String targetGroup, String category, Boolean homeAvailable) {
+<span class="nc" id="L80">        return searchProfessionalsWithPrice(city, targetGroup, category, homeAvailable, null, null, null, null);</span>
+    }
+
+    @Override
+    public List&lt;ProfessionalProfileResponse&gt; searchProfessionalsWithPrice(
+            String city, String targetGroup, String category,
+            Boolean homeAvailable, String keyword,
+            Double minPrice, Double maxPrice, Double minRating) {
+
+<span class="nc" id="L89">        return professionalRepository.findAll().stream()</span>
+<span class="nc bnc" id="L90" title="All 4 branches missed.">                .filter(p -&gt; p.getStatus() == UserStatus.ACTIVE || p.getStatus() == null)</span>
+<span class="nc bnc" id="L91" title="All 6 branches missed.">                .filter(p -&gt; city == null || city.isBlank() || p.getCity().equalsIgnoreCase(city))</span>
+<span class="nc bnc" id="L92" title="All 6 branches missed.">                .filter(p -&gt; homeAvailable == null || !homeAvailable || p.isAvailableHome())</span>
+<span class="nc bnc" id="L93" title="All 4 branches missed.">                .filter(p -&gt; keyword == null || keyword.isBlank()</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed.">                        || (p.getSpecialization() != null &amp;&amp; p.getSpecialization().toLowerCase().contains(keyword.toLowerCase()))</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                        || p.getName().toLowerCase().contains(keyword.toLowerCase()))</span>
+<span class="nc" id="L96">                .map(this::toResponse)</span>
+                // Price range: keep professional if ANY of their active services falls in range
+<span class="nc" id="L98">                .filter(res -&gt; {</span>
+<span class="nc bnc" id="L99" title="All 6 branches missed.">                    if (minPrice == null &amp;&amp; (maxPrice == null || maxPrice &lt;= 0)) return true;</span>
+<span class="nc bnc" id="L100" title="All 4 branches missed.">                    if (res.getActiveServices() == null || res.getActiveServices().isEmpty()) return false;</span>
+<span class="nc" id="L101">                    return res.getActiveServices().stream().anyMatch(svc -&gt; {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                        if (svc.getPrice() == null) return false;</span>
+<span class="nc" id="L103">                        double p = svc.getPrice().doubleValue();</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">                        boolean aboveMin = minPrice == null || p &gt;= minPrice;   // minPrice=0 is valid</span>
+<span class="nc bnc" id="L105" title="All 6 branches missed.">                        boolean belowMax = (maxPrice == null || maxPrice &lt;= 0) || p &lt;= maxPrice;</span>
+<span class="nc bnc" id="L106" title="All 4 branches missed.">                        return aboveMin &amp;&amp; belowMax;</span>
+                    });
+                })
+                // Rating filter
+<span class="nc bnc" id="L110" title="All 6 branches missed.">                .filter(res -&gt; minRating == null || minRating &lt;= 0 || res.getAverageRating() &gt;= minRating)</span>
+<span class="nc" id="L111">                .collect(java.util.stream.Collectors.toList());</span>
+    }
+
+    private ProfessionalProfileResponse toResponse(Professional p) {
+<span class="nc" id="L115">        ProfessionalProfileResponse res = new ProfessionalProfileResponse();</span>
+<span class="nc" id="L116">        res.setId(p.getId());</span>
+<span class="nc" id="L117">        res.setProfessionalId(p.getId()); // alias used by search results frontend</span>
+<span class="nc" id="L118">        res.setName(p.getName());</span>
+<span class="nc" id="L119">        res.setEmail(p.getEmail());</span>
+<span class="nc" id="L120">        res.setCity(p.getCity());</span>
+<span class="nc" id="L121">        res.setCityName(p.getCity());     // alias used by search results frontend</span>
+<span class="nc" id="L122">        res.setSpecialization(p.getSpecialization());</span>
+<span class="nc" id="L123">        res.setExperienceYears(p.getExperienceYears());</span>
+<span class="nc" id="L124">        res.setCertifications(p.getCertifications());</span>
+<span class="nc" id="L125">        res.setTrainingDetails(p.getTrainingDetails());</span>
+<span class="nc" id="L126">        res.setServiceAreas(p.getServiceAreas());</span>
+<span class="nc" id="L127">        res.setTravelRadiusKm(p.getTravelRadiusKm());</span>
+<span class="nc" id="L128">        res.setBio(p.getBio());</span>
+<span class="nc" id="L129">        res.setInstagramHandle(p.getInstagramHandle());</span>
+<span class="nc" id="L130">        res.setAvailableHome(p.isAvailableHome());</span>
+<span class="nc" id="L131">        res.setAvailableSalon(p.isAvailableSalon());</span>
+<span class="nc" id="L132">        res.setResponseTimeHrs(p.getResponseTimeHrs());</span>
+<span class="nc" id="L133">        res.setProfilePhotoUrl(p.getProfilePhotoUrl());</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        res.setStatus(p.getStatus() != null ? p.getStatus().name() : &quot;ACTIVE&quot;);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (p.getSalonOwner() != null) res.setSalonOwnerName(p.getSalonOwner().getName());</span>
+<span class="nc" id="L136">        res.setApprovedAt(p.getApprovedAt());</span>
+
+        try {
+<span class="nc" id="L139">            Double avg = reviewRepository.findAverageRatingByProfessionalId(p.getId());</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            res.setAverageRating(avg != null ? avg : 0.0);</span>
+<span class="nc" id="L141">            res.setTotalReviews((int) reviewRepository.countByProfessionalId(p.getId()));</span>
+<span class="nc" id="L142">        } catch (Exception e) {</span>
+<span class="nc" id="L143">            res.setAverageRating(0.0);</span>
+<span class="nc" id="L144">            res.setTotalReviews(0);</span>
+<span class="nc" id="L145">        }</span>
+
+        try {
+<span class="nc" id="L148">            List&lt;PortfolioResponse&gt; featured = portfolioRepository</span>
+<span class="nc" id="L149">                    .findByProfessionalIdAndIsFeatured(p.getId(), true)</span>
+<span class="nc" id="L150">                    .stream().limit(3).map(this::toPortfolioResponse).collect(Collectors.toList());</span>
+<span class="nc" id="L151">            res.setFeaturedPortfolioItems(featured);</span>
+<span class="nc" id="L152">        } catch (Exception e) {</span>
+<span class="nc" id="L153">            res.setFeaturedPortfolioItems(java.util.Collections.emptyList());</span>
+<span class="nc" id="L154">        }</span>
+
+        // Populate active services (used for price range filtering and display)
+        try {
+<span class="nc" id="L158">            List&lt;ProfessionalProfileResponse.ServiceSummary&gt; services = serviceRepository</span>
+<span class="nc" id="L159">                    .findByProfessionalId(p.getId())</span>
+<span class="nc" id="L160">                    .stream()</span>
+<span class="nc" id="L161">                    .filter(s -&gt; Boolean.TRUE.equals(s.getIsActive()))</span>
+<span class="nc" id="L162">                    .map(s -&gt; {</span>
+<span class="nc" id="L163">                        ProfessionalProfileResponse.ServiceSummary ss = new ProfessionalProfileResponse.ServiceSummary();</span>
+<span class="nc" id="L164">                        ss.setId(s.getId());</span>
+<span class="nc" id="L165">                        ss.setName(s.getName());</span>
+<span class="nc" id="L166">                        ss.setCategory(s.getCategory());</span>
+<span class="nc" id="L167">                        ss.setPrice(s.getPrice());</span>
+<span class="nc" id="L168">                        ss.setDurationMins(s.getDurationMins());</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">                        ss.setGender(s.getGender() != null ? s.getGender().name() : null);</span>
+<span class="nc" id="L170">                        return ss;</span>
+                    })
+<span class="nc" id="L172">                    .collect(Collectors.toList());</span>
+<span class="nc" id="L173">            res.setActiveServices(services);</span>
+<span class="nc" id="L174">        } catch (Exception e) {</span>
+<span class="nc" id="L175">            res.setActiveServices(java.util.Collections.emptyList());</span>
+<span class="nc" id="L176">        }</span>
+
+<span class="nc" id="L178">        res.setActivePromotions(java.util.Collections.emptyList());</span>
+
+<span class="nc" id="L180">        return res;</span>
+    }
+
+    private PortfolioResponse toPortfolioResponse(com.salon.entity.Portfolio port) {
+<span class="nc" id="L184">        PortfolioResponse r = new PortfolioResponse();</span>
+<span class="nc" id="L185">        r.setId(port.getId());</span>
+<span class="nc" id="L186">        r.setProfessionalId(port.getProfessional().getId());</span>
+<span class="nc" id="L187">        r.setMediaType(port.getMediaType().name());</span>
+<span class="nc" id="L188">        r.setServiceTag(port.getServiceTag());</span>
+<span class="nc" id="L189">        r.setCaption(port.getCaption());</span>
+<span class="nc" id="L190">        r.setBeforePhotoUrl(port.getBeforePhotoUrl());</span>
+<span class="nc" id="L191">        r.setAfterPhotoUrl(port.getAfterPhotoUrl());</span>
+<span class="nc" id="L192">        r.setPhotoUrl(port.getPhotoUrl());</span>
+<span class="nc" id="L193">        r.setVideoUrl(port.getVideoUrl());</span>
+<span class="nc" id="L194">        r.setFeatured(port.isFeatured());</span>
+<span class="nc" id="L195">        r.setCreatedAt(port.getCreatedAt());</span>
+<span class="nc" id="L196">        return r;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

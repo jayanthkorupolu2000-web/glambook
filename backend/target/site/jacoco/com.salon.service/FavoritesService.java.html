@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FavoritesService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">FavoritesService.java</span></div><h1>FavoritesService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.response.ProductResponse;
+import com.salon.dto.response.ServiceResponse;
+import com.salon.entity.*;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L17">@RequiredArgsConstructor</span>
+public class FavoritesService {
+
+    private final CustomerRepository customerRepository;
+    private final ProductRepository productRepository;
+    private final ServiceRepository serviceRepository;
+    private final FavoriteProductRepository favoriteProductRepository;
+    private final FavoriteServiceRepository favoriteServiceRepository;
+
+    // ─── Products ────────────────────────────────────────────────────────────
+
+    @Transactional
+    public void toggleFavoriteProduct(Long customerId, Long productId) {
+<span class="nc" id="L30">        Customer customer = customerRepository.findById(customerId)</span>
+<span class="nc" id="L31">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+<span class="nc" id="L32">        Product product = productRepository.findById(productId)</span>
+<span class="nc" id="L33">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product not found&quot;));</span>
+
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        if (favoriteProductRepository.existsByCustomerIdAndProductId(customerId, productId)) {</span>
+<span class="nc" id="L36">            favoriteProductRepository.deleteByCustomerIdAndProductId(customerId, productId);</span>
+        } else {
+<span class="nc" id="L38">            favoriteProductRepository.save(</span>
+<span class="nc" id="L39">                    FavoriteProduct.builder().customer(customer).product(product).build());</span>
+        }
+<span class="nc" id="L41">    }</span>
+
+    public List&lt;ProductResponse&gt; getFavoriteProducts(Long customerId) {
+<span class="nc" id="L44">        return favoriteProductRepository.findByCustomerId(customerId)</span>
+<span class="nc" id="L45">                .stream()</span>
+<span class="nc" id="L46">                .map(fp -&gt; toProductResponse(fp.getProduct(), true))</span>
+<span class="nc" id="L47">                .collect(Collectors.toList());</span>
+    }
+
+    public boolean isProductFavorited(Long customerId, Long productId) {
+<span class="nc" id="L51">        return favoriteProductRepository.existsByCustomerIdAndProductId(customerId, productId);</span>
+    }
+
+    // ─── Services ────────────────────────────────────────────────────────────
+
+    @Transactional
+    public void toggleFavoriteService(Long customerId, Long serviceId) {
+<span class="nc" id="L58">        Customer customer = customerRepository.findById(customerId)</span>
+<span class="nc" id="L59">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+<span class="nc" id="L60">        com.salon.entity.Service service = serviceRepository.findById(serviceId)</span>
+<span class="nc" id="L61">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Service not found&quot;));</span>
+
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (favoriteServiceRepository.existsByCustomerIdAndServiceId(customerId, serviceId)) {</span>
+<span class="nc" id="L64">            favoriteServiceRepository.deleteByCustomerIdAndServiceId(customerId, serviceId);</span>
+        } else {
+<span class="nc" id="L66">            favoriteServiceRepository.save(</span>
+<span class="nc" id="L67">                    FavoriteService.builder().customer(customer).service(service).build());</span>
+        }
+<span class="nc" id="L69">    }</span>
+
+    public List&lt;ServiceResponse&gt; getFavoriteServices(Long customerId) {
+<span class="nc" id="L72">        return favoriteServiceRepository.findByCustomerId(customerId)</span>
+<span class="nc" id="L73">                .stream()</span>
+<span class="nc" id="L74">                .map(fs -&gt; toServiceResponse(fs.getService(), true))</span>
+<span class="nc" id="L75">                .collect(Collectors.toList());</span>
+    }
+
+    public boolean isServiceFavorited(Long customerId, Long serviceId) {
+<span class="nc" id="L79">        return favoriteServiceRepository.existsByCustomerIdAndServiceId(customerId, serviceId);</span>
+    }
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    /** Enrich a product list with favorited flags for a given customer. */
+    public List&lt;ProductResponse&gt; enrichProducts(List&lt;ProductResponse&gt; products, Long customerId) {
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (customerId == null) return products;</span>
+<span class="nc" id="L87">        Set&lt;Long&gt; favIds = favoriteProductRepository.findByCustomerId(customerId)</span>
+<span class="nc" id="L88">                .stream().map(fp -&gt; fp.getProduct().getId()).collect(Collectors.toSet());</span>
+<span class="nc" id="L89">        products.forEach(p -&gt; p.setFavorited(favIds.contains(p.getId())));</span>
+<span class="nc" id="L90">        return products;</span>
+    }
+
+    /** Enrich a service list with favorited flags for a given customer. */
+    public List&lt;ServiceResponse&gt; enrichServices(List&lt;ServiceResponse&gt; services, Long customerId) {
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (customerId == null) return services;</span>
+<span class="nc" id="L96">        Set&lt;Long&gt; favIds = favoriteServiceRepository.findByCustomerId(customerId)</span>
+<span class="nc" id="L97">                .stream().map(fs -&gt; fs.getService().getId()).collect(Collectors.toSet());</span>
+<span class="nc" id="L98">        services.forEach(s -&gt; s.setFavorited(favIds.contains(s.getId())));</span>
+<span class="nc" id="L99">        return services;</span>
+    }
+
+    private ProductResponse toProductResponse(Product p, boolean favorited) {
+<span class="nc" id="L103">        ProductResponse r = new ProductResponse();</span>
+<span class="nc" id="L104">        r.setId(p.getId());</span>
+<span class="nc" id="L105">        r.setName(p.getName());</span>
+<span class="nc" id="L106">        r.setBrand(p.getBrand());</span>
+<span class="nc" id="L107">        r.setCategory(p.getCategory());</span>
+<span class="nc" id="L108">        r.setDescription(p.getDescription());</span>
+<span class="nc" id="L109">        r.setIngredients(p.getIngredients());</span>
+<span class="nc" id="L110">        r.setUsageTips(p.getUsageTips());</span>
+<span class="nc" id="L111">        r.setPrice(p.getPrice());</span>
+<span class="nc" id="L112">        r.setStock(p.getStock());</span>
+<span class="nc" id="L113">        r.setImageUrl(p.getImageUrl());</span>
+<span class="nc" id="L114">        r.setRecommendedFor(p.getRecommendedFor());</span>
+<span class="nc" id="L115">        r.setFavorited(favorited);</span>
+<span class="nc" id="L116">        return r;</span>
+    }
+
+    private ServiceResponse toServiceResponse(com.salon.entity.Service s, boolean favorited) {
+<span class="nc" id="L120">        return ServiceResponse.builder()</span>
+<span class="nc" id="L121">                .id(s.getId())</span>
+<span class="nc" id="L122">                .name(s.getName())</span>
+<span class="nc" id="L123">                .category(s.getCategory())</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                .gender(s.getGender() != null ? s.getGender().name() : null)</span>
+<span class="nc" id="L125">                .price(s.getPrice())</span>
+<span class="nc" id="L126">                .durationMins(s.getDurationMins())</span>
+<span class="nc" id="L127">                .isActive(s.getIsActive())</span>
+<span class="nc" id="L128">                .favorited(favorited)</span>
+<span class="nc" id="L129">                .professionalId(s.getProfessionalId())</span>
+<span class="nc" id="L130">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

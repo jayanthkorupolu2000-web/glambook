@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PayLaterService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">PayLaterService.java</span></div><h1>PayLaterService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.response.LoyaltyResponse;
+import com.salon.entity.*;
+import com.salon.exception.InvalidOperationException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/**
+ * Handles the Pay Later flow:
+ *  - Eligibility check (Silver+ tier, points value &gt;= serviceCost/2, not suspended)
+ *  - Opt-in: creates a PAY_LATER_PENDING payment record with a 24-hour deadline
+ *  - Settlement: converts PAY_LATER_PENDING → PAID when customer pays
+ *  - Scheduled reminders and auto-suspension are handled by PayLaterScheduler
+ */
+@Service
+<span class="nc" id="L27">@RequiredArgsConstructor</span>
+<span class="nc" id="L28">@Slf4j</span>
+public class PayLaterService {
+
+    private final AppointmentRepository appointmentRepository;
+    private final PaymentRepository paymentRepository;
+    private final CustomerRepository customerRepository;
+    private final CustomerNotificationRepository customerNotificationRepository;
+    private final WalletService walletService;
+    private final LoyaltyService loyaltyService;
+
+<span class="nc" id="L38">    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern(&quot;dd MMM yyyy, hh:mm a&quot;);</span>
+
+    // ── Eligibility ───────────────────────────────────────────────────────────
+
+    /**
+     * Rule 1: Tier must be SILVER, GOLD, or PLATINUM (based on totalEarned).
+     * Rule 2: (availablePoints / 10) &gt;= (serviceCost / 2)
+     *         i.e. wallet value of points &gt;= half the service cost.
+     * Rule 3: Account must not be suspended.
+     */
+    public Map&lt;String, Object&gt; checkEligibility(Long customerId, Long appointmentId) {
+<span class="nc" id="L49">        Map&lt;String, Object&gt; result = new LinkedHashMap&lt;&gt;();</span>
+
+<span class="nc" id="L51">        Customer customer = customerRepository.findById(customerId)</span>
+<span class="nc" id="L52">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+
+<span class="nc" id="L54">        Appointment appt = appointmentRepository.findById(appointmentId)</span>
+<span class="nc" id="L55">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Appointment not found&quot;));</span>
+
+        // Rule 3: not suspended
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (customer.getStatus() == UserStatus.SUSPENDED) {</span>
+<span class="nc" id="L59">            result.put(&quot;eligible&quot;, false);</span>
+<span class="nc" id="L60">            result.put(&quot;reason&quot;, &quot;Your account is suspended. Pay Later is not available.&quot;);</span>
+<span class="nc" id="L61">            return result;</span>
+        }
+
+        // Get loyalty summary
+<span class="nc" id="L65">        LoyaltyResponse summary = loyaltyService.getSummary(customerId);</span>
+<span class="nc" id="L66">        String tier = summary.getTier();</span>
+<span class="nc" id="L67">        int availablePoints = summary.getPoints();</span>
+
+        // Rule 1: Silver or above
+<span class="nc bnc" id="L70" title="All 6 branches missed.">        boolean tierOk = &quot;SILVER&quot;.equals(tier) || &quot;GOLD&quot;.equals(tier) || &quot;DIAMOND&quot;.equals(tier);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (!tierOk) {</span>
+<span class="nc" id="L72">            result.put(&quot;eligible&quot;, false);</span>
+<span class="nc" id="L73">            result.put(&quot;reason&quot;, &quot;Pay Later requires Silver tier or above. Your current tier is &quot; + tier + &quot;.&quot;);</span>
+<span class="nc" id="L74">            result.put(&quot;tier&quot;, tier);</span>
+<span class="nc" id="L75">            result.put(&quot;availablePoints&quot;, availablePoints);</span>
+<span class="nc" id="L76">            return result;</span>
+        }
+
+        // Rule 2: points value (pts / 10 = ₹) &gt;= half service cost
+<span class="nc bnc" id="L80" title="All 4 branches missed.">        BigDecimal serviceCost = appt.getService() != null &amp;&amp; appt.getService().getPrice() != null</span>
+<span class="nc" id="L81">                ? appt.getService().getPrice() : BigDecimal.ZERO;</span>
+<span class="nc" id="L82">        BigDecimal pointsValue = BigDecimal.valueOf(availablePoints)</span>
+<span class="nc" id="L83">                .divide(BigDecimal.TEN, 2, java.math.RoundingMode.DOWN);</span>
+<span class="nc" id="L84">        BigDecimal halfCost = serviceCost.divide(BigDecimal.valueOf(2), 2, java.math.RoundingMode.HALF_UP);</span>
+
+<span class="nc bnc" id="L86" title="All 2 branches missed.">        if (pointsValue.compareTo(halfCost) &lt; 0) {</span>
+<span class="nc" id="L87">            result.put(&quot;eligible&quot;, false);</span>
+<span class="nc" id="L88">            result.put(&quot;reason&quot;, &quot;Insufficient loyalty points. You need points worth at least ₹&quot;</span>
+                    + halfCost + &quot; (half the service cost of ₹&quot; + serviceCost + &quot;). &quot;
+                    + &quot;Your &quot; + availablePoints + &quot; points are worth ₹&quot; + pointsValue + &quot;.&quot;);
+<span class="nc" id="L91">            result.put(&quot;tier&quot;, tier);</span>
+<span class="nc" id="L92">            result.put(&quot;availablePoints&quot;, availablePoints);</span>
+<span class="nc" id="L93">            result.put(&quot;pointsValue&quot;, pointsValue);</span>
+<span class="nc" id="L94">            result.put(&quot;requiredValue&quot;, halfCost);</span>
+<span class="nc" id="L95">            return result;</span>
+        }
+
+<span class="nc" id="L98">        result.put(&quot;eligible&quot;, true);</span>
+<span class="nc" id="L99">        result.put(&quot;tier&quot;, tier);</span>
+<span class="nc" id="L100">        result.put(&quot;availablePoints&quot;, availablePoints);</span>
+<span class="nc" id="L101">        result.put(&quot;pointsValue&quot;, pointsValue);</span>
+<span class="nc" id="L102">        result.put(&quot;serviceCost&quot;, serviceCost);</span>
+<span class="nc" id="L103">        result.put(&quot;deadline&quot;, LocalDateTime.now().plusHours(24).format(FMT));</span>
+<span class="nc" id="L104">        return result;</span>
+    }
+
+    // ── Opt-in ────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public Map&lt;String, Object&gt; optIn(Long customerId, Long appointmentId) {
+<span class="nc" id="L111">        Map&lt;String, Object&gt; eligibility = checkEligibility(customerId, appointmentId);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (!(Boolean) eligibility.get(&quot;eligible&quot;)) {</span>
+<span class="nc" id="L113">            throw new InvalidOperationException((String) eligibility.get(&quot;reason&quot;));</span>
+        }
+
+<span class="nc" id="L116">        Appointment appt = appointmentRepository.findById(appointmentId)</span>
+<span class="nc" id="L117">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Appointment not found&quot;));</span>
+
+        // Duplicate guard — if already opted in, return existing record
+<span class="nc" id="L120">        java.util.Optional&lt;Payment&gt; existing = paymentRepository.findByAppointmentId(appointmentId);</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (existing.isPresent()) {</span>
+<span class="nc" id="L122">            Payment p = existing.get();</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">            if (p.getStatus() == PaymentStatus.PAY_LATER_PENDING) {</span>
+                // Already opted in — return existing deadline
+<span class="nc" id="L125">                Map&lt;String, Object&gt; already = new java.util.LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L126">                already.put(&quot;paymentId&quot;, p.getId());</span>
+<span class="nc" id="L127">                already.put(&quot;appointmentId&quot;, appointmentId);</span>
+<span class="nc" id="L128">                already.put(&quot;amount&quot;, p.getAmount());</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                already.put(&quot;deadline&quot;, p.getPayLaterDeadline() != null ? p.getPayLaterDeadline().format(FMT) : &quot;N/A&quot;);</span>
+<span class="nc" id="L130">                already.put(&quot;status&quot;, &quot;PAY_LATER_PENDING&quot;);</span>
+<span class="nc" id="L131">                return already;</span>
+            }
+<span class="nc" id="L133">            throw new InvalidOperationException(&quot;A payment record already exists for this appointment&quot;);</span>
+        }
+
+<span class="nc bnc" id="L136" title="All 4 branches missed.">        BigDecimal amount = appt.getService() != null &amp;&amp; appt.getService().getPrice() != null</span>
+<span class="nc" id="L137">                ? appt.getService().getPrice() : BigDecimal.ZERO;</span>
+<span class="nc" id="L138">        LocalDateTime deadline = LocalDateTime.now().plusHours(24);</span>
+
+<span class="nc" id="L140">        Payment payment = Payment.builder()</span>
+<span class="nc" id="L141">                .appointment(appt)</span>
+<span class="nc" id="L142">                .amount(amount)</span>
+<span class="nc" id="L143">                .method(PaymentMethod.PAY_LATER)</span>
+<span class="nc" id="L144">                .status(PaymentStatus.PAY_LATER_PENDING)</span>
+<span class="nc" id="L145">                .payLaterDeadline(deadline)</span>
+<span class="nc" id="L146">                .payLaterReminderCount(0)</span>
+<span class="nc" id="L147">                .build();</span>
+<span class="nc" id="L148">        Payment saved = paymentRepository.save(payment);</span>
+
+        // Confirmation notification
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        String serviceName = appt.getService() != null ? appt.getService().getName() : &quot;your service&quot;;</span>
+<span class="nc" id="L152">        String msg = &quot;✅ Pay Later activated for &quot; + serviceName + &quot;. &quot;</span>
+                + &quot;Amount due: ₹&quot; + amount + &quot;. &quot;
+<span class="nc" id="L154">                + &quot;Deadline: &quot; + deadline.format(FMT) + &quot;. &quot;</span>
+                + &quot;Please complete payment before the deadline to avoid account suspension.&quot;;
+<span class="nc" id="L156">        customerNotificationRepository.save(CustomerNotification.builder()</span>
+<span class="nc" id="L157">                .customer(appt.getCustomer())</span>
+<span class="nc" id="L158">                .type(CustomerNotificationType.PAY_LATER_CONFIRMED)</span>
+<span class="nc" id="L159">                .referenceId(appt.getId())</span>
+<span class="nc" id="L160">                .message(msg)</span>
+<span class="nc" id="L161">                .build());</span>
+
+<span class="nc" id="L163">        log.info(&quot;Pay Later opted in: customer={}, appointment={}, deadline={}&quot;, customerId, appointmentId, deadline);</span>
+
+<span class="nc" id="L165">        Map&lt;String, Object&gt; response = new java.util.LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L166">        response.put(&quot;paymentId&quot;, saved.getId());</span>
+<span class="nc" id="L167">        response.put(&quot;appointmentId&quot;, appointmentId);</span>
+<span class="nc" id="L168">        response.put(&quot;amount&quot;, amount);</span>
+<span class="nc" id="L169">        response.put(&quot;deadline&quot;, deadline.format(FMT));</span>
+<span class="nc" id="L170">        response.put(&quot;status&quot;, &quot;PAY_LATER_PENDING&quot;);</span>
+<span class="nc" id="L171">        return response;</span>
+    }
+
+    // ── Settlement ────────────────────────────────────────────────────────────
+
+    @Transactional
+    public Map&lt;String, Object&gt; settle(Long customerId, Long appointmentId,
+                                      String method, BigDecimal walletAmountUsed) {
+<span class="nc" id="L179">        Payment payment = paymentRepository.findByAppointmentId(appointmentId)</span>
+<span class="nc" id="L180">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;No Pay Later record found for this appointment&quot;));</span>
+
+<span class="nc bnc" id="L182" title="All 2 branches missed.">        if (payment.getStatus() != PaymentStatus.PAY_LATER_PENDING) {</span>
+<span class="nc" id="L183">            throw new InvalidOperationException(&quot;This appointment does not have a pending Pay Later payment&quot;);</span>
+        }
+
+<span class="nc" id="L186">        Appointment appt = payment.getAppointment();</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (!appt.getCustomer().getId().equals(customerId)) {</span>
+<span class="nc" id="L188">            throw new InvalidOperationException(&quot;This payment does not belong to you&quot;);</span>
+        }
+
+<span class="nc bnc" id="L191" title="All 2 branches missed.">        BigDecimal walletUsed = walletAmountUsed != null ? walletAmountUsed : BigDecimal.ZERO;</span>
+
+        // Deduct wallet if used
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (walletUsed.compareTo(BigDecimal.ZERO) &gt; 0) {</span>
+<span class="nc" id="L195">            walletService.debit(appt.getCustomer(), walletUsed,</span>
+                    &quot;pay_later_settlement&quot;,
+                    &quot;Wallet used to settle Pay Later for appointment #&quot; + appointmentId);
+        }
+
+        // Mark as PAID
+<span class="nc" id="L201">        payment.setStatus(PaymentStatus.PAID);</span>
+<span class="nc" id="L202">        payment.setPaidAt(LocalDateTime.now());</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">        PaymentMethod storedMethod = walletUsed.compareTo(payment.getAmount()) &gt;= 0</span>
+<span class="nc" id="L204">                ? PaymentMethod.WALLET</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">                : PaymentMethod.valueOf(method != null ? method.toUpperCase() : &quot;CASH&quot;);</span>
+<span class="nc" id="L206">        payment.setMethod(storedMethod);</span>
+<span class="nc" id="L207">        paymentRepository.save(payment);</span>
+
+        // Award loyalty points
+        try {
+<span class="nc" id="L211">            loyaltyService.awardPointsOnAppointmentCompletion(appointmentId);</span>
+<span class="nc" id="L212">        } catch (Exception e) {</span>
+<span class="nc" id="L213">            log.warn(&quot;Failed to award loyalty points for Pay Later settlement: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L214">        }</span>
+
+        // Reactivate account if suspended for this non-payment
+<span class="nc" id="L217">        Customer customer = appt.getCustomer();</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">        if (customer.getStatus() == UserStatus.SUSPENDED</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">                &amp;&amp; customer.getSuspensionReason() != null</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">                &amp;&amp; customer.getSuspensionReason().contains(&quot;Pay Later&quot;)) {</span>
+<span class="nc" id="L221">            customer.setStatus(UserStatus.ACTIVE);</span>
+<span class="nc" id="L222">            customer.setSuspensionReason(null);</span>
+<span class="nc" id="L223">            customerRepository.save(customer);</span>
+<span class="nc" id="L224">            log.info(&quot;Customer {} reactivated after Pay Later settlement for appointment {}&quot;, customerId, appointmentId);</span>
+        }
+
+<span class="nc" id="L227">        log.info(&quot;Pay Later settled: customer={}, appointment={}, method={}&quot;, customerId, appointmentId, storedMethod);</span>
+
+<span class="nc" id="L229">        Map&lt;String, Object&gt; response = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L230">        response.put(&quot;status&quot;, &quot;PAID&quot;);</span>
+<span class="nc" id="L231">        response.put(&quot;paidAt&quot;, payment.getPaidAt().format(FMT));</span>
+<span class="nc" id="L232">        response.put(&quot;amount&quot;, payment.getAmount());</span>
+<span class="nc" id="L233">        return response;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

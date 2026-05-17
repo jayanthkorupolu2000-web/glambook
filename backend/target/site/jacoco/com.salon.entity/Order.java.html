@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Order.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.entity</a> &gt; <span class="el_source">Order.java</span></div><h1>Order.java</h1><pre class="source lang-java linenums">package com.salon.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+<span class="nc bnc" id="L12" title="All 86 branches missed.">@Data</span>
+<span class="nc bnc" id="L13" title="All 4 branches missed.">@Builder</span>
+<span class="nc" id="L14">@NoArgsConstructor</span>
+<span class="nc" id="L15">@AllArgsConstructor</span>
+@Entity
+@Table(name = &quot;orders&quot;)
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+<span class="nc" id="L22">    private Long id;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;customer_id&quot;, nullable = false)
+<span class="nc" id="L26">    private Customer customer;</span>
+
+    @Column(name = &quot;total_amount&quot;, nullable = false)
+<span class="nc" id="L29">    private BigDecimal totalAmount;</span>
+
+    @Column(name = &quot;payment_method&quot;, nullable = false)
+<span class="nc" id="L32">    private String paymentMethod;</span>
+
+    @Column(name = &quot;payment_status&quot;)
+    @Builder.Default
+<span class="nc" id="L36">    private String paymentStatus = &quot;PENDING&quot;;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = &quot;delivery_status&quot;)
+    @Builder.Default
+<span class="nc" id="L41">    private OrderDeliveryStatus deliveryStatus = OrderDeliveryStatus.PROCESSING;</span>
+
+    @Column(name = &quot;delivery_address&quot;, nullable = false, columnDefinition = &quot;TEXT&quot;)
+<span class="nc" id="L44">    private String deliveryAddress;</span>
+
+    @Column(name = &quot;estimated_delivery&quot;)
+<span class="nc" id="L47">    private LocalDate estimatedDelivery;</span>
+
+    @CreationTimestamp
+    @Column(name = &quot;created_at&quot;, updatable = false)
+<span class="nc" id="L51">    private LocalDateTime createdAt;</span>
+
+    @OneToMany(mappedBy = &quot;order&quot;, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+<span class="nc" id="L54">    private List&lt;OrderItem&gt; items;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

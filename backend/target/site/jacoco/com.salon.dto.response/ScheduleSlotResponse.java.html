@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScheduleSlotResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.dto.response</a> &gt; <span class="el_source">ScheduleSlotResponse.java</span></div><h1>ScheduleSlotResponse.java</h1><pre class="source lang-java linenums">package com.salon.dto.response;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+/**
+ * Represents a single time slot in the daily schedule,
+ * enriched with its computed SlotStatus.
+ */
+<span class="nc bnc" id="L16" title="All 62 branches missed.">@Data</span>
+<span class="nc" id="L17">@Builder</span>
+<span class="nc" id="L18">@NoArgsConstructor</span>
+<span class="nc" id="L19">@AllArgsConstructor</span>
+@Schema(description = &quot;A time slot in the professional's daily schedule&quot;)
+public class ScheduleSlotResponse {
+
+    @Schema(description = &quot;Slot DB id (0 for generated slots not yet persisted)&quot;)
+<span class="nc" id="L24">    private Long id;</span>
+
+    @Schema(description = &quot;Date of the slot&quot;)
+<span class="nc" id="L27">    private LocalDate date;</span>
+
+    @Schema(description = &quot;Slot start time (HH:mm)&quot;)
+<span class="nc" id="L30">    private LocalTime startTime;</span>
+
+    @Schema(description = &quot;Slot end time (HH:mm)&quot;)
+<span class="nc" id="L33">    private LocalTime endTime;</span>
+
+    @Schema(description = &quot;Slot type: WORKING, LUNCH_BREAK, BREAK, BLOCKED&quot;)
+<span class="nc" id="L36">    private String slotType;</span>
+
+    @Schema(description = &quot;Computed status: AVAILABLE, UNAVAILABLE, COMPLETED&quot;)
+<span class="nc" id="L39">    private String slotStatus;</span>
+
+    @Schema(description = &quot;True if an appointment is booked in this slot&quot;)
+<span class="nc" id="L42">    private boolean booked;</span>
+
+    @Schema(description = &quot;True if this slot is in the past or currently in-progress&quot;)
+<span class="nc" id="L45">    private boolean past;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

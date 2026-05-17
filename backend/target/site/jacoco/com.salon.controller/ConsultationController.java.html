@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConsultationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">ConsultationController.java</span></div><h1>ConsultationController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.ConsultationReplyRequest;
+import com.salon.dto.request.ConsultationRequest;
+import com.salon.dto.response.ConsultationResponse;
+import com.salon.entity.ConsultationStatus;
+import com.salon.service.ConsultationService;
+import com.salon.service.FileStorageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+<span class="nc" id="L23">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Consultations&quot;)
+public class ConsultationController {
+
+    private final ConsultationService consultationService;
+    private final FileStorageService fileStorageService;
+
+    @Operation(summary = &quot;Get professionals matching a consultation topic&quot;)
+    @GetMapping(&quot;/api/v1/consultations/professionals&quot;)
+    public ResponseEntity&lt;List&lt;com.salon.dto.response.ProfessionalResponse&gt;&gt; getProfessionalsByTopic(
+            @RequestParam(defaultValue = &quot;GENERAL&quot;) String topic) {
+<span class="nc" id="L34">        return ResponseEntity.ok(consultationService.getProfessionalsByTopic(topic));</span>
+    }
+
+    @Operation(summary = &quot;Create consultation&quot;)
+    @PostMapping(value = &quot;/api/v1/customers/{customerId}/consultations&quot;,
+                 consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity&lt;ConsultationResponse&gt; create(
+            @PathVariable Long customerId,
+            @RequestPart(&quot;data&quot;) @Valid ConsultationRequest req,
+            @RequestPart(value = &quot;photo&quot;, required = false) MultipartFile photo) {
+<span class="nc" id="L44">        req.setCustomerId(customerId);</span>
+<span class="nc" id="L45">        ConsultationResponse created = consultationService.create(req);</span>
+        // Attach photo if provided
+<span class="nc bnc" id="L47" title="All 4 branches missed.">        if (photo != null &amp;&amp; !photo.isEmpty()) {</span>
+<span class="nc" id="L48">            String storedPath = fileStorageService.storePhoto(photo, &quot;consultations&quot;);</span>
+<span class="nc" id="L49">            String apiUrl = storedPath.replaceFirst(&quot;^/uploads/&quot;, &quot;/api/v1/files/&quot;);</span>
+<span class="nc" id="L50">            consultationService.attachPhoto(created.getId(), apiUrl);</span>
+<span class="nc" id="L51">            created.setPhotoUrl(apiUrl);</span>
+        }
+<span class="nc" id="L53">        return ResponseEntity.status(HttpStatus.CREATED).body(created);</span>
+    }
+
+    @Operation(summary = &quot;Get customer consultations&quot;)
+    @GetMapping(&quot;/api/v1/customers/{customerId}/consultations&quot;)
+    public ResponseEntity&lt;List&lt;ConsultationResponse&gt;&gt; getByCustomer(@PathVariable Long customerId) {
+<span class="nc" id="L59">        return ResponseEntity.ok(consultationService.getByCustomer(customerId));</span>
+    }
+
+    @Operation(summary = &quot;Get professional consultations&quot;)
+    @GetMapping(&quot;/api/v1/professionals/{professionalId}/consultations&quot;)
+    public ResponseEntity&lt;List&lt;ConsultationResponse&gt;&gt; getByProfessional(
+            @PathVariable Long professionalId,
+            @RequestParam(required = false) ConsultationStatus status) {
+<span class="nc" id="L67">        return ResponseEntity.ok(consultationService.getByProfessional(professionalId, status));</span>
+    }
+
+    @Operation(summary = &quot;Professional replies to consultation&quot;)
+    @PatchMapping(&quot;/api/v1/professionals/{professionalId}/consultations/{consultationId}/reply&quot;)
+    public ResponseEntity&lt;ConsultationResponse&gt; reply(
+            @PathVariable Long professionalId,
+            @PathVariable Long consultationId,
+            @Valid @RequestBody ConsultationReplyRequest req) {
+<span class="nc" id="L76">        return ResponseEntity.ok(consultationService.reply(professionalId, consultationId, req));</span>
+    }
+
+    @Operation(summary = &quot;Owner view consultations&quot;)
+    @GetMapping(&quot;/api/v1/owners/{ownerId}/consultations&quot;)
+    public ResponseEntity&lt;List&lt;ConsultationResponse&gt;&gt; getByOwner(@PathVariable Long ownerId) {
+<span class="nc" id="L82">        return ResponseEntity.ok(consultationService.getBySalonOwner(ownerId));</span>
+    }
+
+    @Operation(summary = &quot;Admin view all consultations&quot;)
+    @GetMapping(&quot;/api/v1/admin/consultations&quot;)
+    public ResponseEntity&lt;List&lt;ConsultationResponse&gt;&gt; getAll() {
+<span class="nc" id="L88">        return ResponseEntity.ok(consultationService.getAll());</span>
+    }
+
+    @Operation(summary = &quot;Upload photo for a consultation&quot;)
+    @PostMapping(value = &quot;/api/v1/consultations/{consultationId}/photo&quot;,
+                 consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; uploadPhoto(
+            @PathVariable Long consultationId,
+            @RequestParam(&quot;file&quot;) MultipartFile file) {
+        // Store file and get path like /uploads/consultations/uuid.jpg
+<span class="nc" id="L98">        String storedPath = fileStorageService.storePhoto(file, &quot;consultations&quot;);</span>
+        // Convert to a URL served by FileController: /api/v1/files/consultations/uuid.jpg
+        // storedPath = /uploads/consultations/uuid.jpg → strip /uploads/ prefix
+<span class="nc" id="L101">        String apiUrl = storedPath.replaceFirst(&quot;^/uploads/&quot;, &quot;/api/v1/files/&quot;);</span>
+<span class="nc" id="L102">        consultationService.attachPhoto(consultationId, apiUrl);</span>
+<span class="nc" id="L103">        return ResponseEntity.ok(Map.of(&quot;photoUrl&quot;, apiUrl));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

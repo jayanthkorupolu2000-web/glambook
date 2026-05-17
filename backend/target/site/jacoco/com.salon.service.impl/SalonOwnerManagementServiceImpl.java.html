@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SalonOwnerManagementServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">SalonOwnerManagementServiceImpl.java</span></div><h1>SalonOwnerManagementServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.request.SalonOwnerManagementEditRequest;
+import com.salon.dto.response.SalonOwnerManagementResponse;
+import com.salon.entity.SalonOwner;
+import com.salon.exception.SalonOwnerNotFoundException;
+import com.salon.repository.SalonOwnerRepository;
+import com.salon.service.SalonOwnerManagementService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Handles the business logic for editing Salon Owner details.
+ * Only ownerName (name), salonName, and phone are mutated.
+ */
+@Service
+<span class="nc" id="L19">@RequiredArgsConstructor</span>
+<span class="nc" id="L20">@Slf4j</span>
+public class SalonOwnerManagementServiceImpl implements SalonOwnerManagementService {
+
+    private final SalonOwnerRepository salonOwnerRepository;
+
+    @Override
+    @Transactional
+    public SalonOwnerManagementResponse updateSalonOwner(Long id, SalonOwnerManagementEditRequest dto) {
+<span class="nc" id="L28">        log.info(&quot;Admin updating SalonOwner id={}&quot;, id);</span>
+
+<span class="nc" id="L30">        SalonOwner owner = salonOwnerRepository.findById(id)</span>
+<span class="nc" id="L31">                .orElseThrow(() -&gt; new SalonOwnerNotFoundException(id));</span>
+
+        // Only mutate the three allowed fields
+<span class="nc" id="L34">        owner.setName(dto.getOwnerName());</span>
+<span class="nc" id="L35">        owner.setSalonName(dto.getSalonName());</span>
+<span class="nc" id="L36">        owner.setPhone(dto.getPhone());</span>
+
+<span class="nc" id="L38">        SalonOwner saved = salonOwnerRepository.save(owner);</span>
+<span class="nc" id="L39">        log.info(&quot;SalonOwner id={} updated: name='{}', salonName='{}', phone='{}'&quot;,</span>
+<span class="nc" id="L40">                id, saved.getName(), saved.getSalonName(), saved.getPhone());</span>
+
+<span class="nc" id="L42">        return toResponse(saved);</span>
+    }
+
+    private SalonOwnerManagementResponse toResponse(SalonOwner owner) {
+<span class="nc" id="L46">        return SalonOwnerManagementResponse.builder()</span>
+<span class="nc" id="L47">                .id(owner.getId())</span>
+<span class="nc" id="L48">                .ownerName(owner.getName())</span>
+<span class="nc" id="L49">                .salonName(owner.getSalonName())</span>
+<span class="nc" id="L50">                .city(owner.getCity())</span>
+<span class="nc" id="L51">                .email(owner.getEmail())</span>
+<span class="nc" id="L52">                .phone(owner.getPhone())</span>
+<span class="nc" id="L53">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

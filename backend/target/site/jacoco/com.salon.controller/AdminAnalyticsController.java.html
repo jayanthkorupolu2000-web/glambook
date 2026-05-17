@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminAnalyticsController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">AdminAnalyticsController.java</span></div><h1>AdminAnalyticsController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.response.CancellationStatsResponse;
+import com.salon.dto.response.PaymentStatsResponse;
+import com.salon.entity.AppointmentStatus;
+import com.salon.entity.PaymentStatus;
+import com.salon.entity.UserStatus;
+import com.salon.repository.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/api/v1/admin/analytics&quot;)
+<span class="nc" id="L24">@RequiredArgsConstructor</span>
+@PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+@Tag(name = &quot;Admin Analytics&quot;, description = &quot;Analytics and reporting APIs for admin&quot;)
+public class AdminAnalyticsController {
+
+    private final ComplaintRepository complaintRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final PaymentRepository paymentRepository;
+    private final CustomerRepository customerRepository;
+    private final SalonOwnerRepository salonOwnerRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final ReviewRepository reviewRepository;
+
+    @GetMapping(&quot;/complaints-by-city&quot;)
+    @Operation(summary = &quot;Complaints per city&quot;)
+    public ResponseEntity&lt;Map&lt;String, Long&gt;&gt; complaintsByCity() {
+<span class="nc" id="L40">        Map&lt;String, Long&gt; result = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L41">        complaintRepository.countComplaintsByCity()</span>
+<span class="nc" id="L42">                .forEach(row -&gt; result.put((String) row[0], (Long) row[1]));</span>
+<span class="nc" id="L43">        return ResponseEntity.ok(result);</span>
+    }
+
+    @GetMapping(&quot;/ratings-distribution&quot;)
+    @Operation(summary = &quot;Ratings distribution&quot;)
+    public ResponseEntity&lt;Map&lt;Integer, Long&gt;&gt; ratingsDistribution() {
+<span class="nc" id="L49">        Map&lt;Integer, Long&gt; result = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L50">        complaintRepository.countByRating()</span>
+<span class="nc" id="L51">                .forEach(row -&gt; result.put((Integer) row[0], (Long) row[1]));</span>
+<span class="nc" id="L52">        return ResponseEntity.ok(result);</span>
+    }
+
+    @GetMapping(&quot;/cancellations&quot;)
+    @Operation(summary = &quot;Cancellation stats&quot;)
+    public ResponseEntity&lt;CancellationStatsResponse&gt; cancellationStats() {
+<span class="nc" id="L58">        long total = appointmentRepository.countByCancelledAtIsNotNull();</span>
+<span class="nc" id="L59">        long sameDay = appointmentRepository.countSameDayCancellations();</span>
+<span class="nc" id="L60">        long suspended = customerRepository.countByStatus(UserStatus.SUSPENDED);</span>
+<span class="nc" id="L61">        return ResponseEntity.ok(new CancellationStatsResponse(total, sameDay, suspended));</span>
+    }
+
+    @GetMapping(&quot;/payments&quot;)
+    @Operation(summary = &quot;Payment stats&quot;)
+    public ResponseEntity&lt;PaymentStatsResponse&gt; paymentStats() {
+<span class="nc" id="L67">        long total = paymentRepository.count();</span>
+<span class="nc" id="L68">        long paid = paymentRepository.countByStatus(PaymentStatus.PAID);</span>
+<span class="nc" id="L69">        long refunded = paymentRepository.countByStatus(PaymentStatus.REFUNDED);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        double ratio = total &gt; 0 ? (double) paid / total * 100 : 0;</span>
+<span class="nc" id="L71">        return ResponseEntity.ok(new PaymentStatsResponse(total, paid, refunded, Math.round(ratio * 10.0) / 10.0));</span>
+    }
+
+    /**
+     * Per-salon analytics: revenue, appointments, ratings, professionals breakdown.
+     * Returns a list of salon summaries with nested professional stats.
+     */
+    @GetMapping(&quot;/salons&quot;)
+    @Operation(summary = &quot;Per-salon analytics with professional breakdown&quot;)
+    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; salonAnalytics() {
+<span class="nc" id="L81">        List&lt;Map&lt;String, Object&gt;&gt; result = salonOwnerRepository.findAll().stream().map(owner -&gt; {</span>
+<span class="nc" id="L82">            Map&lt;String, Object&gt; salon = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L83">            salon.put(&quot;ownerId&quot;,    owner.getId());</span>
+<span class="nc" id="L84">            salon.put(&quot;ownerName&quot;,  owner.getName());</span>
+<span class="nc" id="L85">            salon.put(&quot;salonName&quot;,  owner.getSalonName());</span>
+<span class="nc" id="L86">            salon.put(&quot;city&quot;,       owner.getCity());</span>
+
+            // Appointments
+<span class="nc" id="L89">            long total     = appointmentRepository.findByProfessionalSalonOwnerId(owner.getId()).size();</span>
+<span class="nc" id="L90">            long completed = appointmentRepository.countByProfessionalSalonOwnerIdAndStatus(owner.getId(), AppointmentStatus.COMPLETED);</span>
+<span class="nc" id="L91">            long cancelled = appointmentRepository.countByProfessionalSalonOwnerIdAndStatus(owner.getId(), AppointmentStatus.CANCELLED);</span>
+<span class="nc" id="L92">            salon.put(&quot;totalAppointments&quot;,     total);</span>
+<span class="nc" id="L93">            salon.put(&quot;completedAppointments&quot;, completed);</span>
+<span class="nc" id="L94">            salon.put(&quot;cancelledAppointments&quot;, cancelled);</span>
+
+            // Revenue
+<span class="nc" id="L97">            BigDecimal revenue = appointmentRepository.sumRevenueByOwnerId(owner.getId());</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            salon.put(&quot;totalRevenue&quot;, revenue != null ? revenue : BigDecimal.ZERO);</span>
+
+            // Professionals
+<span class="nc" id="L101">            List&lt;Map&lt;String, Object&gt;&gt; profList = professionalRepository</span>
+<span class="nc" id="L102">                    .findBySalonOwnerId(owner.getId()).stream().map(prof -&gt; {</span>
+<span class="nc" id="L103">                Map&lt;String, Object&gt; p = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L104">                p.put(&quot;professionalId&quot;,   prof.getId());</span>
+<span class="nc" id="L105">                p.put(&quot;name&quot;,             prof.getName());</span>
+<span class="nc" id="L106">                p.put(&quot;specialization&quot;,   prof.getSpecialization());</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                p.put(&quot;status&quot;,           prof.getStatus() != null ? prof.getStatus().name() : &quot;ACTIVE&quot;);</span>
+
+                // Per-professional appointments
+<span class="nc" id="L110">                long pCompleted = appointmentRepository.countByProfessionalIdAndStatus(prof.getId(), AppointmentStatus.COMPLETED);</span>
+<span class="nc" id="L111">                long pCancelled = appointmentRepository.countByProfessionalIdAndStatus(prof.getId(), AppointmentStatus.CANCELLED);</span>
+<span class="nc" id="L112">                long pTotal     = pCompleted + pCancelled</span>
+<span class="nc" id="L113">                        + appointmentRepository.countByProfessionalIdAndStatus(prof.getId(), AppointmentStatus.CONFIRMED)</span>
+<span class="nc" id="L114">                        + appointmentRepository.countByProfessionalIdAndStatus(prof.getId(), AppointmentStatus.PENDING);</span>
+<span class="nc" id="L115">                p.put(&quot;totalAppointments&quot;,     pTotal);</span>
+<span class="nc" id="L116">                p.put(&quot;completedAppointments&quot;, pCompleted);</span>
+<span class="nc" id="L117">                p.put(&quot;cancelledAppointments&quot;, pCancelled);</span>
+
+                // Per-professional revenue
+<span class="nc" id="L120">                BigDecimal pRevenue = paymentRepository.sumEarningsByProfessionalId(prof.getId());</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                p.put(&quot;revenue&quot;, pRevenue != null ? pRevenue : BigDecimal.ZERO);</span>
+
+                // Per-professional rating
+<span class="nc" id="L124">                Double avgRating = reviewRepository.findAverageRatingByProfessionalId(prof.getId());</span>
+<span class="nc" id="L125">                long reviewCount = reviewRepository.countByProfessionalId(prof.getId());</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                p.put(&quot;averageRating&quot;, avgRating != null ? Math.round(avgRating * 10.0) / 10.0 : 0.0);</span>
+<span class="nc" id="L127">                p.put(&quot;totalReviews&quot;,  reviewCount);</span>
+
+<span class="nc" id="L129">                return p;</span>
+<span class="nc" id="L130">            }).collect(Collectors.toList());</span>
+
+<span class="nc" id="L132">            salon.put(&quot;professionals&quot;, profList);</span>
+<span class="nc" id="L133">            salon.put(&quot;professionalsCount&quot;, profList.size());</span>
+
+            // Salon-level average rating (average of all professionals)
+<span class="nc" id="L136">            double salonAvgRating = profList.stream()</span>
+<span class="nc" id="L137">                    .mapToDouble(p -&gt; ((Number) p.get(&quot;averageRating&quot;)).doubleValue())</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                    .filter(r -&gt; r &gt; 0).average().orElse(0.0);</span>
+<span class="nc" id="L139">            salon.put(&quot;averageRating&quot;, Math.round(salonAvgRating * 10.0) / 10.0);</span>
+
+            // Total reviews across all professionals
+<span class="nc" id="L142">            long totalReviews = profList.stream()</span>
+<span class="nc" id="L143">                    .mapToLong(p -&gt; ((Number) p.get(&quot;totalReviews&quot;)).longValue()).sum();</span>
+<span class="nc" id="L144">            salon.put(&quot;totalReviews&quot;, totalReviews);</span>
+
+<span class="nc" id="L146">            return salon;</span>
+<span class="nc" id="L147">        }).collect(Collectors.toList());</span>
+
+<span class="nc" id="L149">        return ResponseEntity.ok(result);</span>
+    }
+
+    /**
+     * System-wide summary KPIs for the top of the analytics page.
+     */
+    @GetMapping(&quot;/summary&quot;)
+    @Operation(summary = &quot;System-wide KPI summary&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; summary() {
+<span class="nc" id="L158">        Map&lt;String, Object&gt; s = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L159">        s.put(&quot;totalAppointments&quot;,  appointmentRepository.count());</span>
+<span class="nc" id="L160">        s.put(&quot;totalPayments&quot;,      paymentRepository.count());</span>
+<span class="nc" id="L161">        s.put(&quot;totalRevenue&quot;,       paymentRepository.sumTotalRevenue());</span>
+<span class="nc" id="L162">        s.put(&quot;totalCustomers&quot;,     customerRepository.count());</span>
+<span class="nc" id="L163">        s.put(&quot;suspendedCustomers&quot;, customerRepository.countByStatus(UserStatus.SUSPENDED));</span>
+<span class="nc" id="L164">        s.put(&quot;totalSalons&quot;,        salonOwnerRepository.count());</span>
+<span class="nc" id="L165">        s.put(&quot;totalProfessionals&quot;, professionalRepository.count());</span>
+<span class="nc" id="L166">        long paid = paymentRepository.countByStatus(PaymentStatus.PAID);</span>
+<span class="nc" id="L167">        long total = paymentRepository.count();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">        s.put(&quot;paymentSuccessRate&quot;, total &gt; 0 ? Math.round((double) paid / total * 1000.0) / 10.0 : 0.0);</span>
+<span class="nc" id="L169">        return ResponseEntity.ok(s);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

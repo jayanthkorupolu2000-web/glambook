@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerNotification.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.entity</a> &gt; <span class="el_source">CustomerNotification.java</span></div><h1>CustomerNotification.java</h1><pre class="source lang-java linenums">package com.salon.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
+
+<span class="nc bnc" id="L9" title="All 58 branches missed.">@Data</span>
+<span class="nc bnc" id="L10" title="All 2 branches missed.">@Builder</span>
+<span class="nc" id="L11">@NoArgsConstructor</span>
+<span class="nc" id="L12">@AllArgsConstructor</span>
+@Entity
+@Table(name = &quot;customer_notifications&quot;)
+public class CustomerNotification {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+<span class="nc" id="L19">    private Long id;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;customer_id&quot;, nullable = false)
+<span class="nc" id="L23">    private Customer customer;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = &quot;VARCHAR(50)&quot;)
+<span class="nc" id="L27">    private CustomerNotificationType type;</span>
+
+    @Column(name = &quot;reference_id&quot;)
+<span class="nc" id="L30">    private Long referenceId;</span>
+
+    @Column(nullable = false)
+<span class="nc" id="L33">    private String message;</span>
+
+    @Column(name = &quot;is_read&quot;)
+    @Builder.Default
+<span class="nc" id="L37">    private boolean isRead = false;</span>
+
+    @CreationTimestamp
+    @Column(name = &quot;created_at&quot;, updatable = false)
+<span class="nc" id="L41">    private LocalDateTime createdAt;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

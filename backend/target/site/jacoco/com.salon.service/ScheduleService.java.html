@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScheduleService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">ScheduleService.java</span></div><h1>ScheduleService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.response.ScheduleSlotResponse;
+import com.salon.entity.*;
+import com.salon.repository.AppointmentRepository;
+import com.salon.repository.ProfessionalAvailabilityRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Generates the daily schedule for a professional and computes
+ * the SlotStatus of every slot based on the current time.
+ *
+ * Rules:
+ *  - Today, slots whose endTime &lt;= now  → UNAVAILABLE (past)
+ *  - Today, slot whose startTime &lt;= now &lt; endTime → UNAVAILABLE (in-progress)
+ *  - Today, slots whose startTime &gt; now → AVAILABLE (unless booked/break)
+ *  - Future dates → all WORKING slots are AVAILABLE
+ *  - Past dates   → all slots are UNAVAILABLE
+ *  - Booked slots → UNAVAILABLE (appointment exists)
+ *  - Completed appointments → COMPLETED
+ */
+@Service
+<span class="nc" id="L32">@RequiredArgsConstructor</span>
+<span class="nc" id="L33">@Slf4j</span>
+public class ScheduleService {
+
+    private final ProfessionalAvailabilityRepository availabilityRepository;
+    private final AppointmentRepository appointmentRepository;
+
+    // ── Public API ────────────────────────────────────────────────────────────
+
+    /**
+     * Returns today's schedule for a professional.
+     * Past slots are excluded from the result (they are not shown).
+     */
+    public List&lt;ScheduleSlotResponse&gt; getTodaySchedule(Long professionalId) {
+<span class="nc" id="L46">        LocalDate today = LocalDate.now();</span>
+<span class="nc" id="L47">        LocalTime now   = LocalTime.now();</span>
+
+<span class="nc" id="L49">        List&lt;ScheduleSlotResponse&gt; all = buildSchedule(professionalId, today, now);</span>
+
+        // Exclude slots that have already ended — they are not useful to show
+<span class="nc" id="L52">        return all.stream()</span>
+<span class="nc bnc" id="L53" title="All 4 branches missed.">                .filter(s -&gt; !s.isPast() || SlotStatus.COMPLETED.name().equals(s.getSlotStatus()))</span>
+<span class="nc" id="L54">                .collect(Collectors.toList());</span>
+    }
+
+    /**
+     * Returns all slots for a given date with their computed status.
+     * For today: past slots are marked UNAVAILABLE.
+     * For future dates: all WORKING slots are AVAILABLE.
+     * For past dates: all slots are UNAVAILABLE.
+     */
+    public List&lt;ScheduleSlotResponse&gt; getSlotsByDate(Long professionalId, LocalDate date) {
+<span class="nc" id="L64">        LocalDate today = LocalDate.now();</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        LocalTime now   = today.equals(date) ? LocalTime.now() : null;</span>
+
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (date.isBefore(today)) {</span>
+            // Past date — everything unavailable
+<span class="nc" id="L69">            return buildSchedule(professionalId, date, LocalTime.MAX);</span>
+        }
+<span class="nc" id="L71">        return buildSchedule(professionalId, date, now);</span>
+    }
+
+    // ── Core builder ──────────────────────────────────────────────────────────
+
+    /**
+     * Builds the slot list for a date.
+     * @param now null means future date (all WORKING slots → AVAILABLE)
+     */
+    List&lt;ScheduleSlotResponse&gt; buildSchedule(Long professionalId, LocalDate date, LocalTime now) {
+<span class="nc" id="L81">        List&lt;ProfessionalAvailability&gt; windows = availabilityRepository</span>
+<span class="nc" id="L82">                .findByProfessionalIdAndAvailDate(professionalId, date)</span>
+<span class="nc" id="L83">                .stream()</span>
+<span class="nc" id="L84">                .sorted((a, b) -&gt; a.getStartTime().compareTo(b.getStartTime()))</span>
+<span class="nc" id="L85">                .collect(Collectors.toList());</span>
+
+        // Booked appointments for this date
+<span class="nc" id="L88">        List&lt;Appointment&gt; appts = appointmentRepository</span>
+<span class="nc" id="L89">                .findByProfessionalIdAndDateTimeBetween(</span>
+                        professionalId,
+<span class="nc" id="L91">                        date.atStartOfDay(),</span>
+<span class="nc" id="L92">                        date.atTime(23, 59, 59));</span>
+
+<span class="nc" id="L94">        List&lt;ScheduleSlotResponse&gt; result = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        for (ProfessionalAvailability window : windows) {</span>
+<span class="nc" id="L97">            ScheduleSlotResponse slot = toSlotResponse(window, appts, now);</span>
+<span class="nc" id="L98">            result.add(slot);</span>
+<span class="nc" id="L99">        }</span>
+
+<span class="nc" id="L101">        return result;</span>
+    }
+
+    // ── Mapping ───────────────────────────────────────────────────────────────
+
+    private ScheduleSlotResponse toSlotResponse(
+            ProfessionalAvailability window,
+            List&lt;Appointment&gt; appts,
+            LocalTime now) {
+
+<span class="nc" id="L111">        LocalTime start = window.getStartTime();</span>
+<span class="nc" id="L112">        LocalTime end   = window.getEndTime();</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        SlotType  type  = window.getSlotType() != null ? window.getSlotType() : SlotType.WORKING;</span>
+
+        // Determine if a completed appointment occupies this slot
+<span class="nc" id="L116">        boolean completed = appts.stream().anyMatch(a -&gt;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                a.getStatus() == AppointmentStatus.COMPLETED</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                &amp;&amp; a.getDateTime().toLocalTime().equals(start));</span>
+
+        // Determine if an active appointment occupies this slot
+<span class="nc" id="L121">        boolean booked = appts.stream().anyMatch(a -&gt;</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                (a.getStatus() == AppointmentStatus.PENDING</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                 || a.getStatus() == AppointmentStatus.CONFIRMED)</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                &amp;&amp; a.getDateTime().toLocalTime().equals(start));</span>
+
+        // Compute past flag
+<span class="nc" id="L127">        boolean past = false;</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (now != null) {</span>
+            // Slot is past if its end time is &lt;= now, OR it started but hasn't ended (in-progress)
+<span class="nc bnc" id="L130" title="All 2 branches missed.">            past = !end.isAfter(now);</span>
+        }
+
+        // Compute SlotStatus
+        SlotStatus status;
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (completed) {</span>
+<span class="nc" id="L136">            status = SlotStatus.COMPLETED;</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        } else if (type != SlotType.WORKING) {</span>
+            // Break/lunch/blocked slots are never available for booking
+<span class="nc" id="L139">            status = SlotStatus.UNAVAILABLE;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        } else if (past) {</span>
+<span class="nc" id="L141">            status = SlotStatus.UNAVAILABLE;</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        } else if (booked) {</span>
+<span class="nc" id="L143">            status = SlotStatus.UNAVAILABLE;</span>
+        } else {
+<span class="nc" id="L145">            status = SlotStatus.AVAILABLE;</span>
+        }
+
+<span class="nc" id="L148">        return ScheduleSlotResponse.builder()</span>
+<span class="nc" id="L149">                .id(window.getId())</span>
+<span class="nc" id="L150">                .date(window.getAvailDate())</span>
+<span class="nc" id="L151">                .startTime(start)</span>
+<span class="nc" id="L152">                .endTime(end)</span>
+<span class="nc" id="L153">                .slotType(type.name())</span>
+<span class="nc bnc" id="L154" title="All 4 branches missed.">                .slotStatus(status.name())</span>
+<span class="nc" id="L155">                .booked(booked || completed)</span>
+<span class="nc" id="L156">                .past(past)</span>
+<span class="nc" id="L157">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

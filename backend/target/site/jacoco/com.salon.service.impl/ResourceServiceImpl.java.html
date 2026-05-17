@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ResourceServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">ResourceServiceImpl.java</span></div><h1>ResourceServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.request.ResourceAvailabilityRequest;
+import com.salon.dto.request.ResourceRequest;
+import com.salon.dto.response.ResourceAvailabilityResponse;
+import com.salon.dto.response.ResourceResponse;
+import com.salon.entity.Resource;
+import com.salon.entity.ResourceAvailability;
+import com.salon.entity.ResourceType;
+import com.salon.entity.SalonOwner;
+import com.salon.exception.InvalidOperationException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.ResourceAvailabilityRepository;
+import com.salon.repository.ResourceRepository;
+import com.salon.repository.SalonOwnerRepository;
+import com.salon.service.ResourceService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L26">@RequiredArgsConstructor</span>
+<span class="nc" id="L27">@Slf4j</span>
+public class ResourceServiceImpl implements ResourceService {
+
+    private final ResourceRepository resourceRepository;
+    private final ResourceAvailabilityRepository availabilityRepository;
+    private final SalonOwnerRepository salonOwnerRepository;
+
+    @Override
+    @Transactional
+    public ResourceResponse addResource(ResourceRequest dto) {
+<span class="nc" id="L37">        SalonOwner owner = salonOwnerRepository.findById(dto.getOwnerId())</span>
+<span class="nc" id="L38">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Owner not found: &quot; + dto.getOwnerId()));</span>
+
+<span class="nc" id="L40">        Resource resource = Resource.builder()</span>
+<span class="nc" id="L41">                .owner(owner)</span>
+<span class="nc" id="L42">                .type(ResourceType.valueOf(dto.getType()))</span>
+<span class="nc" id="L43">                .name(dto.getName())</span>
+<span class="nc" id="L44">                .description(dto.getDescription())</span>
+<span class="nc" id="L45">                .build();</span>
+
+<span class="nc" id="L47">        return toResponse(resourceRepository.save(resource));</span>
+    }
+
+    @Override
+    @Transactional
+    public ResourceResponse addAvailabilitySlot(Long resourceId, ResourceAvailabilityRequest dto) {
+<span class="nc" id="L53">        Resource resource = resourceRepository.findById(resourceId)</span>
+<span class="nc" id="L54">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Resource not found: &quot; + resourceId));</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (!dto.getEndTime().isAfter(dto.getStartTime())) {</span>
+<span class="nc" id="L57">            throw new InvalidOperationException(&quot;End time must be after start time&quot;);</span>
+        }
+
+<span class="nc" id="L60">        boolean exists = availabilityRepository</span>
+<span class="nc" id="L61">                .findByResourceIdAndAvailDateAndStartTime(resourceId, dto.getAvailDate(), dto.getStartTime())</span>
+<span class="nc" id="L62">                .isPresent();</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (exists) {</span>
+<span class="nc" id="L64">            throw new InvalidOperationException(&quot;Duplicate slot: resource already has a slot at this date and time&quot;);</span>
+        }
+
+<span class="nc" id="L67">        ResourceAvailability slot = ResourceAvailability.builder()</span>
+<span class="nc" id="L68">                .resource(resource)</span>
+<span class="nc" id="L69">                .availDate(dto.getAvailDate())</span>
+<span class="nc" id="L70">                .startTime(dto.getStartTime())</span>
+<span class="nc" id="L71">                .endTime(dto.getEndTime())</span>
+<span class="nc" id="L72">                .build();</span>
+
+<span class="nc" id="L74">        availabilityRepository.save(slot);</span>
+<span class="nc" id="L75">        return toResponse(resourceRepository.findById(resourceId).get());</span>
+    }
+
+    @Override
+    public List&lt;ResourceResponse&gt; getResourcesByOwner(Long ownerId) {
+<span class="nc" id="L80">        return resourceRepository.findByOwnerId(ownerId).stream()</span>
+<span class="nc" id="L81">                .map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional
+    public ResourceResponse updateResourceAvailability(Long resourceId, boolean isAvailable) {
+<span class="nc" id="L87">        Resource resource = resourceRepository.findById(resourceId)</span>
+<span class="nc" id="L88">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Resource not found: &quot; + resourceId));</span>
+<span class="nc" id="L89">        resource.setAvailable(isAvailable);</span>
+<span class="nc" id="L90">        return toResponse(resourceRepository.save(resource));</span>
+    }
+
+    @Override
+    @Transactional
+    public void markSlotBooked(Long slotId) {
+<span class="nc" id="L96">        ResourceAvailability slot = availabilityRepository.findById(slotId)</span>
+<span class="nc" id="L97">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Slot not found: &quot; + slotId));</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (slot.isBooked()) {</span>
+<span class="nc" id="L99">            throw new InvalidOperationException(&quot;This resource slot is already booked&quot;);</span>
+        }
+<span class="nc" id="L101">        slot.setBooked(true);</span>
+<span class="nc" id="L102">        availabilityRepository.save(slot);</span>
+<span class="nc" id="L103">    }</span>
+
+    private ResourceResponse toResponse(Resource r) {
+<span class="nc" id="L106">        ResourceResponse res = new ResourceResponse();</span>
+<span class="nc" id="L107">        res.setId(r.getId());</span>
+<span class="nc" id="L108">        res.setOwnerId(r.getOwner().getId());</span>
+<span class="nc" id="L109">        res.setType(r.getType().name());</span>
+<span class="nc" id="L110">        res.setName(r.getName());</span>
+<span class="nc" id="L111">        res.setDescription(r.getDescription());</span>
+<span class="nc" id="L112">        res.setAvailable(r.isAvailable());</span>
+
+<span class="nc" id="L114">        List&lt;ResourceAvailabilityResponse&gt; slots = availabilityRepository.findByResourceId(r.getId())</span>
+<span class="nc" id="L115">                .stream().map(s -&gt; {</span>
+<span class="nc" id="L116">                    ResourceAvailabilityResponse sr = new ResourceAvailabilityResponse();</span>
+<span class="nc" id="L117">                    sr.setId(s.getId());</span>
+<span class="nc" id="L118">                    sr.setResourceId(r.getId());</span>
+<span class="nc" id="L119">                    sr.setAvailDate(s.getAvailDate());</span>
+<span class="nc" id="L120">                    sr.setStartTime(s.getStartTime());</span>
+<span class="nc" id="L121">                    sr.setEndTime(s.getEndTime());</span>
+<span class="nc" id="L122">                    sr.setBooked(s.isBooked());</span>
+<span class="nc" id="L123">                    return sr;</span>
+<span class="nc" id="L124">                }).collect(Collectors.toList());</span>
+<span class="nc" id="L125">        res.setAvailabilitySlots(slots);</span>
+<span class="nc" id="L126">        return res;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

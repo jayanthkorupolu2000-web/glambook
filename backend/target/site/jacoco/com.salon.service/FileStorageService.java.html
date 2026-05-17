@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileStorageService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">FileStorageService.java</span></div><h1>FileStorageService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.exception.InvalidOperationException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Set;
+import java.util.UUID;
+
+@Service
+<span class="nc" id="L17">@Slf4j</span>
+<span class="nc" id="L18">public class FileStorageService {</span>
+
+    @Value(&quot;${file.upload-dir:uploads}&quot;)
+    private String uploadDir;
+
+<span class="nc" id="L23">    private static final Set&lt;String&gt; ALLOWED_PHOTO_TYPES = Set.of(</span>
+            &quot;image/jpeg&quot;, &quot;image/jpg&quot;, &quot;image/png&quot;, &quot;image/webp&quot;
+    );
+<span class="nc" id="L26">    private static final Set&lt;String&gt; ALLOWED_VIDEO_TYPES = Set.of(</span>
+            &quot;video/mp4&quot;, &quot;video/webm&quot;
+    );
+    private static final long MAX_PHOTO_SIZE = 5 * 1024 * 1024L;  // 5 MB
+    private static final long MAX_VIDEO_SIZE = 30 * 1024 * 1024L; // 30 MB
+
+    public String storePhoto(MultipartFile file, String subfolder) {
+<span class="nc" id="L33">        validatePhoto(file);</span>
+<span class="nc" id="L34">        return store(file, subfolder);</span>
+    }
+
+    public String storeVideo(MultipartFile file, String subfolder) {
+<span class="nc" id="L38">        validateVideo(file);</span>
+<span class="nc" id="L39">        return store(file, subfolder);</span>
+    }
+
+    /**
+     * Decode a base64 data-URL (e.g. &quot;data:image/jpeg;base64,/9j/4AAQ...&quot;)
+     * and save it as a file in the given subfolder.
+     * Returns the server path like /api/v1/files/portfolio/uuid.jpg
+     */
+    public String storeBase64(String dataUrl, String subfolder) {
+<span class="nc bnc" id="L48" title="All 4 branches missed.">        if (dataUrl == null || !dataUrl.startsWith(&quot;data:&quot;)) {</span>
+<span class="nc" id="L49">            throw new InvalidOperationException(&quot;Invalid data URL&quot;);</span>
+        }
+        // Format: data:&lt;mimeType&gt;;base64,&lt;data&gt;
+<span class="nc" id="L52">        String[] parts = dataUrl.split(&quot;,&quot;, 2);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (parts.length != 2) throw new InvalidOperationException(&quot;Malformed data URL&quot;);</span>
+
+<span class="nc" id="L55">        String meta = parts[0]; // e.g. &quot;data:image/jpeg;base64&quot;</span>
+<span class="nc" id="L56">        String base64Data = parts[1];</span>
+
+<span class="nc" id="L58">        String mimeType = meta.substring(5, meta.indexOf(';')); // e.g. &quot;image/jpeg&quot;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        String ext = mimeType.contains(&quot;/&quot;) ? mimeType.split(&quot;/&quot;)[1] : &quot;bin&quot;;</span>
+        // Normalize common extensions
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (&quot;jpeg&quot;.equals(ext)) ext = &quot;jpg&quot;;</span>
+
+        try {
+<span class="nc" id="L64">            byte[] bytes = java.util.Base64.getDecoder().decode(base64Data);</span>
+<span class="nc" id="L65">            String filename = UUID.randomUUID() + &quot;.&quot; + ext;</span>
+<span class="nc" id="L66">            Path dir = Paths.get(System.getProperty(&quot;user.dir&quot;), uploadDir, subfolder);</span>
+<span class="nc" id="L67">            Files.createDirectories(dir);</span>
+<span class="nc" id="L68">            Path dest = dir.resolve(filename);</span>
+<span class="nc" id="L69">            Files.write(dest, bytes);</span>
+            // Return path served by FileController
+<span class="nc" id="L71">            return &quot;/api/v1/files/&quot; + subfolder + &quot;/&quot; + filename;</span>
+<span class="nc" id="L72">        } catch (IOException e) {</span>
+<span class="nc" id="L73">            throw new InvalidOperationException(&quot;Failed to store base64 file: &quot; + e.getMessage());</span>
+        }
+    }
+
+<span class="nc bnc" id="L77" title="All 2 branches missed.">    public void deleteFile(String filePath) {        if (filePath == null) return;</span>
+        try {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            Path path = Paths.get(filePath.startsWith(&quot;/&quot;) ? filePath.substring(1) : filePath);</span>
+<span class="nc" id="L80">            Files.deleteIfExists(path);</span>
+<span class="nc" id="L81">            log.info(&quot;Deleted file: {}&quot;, filePath);</span>
+<span class="nc" id="L82">        } catch (IOException e) {</span>
+<span class="nc" id="L83">            log.warn(&quot;Could not delete file: {}&quot;, filePath);</span>
+<span class="nc" id="L84">        }</span>
+<span class="nc" id="L85">    }</span>
+
+    private String store(MultipartFile file, String subfolder) {
+        try {
+<span class="nc" id="L89">            String ext = getExtension(file.getOriginalFilename());</span>
+<span class="nc" id="L90">            String filename = UUID.randomUUID() + &quot;.&quot; + ext;</span>
+            // Resolve relative to the current working directory (project root when running via mvn)
+<span class="nc" id="L92">            Path dir = Paths.get(System.getProperty(&quot;user.dir&quot;), uploadDir, subfolder);</span>
+<span class="nc" id="L93">            Files.createDirectories(dir);</span>
+<span class="nc" id="L94">            Path dest = dir.resolve(filename);</span>
+<span class="nc" id="L95">            file.transferTo(dest.toFile());</span>
+<span class="nc" id="L96">            return &quot;/&quot; + uploadDir + &quot;/&quot; + subfolder + &quot;/&quot; + filename;</span>
+<span class="nc" id="L97">        } catch (IOException e) {</span>
+<span class="nc" id="L98">            throw new InvalidOperationException(&quot;Failed to store file: &quot; + e.getMessage());</span>
+        }
+    }
+
+    private void validatePhoto(MultipartFile file) {
+<span class="nc bnc" id="L103" title="All 4 branches missed.">        if (file == null || file.isEmpty()) throw new InvalidOperationException(&quot;File is empty&quot;);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (!ALLOWED_PHOTO_TYPES.contains(file.getContentType()))</span>
+<span class="nc" id="L105">            throw new InvalidOperationException(&quot;Invalid photo type. Allowed: JPG, PNG, WEBP&quot;);</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (file.getSize() &gt; MAX_PHOTO_SIZE)</span>
+<span class="nc" id="L107">            throw new InvalidOperationException(&quot;Photo exceeds 5 MB limit&quot;);</span>
+<span class="nc" id="L108">    }</span>
+
+    private void validateVideo(MultipartFile file) {
+<span class="nc bnc" id="L111" title="All 4 branches missed.">        if (file == null || file.isEmpty()) throw new InvalidOperationException(&quot;File is empty&quot;);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (!ALLOWED_VIDEO_TYPES.contains(file.getContentType()))</span>
+<span class="nc" id="L113">            throw new InvalidOperationException(&quot;Invalid video type. Allowed: MP4, WEBM&quot;);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (file.getSize() &gt; MAX_VIDEO_SIZE)</span>
+<span class="nc" id="L115">            throw new InvalidOperationException(&quot;Video exceeds 30 MB limit&quot;);</span>
+<span class="nc" id="L116">    }</span>
+
+    private String getExtension(String filename) {
+<span class="nc bnc" id="L119" title="All 4 branches missed.">        if (filename == null || !filename.contains(&quot;.&quot;)) return &quot;bin&quot;;</span>
+<span class="nc" id="L120">        return filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

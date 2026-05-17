@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfessionalAnalyticsServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">ProfessionalAnalyticsServiceImpl.java</span></div><h1>ProfessionalAnalyticsServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.response.ProfessionalAnalyticsResponse;
+import com.salon.dto.response.ServicePopularityResponse;
+import com.salon.entity.Appointment;
+import com.salon.entity.AppointmentStatus;
+import com.salon.entity.Payment;
+import com.salon.repository.AppointmentRepository;
+import com.salon.repository.PaymentRepository;
+import com.salon.repository.ReviewRepository;
+import com.salon.service.ProfessionalAnalyticsService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L22">@RequiredArgsConstructor</span>
+public class ProfessionalAnalyticsServiceImpl implements ProfessionalAnalyticsService {
+
+    private final AppointmentRepository appointmentRepository;
+    private final PaymentRepository paymentRepository;
+    private final ReviewRepository reviewRepository;
+
+    @Override
+    public ProfessionalAnalyticsResponse generateAnalytics(Long professionalId) {
+<span class="nc" id="L31">        ProfessionalAnalyticsResponse res = new ProfessionalAnalyticsResponse();</span>
+<span class="nc" id="L32">        res.setProfessionalId(professionalId);</span>
+
+<span class="nc" id="L34">        List&lt;Appointment&gt; all = appointmentRepository.findByProfessionalIdAndStatus(professionalId, AppointmentStatus.COMPLETED);</span>
+<span class="nc" id="L35">        res.setTotalAppointments(appointmentRepository.findByProfessionalSalonOwnerId(professionalId).size());</span>
+<span class="nc" id="L36">        res.setCompletedAppointments(appointmentRepository.countByProfessionalIdAndStatus(professionalId, AppointmentStatus.COMPLETED));</span>
+<span class="nc" id="L37">        res.setCancelledAppointments(appointmentRepository.countByProfessionalIdAndStatus(professionalId, AppointmentStatus.CANCELLED));</span>
+
+<span class="nc" id="L39">        BigDecimal earnings = paymentRepository.sumEarningsByProfessionalId(professionalId);</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        res.setTotalEarnings(earnings != null ? earnings : BigDecimal.ZERO);</span>
+
+<span class="nc" id="L42">        Double avg = reviewRepository.findAverageRatingByProfessionalId(professionalId);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        res.setAverageRating(avg != null ? avg : 0.0);</span>
+<span class="nc" id="L44">        res.setTotalReviews((int) reviewRepository.countByProfessionalId(professionalId));</span>
+
+        // Retention rate — guard against null customer (shouldn't happen but be safe)
+<span class="nc" id="L47">        Set&lt;Long&gt; customerIds = all.stream()</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">                .filter(a -&gt; a.getCustomer() != null)</span>
+<span class="nc" id="L49">                .map(a -&gt; a.getCustomer().getId())</span>
+<span class="nc" id="L50">                .collect(Collectors.toSet());</span>
+<span class="nc" id="L51">        long repeatCustomers = customerIds.stream()</span>
+<span class="nc" id="L52">                .filter(cid -&gt; all.stream()</span>
+<span class="nc bnc" id="L53" title="All 4 branches missed.">                        .filter(a -&gt; a.getCustomer() != null &amp;&amp; a.getCustomer().getId().equals(cid))</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                        .count() &gt; 1)</span>
+<span class="nc" id="L55">                .count();</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        res.setClientRetentionRate(customerIds.isEmpty() ? 0.0 : (double) repeatCustomers / customerIds.size() * 100);</span>
+
+        // Popular services — skip appointments where service was deleted (null)
+<span class="nc" id="L59">        Map&lt;Long, Long&gt; serviceCount = all.stream()</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">                .filter(a -&gt; a.getService() != null)</span>
+<span class="nc" id="L61">                .collect(Collectors.groupingBy(a -&gt; a.getService().getId(), Collectors.counting()));</span>
+<span class="nc" id="L62">        List&lt;ServicePopularityResponse&gt; popular = serviceCount.entrySet().stream()</span>
+<span class="nc" id="L63">                .sorted(Map.Entry.&lt;Long, Long&gt;comparingByValue().reversed())</span>
+<span class="nc" id="L64">                .limit(5)</span>
+<span class="nc" id="L65">                .map(e -&gt; {</span>
+<span class="nc" id="L66">                    ServicePopularityResponse sp = new ServicePopularityResponse();</span>
+<span class="nc" id="L67">                    sp.setServiceId(e.getKey());</span>
+<span class="nc" id="L68">                    sp.setBookingCount(e.getValue());</span>
+<span class="nc" id="L69">                    sp.setTotalRevenue(BigDecimal.ZERO);</span>
+<span class="nc" id="L70">                    all.stream()</span>
+<span class="nc bnc" id="L71" title="All 4 branches missed.">                       .filter(a -&gt; a.getService() != null &amp;&amp; a.getService().getId().equals(e.getKey()))</span>
+<span class="nc" id="L72">                       .findFirst()</span>
+<span class="nc" id="L73">                       .ifPresent(a -&gt; sp.setServiceName(a.getService().getName()));</span>
+<span class="nc" id="L74">                    return sp;</span>
+<span class="nc" id="L75">                }).collect(Collectors.toList());</span>
+<span class="nc" id="L76">        res.setPopularServices(popular);</span>
+
+        // Peak day
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        if (!all.isEmpty()) {</span>
+<span class="nc" id="L80">            Map&lt;String, Long&gt; dayCount = all.stream()</span>
+<span class="nc" id="L81">                    .collect(Collectors.groupingBy(a -&gt; a.getDateTime().getDayOfWeek().name(), Collectors.counting()));</span>
+<span class="nc" id="L82">            res.setPeakBookingDay(dayCount.entrySet().stream()</span>
+<span class="nc" id="L83">                    .max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(&quot;N/A&quot;));</span>
+
+<span class="nc" id="L85">            Map&lt;Integer, Long&gt; hourCount = all.stream()</span>
+<span class="nc" id="L86">                    .collect(Collectors.groupingBy(a -&gt; a.getDateTime().getHour(), Collectors.counting()));</span>
+<span class="nc" id="L87">            res.setPeakBookingHour(hourCount.entrySet().stream()</span>
+<span class="nc" id="L88">                    .max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(0));</span>
+<span class="nc" id="L89">        } else {</span>
+<span class="nc" id="L90">            res.setPeakBookingDay(&quot;N/A&quot;);</span>
+<span class="nc" id="L91">            res.setPeakBookingHour(0);</span>
+        }
+
+        // Monthly earnings (last 6 months)
+<span class="nc" id="L95">        Map&lt;String, BigDecimal&gt; monthly = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L96">        DateTimeFormatter fmt = DateTimeFormatter.ofPattern(&quot;MMM yyyy&quot;);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">        for (int i = 5; i &gt;= 0; i--) {</span>
+<span class="nc" id="L98">            LocalDateTime from = LocalDateTime.now().minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0);</span>
+<span class="nc" id="L99">            LocalDateTime to = from.plusMonths(1);</span>
+<span class="nc" id="L100">            String label = from.format(fmt);</span>
+<span class="nc" id="L101">            List&lt;Payment&gt; payments = paymentRepository.findPaidPaymentsByProfessionalAndDateRange(professionalId, from, to);</span>
+<span class="nc" id="L102">            BigDecimal total = payments.stream().map(Payment::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);</span>
+<span class="nc" id="L103">            monthly.put(label, total);</span>
+        }
+<span class="nc" id="L105">        res.setMonthlyEarnings(monthly);</span>
+<span class="nc" id="L106">        res.setReportGeneratedAt(LocalDateTime.now());</span>
+
+<span class="nc" id="L108">        return res;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PayLaterScheduler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.scheduler</a> &gt; <span class="el_source">PayLaterScheduler.java</span></div><h1>PayLaterScheduler.java</h1><pre class="source lang-java linenums">package com.salon.scheduler;
+
+import com.salon.entity.*;
+import com.salon.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+/**
+ * Scheduled job for Pay Later reminders and auto-suspension.
+ *
+ * Timeline (relative to opt-in time T):
+ *   T+8h  → Reminder 1: &quot;16 hours left to pay ₹{amount}&quot;
+ *   T+16h → Reminder 2: &quot;Only 8 hours remain. Non-payment will zero your points and suspend your account.&quot;
+ *   T+24h → If still unpaid: zero loyalty points + suspend account + admin alert
+ *
+ * Runs every 30 minutes.
+ */
+@Component
+<span class="nc" id="L26">@RequiredArgsConstructor</span>
+<span class="nc" id="L27">@Slf4j</span>
+public class PayLaterScheduler {
+
+    private final PaymentRepository paymentRepository;
+    private final CustomerNotificationRepository customerNotificationRepository;
+    private final AdminNotificationRepository adminNotificationRepository;
+    private final CustomerRepository customerRepository;
+    private final LoyaltyRepository loyaltyRepository;
+    private final LoyaltyTransactionRepository loyaltyTransactionRepository;
+
+<span class="nc" id="L37">    private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern(&quot;dd MMM yyyy, hh:mm a&quot;);</span>
+
+    @Scheduled(fixedRate = 1_800_000) // every 30 minutes
+    @Transactional
+    public void processPayLaterReminders() {
+<span class="nc" id="L42">        log.info(&quot;PayLaterScheduler: checking pending Pay Later payments&quot;);</span>
+<span class="nc" id="L43">        LocalDateTime now = LocalDateTime.now();</span>
+<span class="nc" id="L44">        List&lt;Payment&gt; pending = paymentRepository.findAllPayLaterPending();</span>
+<span class="nc" id="L45">        log.info(&quot;PayLaterScheduler: found {} pending Pay Later payments&quot;, pending.size());</span>
+
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        for (Payment payment : pending) {</span>
+            try {
+<span class="nc" id="L49">                processPayment(payment, now);</span>
+<span class="nc" id="L50">            } catch (Exception e) {</span>
+<span class="nc" id="L51">                log.error(&quot;PayLaterScheduler: error processing payment id={}: {}&quot;,</span>
+<span class="nc" id="L52">                        payment.getId(), e.getMessage(), e);</span>
+<span class="nc" id="L53">            }</span>
+<span class="nc" id="L54">        }</span>
+<span class="nc" id="L55">    }</span>
+
+    private void processPayment(Payment payment, LocalDateTime now) {
+<span class="nc" id="L58">        LocalDateTime deadline = payment.getPayLaterDeadline();</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (deadline == null) return;</span>
+
+        // Opt-in time = deadline - 24h
+<span class="nc" id="L62">        LocalDateTime optInTime = deadline.minusHours(24);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        int reminderCount = payment.getPayLaterReminderCount() != null ? payment.getPayLaterReminderCount() : 0;</span>
+
+<span class="nc" id="L65">        Appointment appt = payment.getAppointment();</span>
+<span class="nc" id="L66">        Customer customer = appt.getCustomer();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        String serviceName = appt.getService() != null ? appt.getService().getName() : &quot;your service&quot;;</span>
+<span class="nc" id="L68">        String amountStr = &quot;₹&quot; + payment.getAmount();</span>
+
+        // ── T+24h: deadline passed — auto-suspend ────────────────────────────
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (now.isAfter(deadline)) {</span>
+            // Only act once — check if admin already notified for this payment
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if (adminNotificationRepository.existsByReferenceId(payment.getId())) {</span>
+<span class="nc" id="L74">                log.debug(&quot;PayLaterScheduler: already processed deadline for payment id={}&quot;, payment.getId());</span>
+<span class="nc" id="L75">                return;</span>
+            }
+
+            // 1. Zero out loyalty points
+<span class="nc" id="L79">            zeroLoyaltyPoints(customer);</span>
+
+            // 2. Suspend account
+<span class="nc" id="L82">            String suspensionReason = &quot;Your account has been suspended due to non-payment via Pay Later. &quot;</span>
+                    + &quot;Amount of &quot; + amountStr + &quot; for &quot; + serviceName + &quot; was due by &quot;
+<span class="nc" id="L84">                    + deadline.format(FMT) + &quot;. &quot;</span>
+                    + &quot;Your loyalty points have been reset to 0. &quot;
+                    + &quot;Please contact support to resolve this and reactivate your account.&quot;;
+<span class="nc" id="L87">            customer.setStatus(UserStatus.SUSPENDED);</span>
+<span class="nc" id="L88">            customer.setSuspensionReason(suspensionReason);</span>
+<span class="nc" id="L89">            customerRepository.save(customer);</span>
+
+            // 3. Notify customer
+<span class="nc" id="L92">            customerNotificationRepository.save(CustomerNotification.builder()</span>
+<span class="nc" id="L93">                    .customer(customer)</span>
+<span class="nc" id="L94">                    .type(CustomerNotificationType.ACCOUNT_SUSPENDED)</span>
+<span class="nc" id="L95">                    .referenceId(appt.getId())</span>
+<span class="nc" id="L96">                    .message(&quot;🚫 Your account has been suspended due to non-payment of &quot;</span>
+                            + amountStr + &quot; for &quot; + serviceName + &quot;. &quot;
+                            + &quot;Your loyalty points have been reset to 0. &quot;
+                            + &quot;Please contact support to resolve this.&quot;)
+<span class="nc" id="L100">                    .build());</span>
+
+            // 4. Notify admin
+<span class="nc" id="L103">            String adminMsg = &quot;⚠️ PAY LATER EXPIRED: Customer &quot; + customer.getName()</span>
+<span class="nc" id="L104">                    + &quot; (ID: &quot; + customer.getId() + &quot;)&quot;</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">                    + &quot; | Email: &quot; + (customer.getEmail() != null ? customer.getEmail() : &quot;N/A&quot;)</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">                    + &quot; | Phone: &quot; + (customer.getPhone() != null ? customer.getPhone() : &quot;N/A&quot;)</span>
+                    + &quot; did NOT settle Pay Later of &quot; + amountStr + &quot; for &quot; + serviceName
+<span class="nc" id="L108">                    + &quot; | Opt-in: &quot; + optInTime.format(FMT)</span>
+<span class="nc" id="L109">                    + &quot; | Deadline: &quot; + deadline.format(FMT)</span>
+                    + &quot; | Reminders sent: &quot; + reminderCount
+                    + &quot; | Account suspended + loyalty points zeroed.&quot;;
+<span class="nc" id="L112">            adminNotificationRepository.save(AdminNotification.builder()</span>
+<span class="nc" id="L113">                    .message(adminMsg)</span>
+<span class="nc" id="L114">                    .referenceId(payment.getId())</span>
+<span class="nc" id="L115">                    .build());</span>
+
+<span class="nc" id="L117">            log.warn(&quot;PayLaterScheduler: deadline expired — suspended customer id={}, zeroed points, payment id={}&quot;,</span>
+<span class="nc" id="L118">                    customer.getId(), payment.getId());</span>
+<span class="nc" id="L119">            return;</span>
+        }
+
+        // ── T+8h: first reminder ─────────────────────────────────────────────
+<span class="nc" id="L123">        LocalDateTime reminder1Due = optInTime.plusHours(8);</span>
+<span class="nc bnc" id="L124" title="All 4 branches missed.">        if (reminderCount == 0 &amp;&amp; now.isAfter(reminder1Due)) {</span>
+<span class="nc" id="L125">            long hoursLeft = java.time.Duration.between(now, deadline).toHours();</span>
+<span class="nc" id="L126">            String msg = &quot;⏰ Pay Later Reminder: &quot; + hoursLeft + &quot; hours left to pay &quot;</span>
+                    + amountStr + &quot; for &quot; + serviceName + &quot;. &quot;
+<span class="nc" id="L128">                    + &quot;Deadline: &quot; + deadline.format(FMT) + &quot;.&quot;;</span>
+<span class="nc" id="L129">            sendReminder(customer, appt.getId(), msg);</span>
+<span class="nc" id="L130">            payment.setPayLaterReminderCount(1);</span>
+<span class="nc" id="L131">            paymentRepository.save(payment);</span>
+<span class="nc" id="L132">            log.info(&quot;PayLaterScheduler: sent reminder 1 to customer id={} for payment id={}&quot;,</span>
+<span class="nc" id="L133">                    customer.getId(), payment.getId());</span>
+<span class="nc" id="L134">            return;</span>
+        }
+
+        // ── T+16h: second reminder ───────────────────────────────────────────
+<span class="nc" id="L138">        LocalDateTime reminder2Due = optInTime.plusHours(16);</span>
+<span class="nc bnc" id="L139" title="All 4 branches missed.">        if (reminderCount == 1 &amp;&amp; now.isAfter(reminder2Due)) {</span>
+<span class="nc" id="L140">            String msg = &quot;🚨 URGENT — Pay Later: Only 8 hours remain to pay &quot;</span>
+                    + amountStr + &quot; for &quot; + serviceName + &quot;. &quot;
+<span class="nc" id="L142">                    + &quot;Deadline: &quot; + deadline.format(FMT) + &quot;. &quot;</span>
+                    + &quot;Non-payment will zero your loyalty points and suspend your account.&quot;;
+<span class="nc" id="L144">            sendReminder(customer, appt.getId(), msg);</span>
+<span class="nc" id="L145">            payment.setPayLaterReminderCount(2);</span>
+<span class="nc" id="L146">            paymentRepository.save(payment);</span>
+<span class="nc" id="L147">            log.info(&quot;PayLaterScheduler: sent reminder 2 to customer id={} for payment id={}&quot;,</span>
+<span class="nc" id="L148">                    customer.getId(), payment.getId());</span>
+        }
+<span class="nc" id="L150">    }</span>
+
+    private void sendReminder(Customer customer, Long referenceId, String message) {
+<span class="nc" id="L153">        customerNotificationRepository.save(CustomerNotification.builder()</span>
+<span class="nc" id="L154">                .customer(customer)</span>
+<span class="nc" id="L155">                .type(CustomerNotificationType.PAYMENT_REMINDER)</span>
+<span class="nc" id="L156">                .referenceId(referenceId)</span>
+<span class="nc" id="L157">                .message(message)</span>
+<span class="nc" id="L158">                .build());</span>
+<span class="nc" id="L159">    }</span>
+
+    /** Zero out all loyalty points for the customer (penalty for non-payment). */
+    private void zeroLoyaltyPoints(Customer customer) {
+<span class="nc" id="L163">        List&lt;Loyalty&gt; records = loyaltyRepository.findByCustomerId(customer.getId());</span>
+<span class="nc" id="L164">        records.forEach(l -&gt; {</span>
+<span class="nc" id="L165">            l.setPoints(0);</span>
+<span class="nc" id="L166">            l.setUpdatedAt(java.time.LocalDateTime.now());</span>
+<span class="nc" id="L167">            loyaltyRepository.save(l);</span>
+<span class="nc" id="L168">        });</span>
+        // Record a REDEEM transaction to zero out the balance in transaction history
+<span class="nc" id="L170">        int totalEarned = loyaltyTransactionRepository</span>
+<span class="nc" id="L171">                .findByCustomerIdOrderByCreatedAtDesc(customer.getId())</span>
+<span class="nc" id="L172">                .stream().filter(t -&gt; &quot;EARN&quot;.equals(t.getType())).mapToInt(LoyaltyTransaction::getPoints).sum();</span>
+<span class="nc" id="L173">        int totalRedeemed = loyaltyTransactionRepository</span>
+<span class="nc" id="L174">                .findByCustomerIdOrderByCreatedAtDesc(customer.getId())</span>
+<span class="nc" id="L175">                .stream().filter(t -&gt; &quot;REDEEM&quot;.equals(t.getType())).mapToInt(LoyaltyTransaction::getPoints).sum();</span>
+<span class="nc" id="L176">        int available = totalEarned - totalRedeemed;</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        if (available &gt; 0) {</span>
+<span class="nc" id="L178">            loyaltyTransactionRepository.save(LoyaltyTransaction.builder()</span>
+<span class="nc" id="L179">                    .customer(customer)</span>
+<span class="nc" id="L180">                    .type(&quot;REDEEM&quot;)</span>
+<span class="nc" id="L181">                    .points(available)</span>
+<span class="nc" id="L182">                    .description(&quot;Loyalty points zeroed due to Pay Later non-payment&quot;)</span>
+<span class="nc" id="L183">                    .build());</span>
+        }
+<span class="nc" id="L185">        log.info(&quot;PayLaterScheduler: zeroed {} loyalty points for customer id={}&quot;, available, customer.getId());</span>
+<span class="nc" id="L186">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

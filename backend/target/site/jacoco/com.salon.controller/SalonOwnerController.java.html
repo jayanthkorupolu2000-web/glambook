@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SalonOwnerController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">SalonOwnerController.java</span></div><h1>SalonOwnerController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.BookingAssignmentRequest;
+import com.salon.dto.request.SuspendProfessionalRequest;
+import com.salon.dto.response.AppointmentResponse;
+import com.salon.dto.response.ProfessionalResponse;
+import com.salon.dto.response.SalonOwnerResponse;
+import com.salon.entity.Appointment;
+import com.salon.entity.AppointmentStatus;
+import com.salon.entity.Professional;
+import com.salon.entity.SalonOwner;
+import com.salon.exception.InvalidOperationException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.AppointmentRepository;
+import com.salon.repository.ProfessionalRepository;
+import com.salon.repository.SalonOwnerRepository;
+import com.salon.security.JwtUtil;
+import com.salon.service.SalonOwnerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping(&quot;/api/owners&quot;)
+<span class="nc" id="L34">@RequiredArgsConstructor</span>
+@PreAuthorize(&quot;hasRole('SALON_OWNER')&quot;)
+@Tag(name = &quot;Salon Owner&quot;, description = &quot;Salon owner management APIs&quot;)
+public class SalonOwnerController {
+
+    private final SalonOwnerService salonOwnerService;
+    private final SalonOwnerRepository salonOwnerRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final JwtUtil jwtUtil;
+
+    @GetMapping(&quot;/me&quot;)
+    @Operation(summary = &quot;Get current owner ID from JWT token&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; getMe(HttpServletRequest request) {
+<span class="nc" id="L48">        String authHeader = request.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L49" title="All 4 branches missed.">        if (authHeader != null &amp;&amp; authHeader.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L50">            String token = authHeader.substring(7);</span>
+<span class="nc" id="L51">            String email = jwtUtil.extractEmail(token);</span>
+<span class="nc" id="L52">            SalonOwner owner = salonOwnerRepository.findByEmail(email).orElse(null);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">            if (owner != null) {</span>
+<span class="nc" id="L54">                return ResponseEntity.ok(Map.of(&quot;id&quot;, owner.getId(), &quot;name&quot;, owner.getName(), &quot;email&quot;, owner.getEmail()));</span>
+            }
+        }
+<span class="nc" id="L57">        return ResponseEntity.status(404).body(Map.of(&quot;error&quot;, &quot;Owner not found&quot;));</span>
+    }
+
+    @GetMapping(&quot;/{id}/profile&quot;)
+    @Operation(summary = &quot;Get salon owner profile&quot;,
+               description = &quot;Returns salon owner profile including name, salon name, city, email, and phone&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;SalonOwnerResponse&gt; getProfile(@PathVariable Long id) {
+<span class="nc" id="L65">        return ResponseEntity.ok(salonOwnerService.getProfile(id));</span>
+    }
+
+    @PatchMapping(&quot;/{id}/profile&quot;)
+    @Operation(summary = &quot;Update salon owner profile&quot;,
+               description = &quot;Allows the salon owner to update their name, phone number and salon name&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;SalonOwnerResponse&gt; updateProfile(
+            @PathVariable Long id,
+            @Valid @RequestBody com.salon.dto.request.SalonOwnerEditRequest request) {
+<span class="nc" id="L75">        return ResponseEntity.ok(salonOwnerService.updateProfile(id, request));</span>
+    }
+
+    @GetMapping(&quot;/{id}/staff&quot;)
+    @Operation(summary = &quot;Get staff for salon owner&quot;,
+               description = &quot;Returns all professionals assigned to this salon owner&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;List&lt;ProfessionalResponse&gt;&gt; getStaff(@PathVariable Long id) {
+<span class="nc" id="L83">        return ResponseEntity.ok(salonOwnerService.getStaff(id));</span>
+    }
+
+    @GetMapping(&quot;/{id}/appointments&quot;)
+    @Operation(summary = &quot;Get appointments for salon&quot;,
+               description = &quot;Returns all appointments for the salon owner's professionals&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;List&lt;AppointmentResponse&gt;&gt; getAppointments(@PathVariable Long id) {
+<span class="nc" id="L91">        return ResponseEntity.ok(salonOwnerService.getAppointments(id));</span>
+    }
+
+    @PatchMapping(&quot;/{ownerId}/staff/{professionalId}/approve&quot;)
+    @Operation(summary = &quot;Approve a professional&quot;,
+               description = &quot;Salon owner approves a PENDING professional, setting status to ACTIVE&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;ProfessionalResponse&gt; approveProfessional(
+            @PathVariable Long ownerId,
+            @PathVariable Long professionalId) {
+<span class="nc" id="L101">        return ResponseEntity.ok(salonOwnerService.approveProfessional(ownerId, professionalId));</span>
+    }
+
+    @PatchMapping(&quot;/{ownerId}/staff/{professionalId}/reject&quot;)
+    @Operation(summary = &quot;Reject a professional&quot;,
+               description = &quot;Salon owner rejects a PENDING professional, setting status to SUSPENDED&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;ProfessionalResponse&gt; rejectProfessional(
+            @PathVariable Long ownerId,
+            @PathVariable Long professionalId) {
+<span class="nc" id="L111">        return ResponseEntity.ok(salonOwnerService.rejectProfessional(ownerId, professionalId));</span>
+    }
+
+    @PatchMapping(&quot;/{ownerId}/staff/{professionalId}/suspend&quot;)
+    @Operation(summary = &quot;Suspend a professional with reason and optional duration&quot;,
+               description = &quot;Suspends the professional, cancels their active appointments, and sends notifications&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;ProfessionalResponse&gt; suspendProfessional(
+            @PathVariable Long ownerId,
+            @PathVariable Long professionalId,
+            @Valid @RequestBody SuspendProfessionalRequest request) {
+<span class="nc" id="L122">        return ResponseEntity.ok(salonOwnerService.suspendProfessional(ownerId, professionalId, request));</span>
+    }
+
+    @PatchMapping(&quot;/appointments/{appointmentId}/assign&quot;)
+    @Operation(summary = &quot;Assign a professional to a PENDING appointment and confirm it&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;AppointmentResponse&gt; assignProfessional(
+            @PathVariable Long appointmentId,
+            @Valid @RequestBody BookingAssignmentRequest request) {
+
+<span class="nc" id="L132">        Appointment appt = appointmentRepository.findById(appointmentId)</span>
+<span class="nc" id="L133">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Appointment not found: &quot; + appointmentId));</span>
+
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (appt.getStatus() != AppointmentStatus.PENDING) {</span>
+<span class="nc" id="L136">            throw new InvalidOperationException(&quot;Only PENDING appointments can be assigned&quot;);</span>
+        }
+
+<span class="nc" id="L139">        Professional prof = professionalRepository.findById(request.getProfessionalId())</span>
+<span class="nc" id="L140">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found: &quot; + request.getProfessionalId()));</span>
+
+<span class="nc" id="L142">        appt.setProfessional(prof);</span>
+<span class="nc" id="L143">        appt.setStatus(AppointmentStatus.CONFIRMED);</span>
+<span class="nc" id="L144">        Appointment saved = appointmentRepository.save(appt);</span>
+
+<span class="nc" id="L146">        AppointmentResponse res = new AppointmentResponse();</span>
+<span class="nc" id="L147">        res.setId(saved.getId());</span>
+<span class="nc" id="L148">        res.setStatus(saved.getStatus().name());</span>
+<span class="nc" id="L149">        res.setScheduledAt(saved.getDateTime());</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (saved.getCustomer() != null) {</span>
+<span class="nc" id="L151">            res.setCustomerId(saved.getCustomer().getId());</span>
+<span class="nc" id="L152">            res.setCustomerName(saved.getCustomer().getName());</span>
+        }
+<span class="nc" id="L154">        res.setProfessionalId(prof.getId());</span>
+<span class="nc" id="L155">        res.setProfessionalName(prof.getName());</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (saved.getService() != null) {</span>
+<span class="nc" id="L157">            res.setServiceId(saved.getService().getId());</span>
+<span class="nc" id="L158">            res.setServiceName(saved.getService().getName());</span>
+        }
+<span class="nc" id="L160">        return ResponseEntity.ok(res);</span>
+    }
+
+    @PatchMapping(&quot;/appointments/{appointmentId}/unassign&quot;)
+    @Operation(summary = &quot;Cancel assignment — removes professional and reverts appointment to PENDING&quot;,
+               security = @SecurityRequirement(name = &quot;bearerAuth&quot;))
+    public ResponseEntity&lt;AppointmentResponse&gt; unassignProfessional(@PathVariable Long appointmentId) {
+
+<span class="nc" id="L168">        Appointment appt = appointmentRepository.findById(appointmentId)</span>
+<span class="nc" id="L169">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Appointment not found: &quot; + appointmentId));</span>
+
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (appt.getStatus() != AppointmentStatus.CONFIRMED) {</span>
+<span class="nc" id="L172">            throw new InvalidOperationException(&quot;Only CONFIRMED appointments can have their assignment cancelled&quot;);</span>
+        }
+
+<span class="nc" id="L175">        appt.setProfessional(null);</span>
+<span class="nc" id="L176">        appt.setStatus(AppointmentStatus.PENDING);</span>
+<span class="nc" id="L177">        Appointment saved = appointmentRepository.save(appt);</span>
+
+<span class="nc" id="L179">        AppointmentResponse res = new AppointmentResponse();</span>
+<span class="nc" id="L180">        res.setId(saved.getId());</span>
+<span class="nc" id="L181">        res.setStatus(saved.getStatus().name());</span>
+<span class="nc" id="L182">        res.setScheduledAt(saved.getDateTime());</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (saved.getCustomer() != null) {</span>
+<span class="nc" id="L184">            res.setCustomerId(saved.getCustomer().getId());</span>
+<span class="nc" id="L185">            res.setCustomerName(saved.getCustomer().getName());</span>
+        }
+<span class="nc" id="L187">        res.setProfessionalId(null);</span>
+<span class="nc" id="L188">        res.setProfessionalName(null);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">        if (saved.getService() != null) {</span>
+<span class="nc" id="L190">            res.setServiceId(saved.getService().getId());</span>
+<span class="nc" id="L191">            res.setServiceName(saved.getService().getName());</span>
+        }
+<span class="nc" id="L193">        return ResponseEntity.ok(res);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

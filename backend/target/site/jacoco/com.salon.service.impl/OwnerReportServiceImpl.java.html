@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OwnerReportServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">OwnerReportServiceImpl.java</span></div><h1>OwnerReportServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.response.OwnerReportResponse;
+import com.salon.entity.AppointmentStatus;
+import com.salon.entity.ComplaintStatus;
+import com.salon.entity.UserStatus;
+import com.salon.repository.AppointmentRepository;
+import com.salon.repository.ComplaintRepository;
+import com.salon.repository.ProfessionalRepository;
+import com.salon.service.OwnerReportService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Service
+<span class="nc" id="L18">@RequiredArgsConstructor</span>
+public class OwnerReportServiceImpl implements OwnerReportService {
+
+    private final AppointmentRepository appointmentRepository;
+    private final ComplaintRepository complaintRepository;
+    private final ProfessionalRepository professionalRepository;
+
+    @Override
+    public OwnerReportResponse generateReport(Long ownerId) {
+<span class="nc" id="L27">        OwnerReportResponse report = new OwnerReportResponse();</span>
+<span class="nc" id="L28">        report.setOwnerId(ownerId);</span>
+
+<span class="nc" id="L30">        report.setTotalAppointments(appointmentRepository.findByProfessionalSalonOwnerId(ownerId).size());</span>
+<span class="nc" id="L31">        report.setCompletedAppointments(appointmentRepository.countByProfessionalSalonOwnerIdAndStatus(ownerId, AppointmentStatus.COMPLETED));</span>
+<span class="nc" id="L32">        report.setCancelledAppointments(appointmentRepository.countByProfessionalSalonOwnerIdAndStatus(ownerId, AppointmentStatus.CANCELLED));</span>
+
+<span class="nc" id="L34">        BigDecimal revenue = appointmentRepository.sumRevenueByOwnerId(ownerId);</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">        report.setTotalRevenue(revenue != null ? revenue : BigDecimal.ZERO);</span>
+
+<span class="nc" id="L37">        report.setAverageRating(0.0); // Can be extended with review repo</span>
+
+<span class="nc" id="L39">        report.setTotalComplaints(complaintRepository.findByProfessionalSalonOwnerId(ownerId).size());</span>
+<span class="nc" id="L40">        report.setOpenComplaints(complaintRepository.countByProfessionalSalonOwnerIdAndStatus(ownerId, ComplaintStatus.OPEN));</span>
+<span class="nc" id="L41">        report.setForwardedComplaints(complaintRepository.countByProfessionalSalonOwnerIdAndStatus(ownerId, ComplaintStatus.FORWARDED));</span>
+<span class="nc" id="L42">        report.setResolvedComplaints(complaintRepository.countByProfessionalSalonOwnerIdAndStatus(ownerId, ComplaintStatus.RESOLVED));</span>
+
+<span class="nc" id="L44">        report.setProfessionalsCount(professionalRepository.countBySalonOwnerIdAndStatus(ownerId, UserStatus.ACTIVE));</span>
+<span class="nc" id="L45">        report.setPendingApprovals(professionalRepository.findBySalonOwnerId(ownerId).stream()</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">                .filter(p -&gt; p.getStatus() == UserStatus.ACTIVE).count()); // simplified</span>
+
+<span class="nc" id="L48">        report.setReportGeneratedAt(LocalDateTime.now());</span>
+<span class="nc" id="L49">        return report;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

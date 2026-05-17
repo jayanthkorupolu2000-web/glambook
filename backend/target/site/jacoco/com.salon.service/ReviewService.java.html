@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReviewService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">ReviewService.java</span></div><h1>ReviewService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.request.ReviewRequest;
+import com.salon.dto.request.ReviewUpdateRequest;
+import com.salon.dto.response.ReviewResponse;
+import com.salon.entity.*;
+import com.salon.exception.DuplicateReviewException;
+import com.salon.exception.InvalidOperationException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.exception.UnauthorizedException;
+import com.salon.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L29">@RequiredArgsConstructor</span>
+<span class="nc" id="L30">@Slf4j</span>
+public class ReviewService {
+
+    private final ReviewRepository reviewRepository;
+    private final CustomerRepository customerRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final ProfessionalNotificationRepository professionalNotificationRepository;
+
+    // ── Create ────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public ReviewResponse createReview(Long customerId, ReviewRequest request,
+                                       List&lt;MultipartFile&gt; photoFiles) {
+<span class="nc" id="L44">        log.info(&quot;Creating review for professional: {} by customer: {} for appointment: {}&quot;,</span>
+<span class="nc" id="L45">                request.getProfessionalId(), customerId, request.getAppointmentId());</span>
+
+<span class="nc" id="L47">        Customer customer = customerRepository.findById(customerId)</span>
+<span class="nc" id="L48">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+
+<span class="nc" id="L50">        Professional professional = professionalRepository.findById(request.getProfessionalId())</span>
+<span class="nc" id="L51">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found&quot;));</span>
+
+<span class="nc" id="L53">        Appointment appointment = appointmentRepository.findById(request.getAppointmentId())</span>
+<span class="nc" id="L54">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Appointment not found&quot;));</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (appointment.getStatus() != AppointmentStatus.COMPLETED</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                &amp;&amp; appointment.getStatus() != AppointmentStatus.CONFIRMED) {</span>
+<span class="nc" id="L58">            throw new InvalidOperationException(&quot;Reviews can only be submitted for confirmed or completed appointments&quot;);</span>
+        }
+
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (reviewRepository.existsByCustomerIdAndAppointmentId(customerId, request.getAppointmentId())) {</span>
+<span class="nc" id="L62">            throw new DuplicateReviewException(&quot;A review for this appointment already exists&quot;);</span>
+        }
+
+<span class="nc" id="L65">        List&lt;String&gt; photoPaths = savePhotos(photoFiles);</span>
+
+        // Compute overall rating as average of the three criteria
+<span class="nc" id="L68">        int overall = Math.round(</span>
+<span class="nc" id="L69">            (request.getQualityRating() + request.getTimelinessRating() + request.getProfessionalismRating()) / 3.0f</span>
+        );
+
+<span class="nc" id="L72">        Review review = Review.builder()</span>
+<span class="nc" id="L73">                .customer(customer)</span>
+<span class="nc" id="L74">                .professional(professional)</span>
+<span class="nc" id="L75">                .appointment(appointment)</span>
+<span class="nc" id="L76">                .qualityRating(request.getQualityRating())</span>
+<span class="nc" id="L77">                .timelinessRating(request.getTimelinessRating())</span>
+<span class="nc" id="L78">                .professionalismRating(request.getProfessionalismRating())</span>
+<span class="nc" id="L79">                .rating(overall)</span>
+<span class="nc" id="L80">                .comment(request.getComment())</span>
+<span class="nc" id="L81">                .photos(photoPaths)</span>
+<span class="nc" id="L82">                .status(ReviewStatus.ACTIVE)</span>
+<span class="nc" id="L83">                .build();</span>
+
+<span class="nc" id="L85">        Review saved = reviewRepository.save(review);</span>
+<span class="nc" id="L86">        log.info(&quot;Created review id={}&quot;, saved.getId());</span>
+
+        // Notify professional
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        String comment = request.getComment() != null ? request.getComment() : &quot;&quot;;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        String snippet = comment.length() &gt; 100 ? comment.substring(0, 100) : comment;</span>
+<span class="nc" id="L91">        String message = customer.getName() + &quot; rated you &quot; + overall + &quot;/5&quot;</span>
+<span class="nc" id="L92">                + &quot; (Quality: &quot; + request.getQualityRating()</span>
+<span class="nc" id="L93">                + &quot;, Timeliness: &quot; + request.getTimelinessRating()</span>
+<span class="nc" id="L94">                + &quot;, Professionalism: &quot; + request.getProfessionalismRating() + &quot;)&quot;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                + (snippet.isEmpty() ? &quot;&quot; : &quot;: &quot; + snippet);</span>
+
+<span class="nc" id="L97">        professionalNotificationRepository.save(ProfessionalNotification.builder()</span>
+<span class="nc" id="L98">                .professional(professional)</span>
+<span class="nc" id="L99">                .type(ProfessionalNotificationType.NEW_REVIEW)</span>
+<span class="nc" id="L100">                .referenceId(saved.getId())</span>
+<span class="nc" id="L101">                .message(message)</span>
+<span class="nc" id="L102">                .build());</span>
+
+<span class="nc" id="L104">        return toResponse(saved);</span>
+    }
+
+    // ── Update ────────────────────────────────────────────────────────────────
+
+    @Transactional
+    public ReviewResponse updateReview(Long customerId, Long reviewId,
+                                       ReviewUpdateRequest dto,
+                                       List&lt;MultipartFile&gt; newPhotoFiles) {
+<span class="nc" id="L113">        Review review = reviewRepository.findById(reviewId)</span>
+<span class="nc" id="L114">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Review not found: &quot; + reviewId));</span>
+
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        if (!review.getCustomer().getId().equals(customerId)) {</span>
+<span class="nc" id="L117">            throw new UnauthorizedException(&quot;You can only edit your own reviews&quot;);</span>
+        }
+
+<span class="nc bnc" id="L120" title="All 4 branches missed.">        if (dto.getComment() != null &amp;&amp; !dto.getComment().isBlank()) {</span>
+<span class="nc" id="L121">            review.setComment(dto.getComment());</span>
+        }
+
+        // Update individual criteria ratings if provided, then recompute overall
+<span class="nc" id="L125">        boolean ratingsChanged = false;</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (dto.getQualityRating() != null) {</span>
+<span class="nc" id="L127">            review.setQualityRating(dto.getQualityRating());</span>
+<span class="nc" id="L128">            ratingsChanged = true;</span>
+        }
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (dto.getTimelinessRating() != null) {</span>
+<span class="nc" id="L131">            review.setTimelinessRating(dto.getTimelinessRating());</span>
+<span class="nc" id="L132">            ratingsChanged = true;</span>
+        }
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (dto.getProfessionalismRating() != null) {</span>
+<span class="nc" id="L135">            review.setProfessionalismRating(dto.getProfessionalismRating());</span>
+<span class="nc" id="L136">            ratingsChanged = true;</span>
+        }
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (ratingsChanged) {</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">            int q = review.getQualityRating() != null ? review.getQualityRating() : 5;</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            int t = review.getTimelinessRating() != null ? review.getTimelinessRating() : 5;</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">            int p = review.getProfessionalismRating() != null ? review.getProfessionalismRating() : 5;</span>
+<span class="nc" id="L142">            review.setRating(Math.round((q + t + p) / 3.0f));</span>
+        }
+
+        // Append new photos to existing list
+<span class="nc" id="L146">        List&lt;String&gt; newPaths = savePhotos(newPhotoFiles);</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (!newPaths.isEmpty()) {</span>
+<span class="nc" id="L148">            List&lt;String&gt; all = new ArrayList&lt;&gt;(review.getPhotos());</span>
+<span class="nc" id="L149">            all.addAll(newPaths);</span>
+<span class="nc" id="L150">            review.setPhotos(all);</span>
+        }
+
+<span class="nc" id="L153">        review.setStatus(ReviewStatus.UPDATED);</span>
+<span class="nc" id="L154">        Review saved = reviewRepository.save(review);</span>
+<span class="nc" id="L155">        log.info(&quot;Updated review id={}&quot;, reviewId);</span>
+<span class="nc" id="L156">        return toResponse(saved);</span>
+    }
+
+    // ── Queries ───────────────────────────────────────────────────────────────
+
+    public boolean existsByAppointmentId(Long appointmentId) {
+<span class="nc" id="L162">        return reviewRepository.existsByAppointmentId(appointmentId);</span>
+    }
+
+    public List&lt;ReviewResponse&gt; getReviewsByCustomer(Long customerId) {
+<span class="nc" id="L166">        return reviewRepository.findByCustomerId(customerId)</span>
+<span class="nc" id="L167">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    public Map&lt;String, Object&gt; getReviewsByProfessional(Long professionalId) {
+<span class="nc bnc" id="L171" title="All 2 branches missed.">        if (!professionalRepository.existsById(professionalId)) {</span>
+<span class="nc" id="L172">            throw new ResourceNotFoundException(&quot;Professional not found&quot;);</span>
+        }
+<span class="nc" id="L174">        List&lt;Review&gt; reviews = reviewRepository.findByProfessionalId(professionalId);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">        double avg = reviews.stream().mapToInt(r -&gt; r.getRating() != null ? r.getRating() : 0).average().orElse(0.0);</span>
+<span class="nc bnc" id="L176" title="All 2 branches missed.">        double avgQuality = reviews.stream().filter(r -&gt; r.getQualityRating() != null)</span>
+<span class="nc" id="L177">                .mapToInt(Review::getQualityRating).average().orElse(0.0);</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">        double avgTimeliness = reviews.stream().filter(r -&gt; r.getTimelinessRating() != null)</span>
+<span class="nc" id="L179">                .mapToInt(Review::getTimelinessRating).average().orElse(0.0);</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        double avgProfessionalism = reviews.stream().filter(r -&gt; r.getProfessionalismRating() != null)</span>
+<span class="nc" id="L181">                .mapToInt(Review::getProfessionalismRating).average().orElse(0.0);</span>
+<span class="nc" id="L182">        return Map.of(</span>
+<span class="nc" id="L183">                &quot;reviews&quot;, reviews.stream().map(this::toResponse).collect(Collectors.toList()),</span>
+<span class="nc" id="L184">                &quot;averageRating&quot;, avg,</span>
+<span class="nc" id="L185">                &quot;averageQualityRating&quot;, avgQuality,</span>
+<span class="nc" id="L186">                &quot;averageTimelinessRating&quot;, avgTimeliness,</span>
+<span class="nc" id="L187">                &quot;averageProfessionalismRating&quot;, avgProfessionalism</span>
+        );
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private List&lt;String&gt; savePhotos(List&lt;MultipartFile&gt; files) {
+<span class="nc" id="L194">        List&lt;String&gt; paths = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L195" title="All 4 branches missed.">        if (files == null || files.isEmpty()) return paths;</span>
+        try {
+            // Resolve uploads/reviews relative to the JVM working directory (project root)
+<span class="nc" id="L198">            Path dir = Paths.get(System.getProperty(&quot;user.dir&quot;), &quot;uploads&quot;, &quot;reviews&quot;);</span>
+<span class="nc" id="L199">            Files.createDirectories(dir);</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">            for (MultipartFile file : files) {</span>
+<span class="nc bnc" id="L201" title="All 4 branches missed.">                if (file == null || file.isEmpty()) continue;</span>
+<span class="nc" id="L202">                String ext = getExtension(file.getOriginalFilename());</span>
+<span class="nc" id="L203">                String filename = UUID.randomUUID() + ext;</span>
+<span class="nc" id="L204">                Path dest = dir.resolve(filename);</span>
+<span class="nc" id="L205">                file.transferTo(dest.toFile());</span>
+                // Return path served by FileController: /api/v1/files/reviews/filename
+<span class="nc" id="L207">                paths.add(&quot;/api/v1/files/reviews/&quot; + filename);</span>
+<span class="nc" id="L208">            }</span>
+<span class="nc" id="L209">        } catch (IOException e) {</span>
+<span class="nc" id="L210">            log.error(&quot;Failed to save review photos: {}&quot;, e.getMessage());</span>
+<span class="nc" id="L211">        }</span>
+<span class="nc" id="L212">        return paths;</span>
+    }
+
+    private String getExtension(String filename) {
+<span class="nc bnc" id="L216" title="All 4 branches missed.">        if (filename == null || !filename.contains(&quot;.&quot;)) return &quot;.jpg&quot;;</span>
+<span class="nc" id="L217">        return filename.substring(filename.lastIndexOf('.'));</span>
+    }
+
+    private ReviewResponse toResponse(Review review) {
+<span class="nc" id="L221">        return ReviewResponse.builder()</span>
+<span class="nc" id="L222">                .id(review.getId())</span>
+<span class="nc" id="L223">                .customerId(review.getCustomer().getId())</span>
+<span class="nc" id="L224">                .customerName(review.getCustomer().getName())</span>
+<span class="nc" id="L225">                .professionalId(review.getProfessional().getId())</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">                .appointmentId(review.getAppointment() != null ? review.getAppointment().getId() : null)</span>
+<span class="nc" id="L227">                .rating(review.getRating())</span>
+<span class="nc" id="L228">                .qualityRating(review.getQualityRating())</span>
+<span class="nc" id="L229">                .timelinessRating(review.getTimelinessRating())</span>
+<span class="nc" id="L230">                .professionalismRating(review.getProfessionalismRating())</span>
+<span class="nc" id="L231">                .comment(review.getComment())</span>
+<span class="nc" id="L232">                .photos(review.getPhotos())</span>
+<span class="nc" id="L233">                .professionalResponse(review.getProfessionalResponse())</span>
+<span class="nc" id="L234">                .professionalResponseAt(review.getProfessionalResponseAt())</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                .status(review.getStatus() != null ? review.getStatus().name() : &quot;ACTIVE&quot;)</span>
+<span class="nc" id="L236">                .createdAt(review.getCreatedAt())</span>
+<span class="nc" id="L237">                .updatedAt(review.getUpdatedAt())</span>
+<span class="nc" id="L238">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

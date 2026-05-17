@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PayLaterController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">PayLaterController.java</span></div><h1>PayLaterController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.exception.UnauthorizedException;
+import com.salon.security.JwtUtil;
+import com.salon.service.PayLaterService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.Map;
+
+@RestController
+@RequestMapping(&quot;/api/pay-later&quot;)
+<span class="nc" id="L20">@RequiredArgsConstructor</span>
+@PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+@Tag(name = &quot;Pay Later&quot;, description = &quot;Pay Later eligibility, opt-in, and settlement&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+public class PayLaterController {
+
+    private final PayLaterService payLaterService;
+    private final JwtUtil jwtUtil;
+
+    /** Check if the customer is eligible for Pay Later on a specific appointment */
+    @GetMapping(&quot;/eligibility/{appointmentId}&quot;)
+    @Operation(summary = &quot;Check Pay Later eligibility&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; checkEligibility(
+            @PathVariable Long appointmentId,
+            HttpServletRequest req) {
+<span class="nc" id="L35">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L36">        return ResponseEntity.ok(payLaterService.checkEligibility(customerId, appointmentId));</span>
+    }
+
+    /** Opt in to Pay Later — creates a PAY_LATER_PENDING payment record */
+    @PostMapping(&quot;/opt-in/{appointmentId}&quot;)
+    @Operation(summary = &quot;Opt in to Pay Later for an appointment&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; optIn(
+            @PathVariable Long appointmentId,
+            HttpServletRequest req) {
+<span class="nc" id="L45">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L46">        return ResponseEntity.ok(payLaterService.optIn(customerId, appointmentId));</span>
+    }
+
+    /** Settle a Pay Later payment (pay the pending amount) */
+    @PostMapping(&quot;/settle/{appointmentId}&quot;)
+    @Operation(summary = &quot;Settle a Pay Later payment&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; settle(
+            @PathVariable Long appointmentId,
+            @RequestBody Map&lt;String, Object&gt; body,
+            HttpServletRequest req) {
+<span class="nc" id="L56">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L57">        String method = (String) body.getOrDefault(&quot;method&quot;, &quot;CASH&quot;);</span>
+<span class="nc" id="L58">        BigDecimal walletUsed = BigDecimal.ZERO;</span>
+<span class="nc" id="L59">        Object w = body.get(&quot;walletAmountUsed&quot;);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (w != null) {</span>
+<span class="nc" id="L61">            try { walletUsed = new BigDecimal(w.toString()); } catch (Exception ignored) {}</span>
+        }
+<span class="nc" id="L63">        return ResponseEntity.ok(payLaterService.settle(customerId, appointmentId, method, walletUsed));</span>
+    }
+
+    private Long extractCustomerId(HttpServletRequest req) {
+<span class="nc" id="L67">        String auth = req.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L68" title="All 4 branches missed.">        if (auth == null || !auth.startsWith(&quot;Bearer &quot;))</span>
+<span class="nc" id="L69">            throw new UnauthorizedException(&quot;Missing or invalid authorization header&quot;);</span>
+<span class="nc" id="L70">        return jwtUtil.extractUserId(auth.substring(7));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

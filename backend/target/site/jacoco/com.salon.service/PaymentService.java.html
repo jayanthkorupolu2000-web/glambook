@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PaymentService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">PaymentService.java</span></div><h1>PaymentService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.request.PaymentRequest;
+import com.salon.dto.response.PaymentResponse;
+import com.salon.entity.Appointment;
+import com.salon.entity.Payment;
+import com.salon.entity.PaymentMethod;
+import com.salon.entity.PaymentStatus;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.exception.ValidationException;
+import com.salon.repository.AppointmentRepository;
+import com.salon.repository.PaymentRepository;
+import com.salon.repository.ReviewRepository;
+import com.salon.service.LoyaltyService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+@Service
+<span class="nc" id="L25">@RequiredArgsConstructor</span>
+<span class="nc" id="L26">@Slf4j</span>
+public class PaymentService {
+
+    private final PaymentRepository paymentRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final ReviewRepository reviewRepository;
+    private final LoyaltyService loyaltyService;
+    private final WalletService walletService;
+
+    @Transactional
+    public PaymentResponse processPayment(PaymentRequest request, Long customerId) {
+<span class="nc" id="L37">        log.info(&quot;Processing payment for appointment ID: {} by customer: {}&quot;,</span>
+<span class="nc" id="L38">                request.getAppointmentId(), customerId);</span>
+
+<span class="nc" id="L40">        Appointment appointment = appointmentRepository.findById(request.getAppointmentId())</span>
+<span class="nc" id="L41">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Appointment not found&quot;));</span>
+
+        // 1. Timing check — payment only allowed at or after the appointment time
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (appointment.getDateTime().isAfter(LocalDateTime.now())) {</span>
+<span class="nc" id="L45">            throw new ValidationException(&quot;Payment is not allowed before the appointment time&quot;);</span>
+        }
+
+        // 2. Duplicate payment guard
+<span class="nc" id="L49">        Optional&lt;Payment&gt; existingPayment = paymentRepository.findByAppointmentId(request.getAppointmentId());</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (existingPayment.isPresent()) {</span>
+<span class="nc" id="L51">            throw new ValidationException(&quot;Payment already exists for this appointment&quot;);</span>
+        }
+
+        // 3. Validate total (walletAmountUsed + amount) equals service price
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        BigDecimal walletUsed = request.getWalletAmountUsed() != null</span>
+<span class="nc" id="L56">                ? request.getWalletAmountUsed()</span>
+<span class="nc" id="L57">                : BigDecimal.ZERO;</span>
+<span class="nc" id="L58">        BigDecimal totalPaid = request.getAmount().add(walletUsed);</span>
+
+<span class="nc bnc" id="L60" title="All 4 branches missed.">        if (appointment.getService() != null &amp;&amp; appointment.getService().getPrice() != null) {</span>
+<span class="nc" id="L61">            BigDecimal servicePrice = appointment.getService().getPrice();</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            if (servicePrice.compareTo(totalPaid) != 0) {</span>
+<span class="nc" id="L63">                throw new ValidationException(&quot;Total payment (wallet + method) must equal the service price of ₹&quot;</span>
+                        + servicePrice);
+            }
+        }
+
+        // 4. Deduct wallet balance if wallet was used
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (walletUsed.compareTo(BigDecimal.ZERO) &gt; 0) {</span>
+<span class="nc" id="L70">            walletService.debit(</span>
+<span class="nc" id="L71">                    appointment.getCustomer(),</span>
+                    walletUsed,
+                    &quot;appointment_payment&quot;,
+<span class="nc" id="L74">                    &quot;Wallet payment for appointment #&quot; + appointment.getId()</span>
+<span class="nc" id="L75">                            + &quot; (&quot; + appointment.getService().getName() + &quot;)&quot;</span>
+            );
+<span class="nc" id="L77">            log.info(&quot;Deducted ₹{} from wallet for appointment {}&quot;, walletUsed, appointment.getId());</span>
+        }
+
+        // 5. Determine the stored payment method:
+        //    - If fully paid by wallet, store WALLET
+        //    - Otherwise store the chosen cash/card method
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        PaymentMethod storedMethod = (request.getAmount().compareTo(BigDecimal.ZERO) == 0)</span>
+<span class="nc" id="L84">                ? PaymentMethod.WALLET</span>
+<span class="nc" id="L85">                : request.getMethod();</span>
+
+<span class="nc" id="L87">        Payment payment = Payment.builder()</span>
+<span class="nc" id="L88">                .appointment(appointment)</span>
+<span class="nc" id="L89">                .amount(totalPaid)          // store full service price</span>
+<span class="nc" id="L90">                .method(storedMethod)</span>
+<span class="nc" id="L91">                .status(PaymentStatus.PAID)</span>
+<span class="nc" id="L92">                .paidAt(LocalDateTime.now())</span>
+<span class="nc" id="L93">                .build();</span>
+
+<span class="nc" id="L95">        Payment savedPayment = paymentRepository.save(payment);</span>
+<span class="nc" id="L96">        log.info(&quot;Payment processed successfully with ID: {}&quot;, savedPayment.getId());</span>
+
+        // Award loyalty points based on service cost
+        try {
+<span class="nc" id="L100">            loyaltyService.awardPointsOnAppointmentCompletion(request.getAppointmentId());</span>
+<span class="nc" id="L101">        } catch (Exception e) {</span>
+<span class="nc" id="L102">            log.warn(&quot;Failed to award loyalty points for appointment {}: {}&quot;, request.getAppointmentId(), e.getMessage());</span>
+<span class="nc" id="L103">        }</span>
+
+<span class="nc" id="L105">        return toResponse(savedPayment);</span>
+    }
+
+    public PaymentResponse getPaymentByAppointmentId(Long appointmentId) {
+<span class="nc" id="L109">        log.info(&quot;Retrieving payment for appointment ID: {}&quot;, appointmentId);</span>
+
+<span class="nc" id="L111">        Payment payment = paymentRepository.findByAppointmentId(appointmentId)</span>
+<span class="nc" id="L112">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Payment not found for appointment&quot;));</span>
+
+<span class="nc" id="L114">        return toResponse(payment);</span>
+    }
+
+    private PaymentResponse toResponse(Payment payment) {
+<span class="nc" id="L118">        return PaymentResponse.builder()</span>
+<span class="nc" id="L119">                .id(payment.getId())</span>
+<span class="nc" id="L120">                .appointmentId(payment.getAppointment().getId())</span>
+<span class="nc" id="L121">                .amount(payment.getAmount())</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                .method(payment.getMethod() != null ? payment.getMethod().name() : null)</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                .status(payment.getStatus() != null ? payment.getStatus().name() : null)</span>
+<span class="nc" id="L124">                .paidAt(payment.getPaidAt())</span>
+<span class="nc" id="L125">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

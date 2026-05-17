@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WalletService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">WalletService.java</span></div><h1>WalletService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.entity.Customer;
+import com.salon.entity.Wallet;
+import com.salon.entity.WalletTransaction;
+import com.salon.repository.WalletRepository;
+import com.salon.repository.WalletTransactionRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+@Service
+<span class="nc" id="L18">@RequiredArgsConstructor</span>
+<span class="fc" id="L19">@Slf4j</span>
+public class WalletService {
+
+    private final WalletRepository walletRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
+
+    /**
+     * Credit the customer's wallet. Creates the wallet row if it doesn't exist yet.
+     * Also inserts a wallet_transactions record.
+     */
+    @Transactional
+    public Wallet credit(Customer customer, BigDecimal amount, String source, String description) {
+<span class="nc" id="L31">        Wallet wallet = walletRepository.findByCustomerId(customer.getId())</span>
+<span class="nc" id="L32">                .orElse(Wallet.builder().customer(customer).balance(BigDecimal.ZERO).build());</span>
+
+<span class="nc" id="L34">        wallet.setBalance(wallet.getBalance().add(amount));</span>
+<span class="nc" id="L35">        Wallet saved = walletRepository.save(wallet);</span>
+
+<span class="nc" id="L37">        walletTransactionRepository.save(WalletTransaction.builder()</span>
+<span class="nc" id="L38">                .customer(customer)</span>
+<span class="nc" id="L39">                .type(&quot;credit&quot;)</span>
+<span class="nc" id="L40">                .amount(amount)</span>
+<span class="nc" id="L41">                .source(source)</span>
+<span class="nc" id="L42">                .description(description)</span>
+<span class="nc" id="L43">                .build());</span>
+
+<span class="nc" id="L45">        log.info(&quot;Credited ₹{} to wallet of customer {} (source={})&quot;, amount, customer.getId(), source);</span>
+<span class="nc" id="L46">        return saved;</span>
+    }
+
+    /** Get current wallet balance for a customer (returns 0 if no wallet yet). */
+    public BigDecimal getBalance(Long customerId) {
+<span class="nc" id="L51">        return walletRepository.findByCustomerId(customerId)</span>
+<span class="nc" id="L52">                .map(Wallet::getBalance)</span>
+<span class="nc" id="L53">                .orElse(BigDecimal.ZERO);</span>
+    }
+
+    /**
+     * Debit the customer's wallet. Throws ValidationException if balance is insufficient.
+     */
+    @Transactional
+    public Wallet debit(Customer customer, BigDecimal amount, String source, String description) {
+<span class="nc" id="L61">        Wallet wallet = walletRepository.findByCustomerId(customer.getId())</span>
+<span class="nc" id="L62">                .orElseThrow(() -&gt; new com.salon.exception.ValidationException(&quot;No wallet found for customer&quot;));</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (wallet.getBalance().compareTo(amount) &lt; 0) {</span>
+<span class="nc" id="L65">            throw new com.salon.exception.ValidationException(</span>
+<span class="nc" id="L66">                    &quot;Insufficient wallet balance. Available: ₹&quot; + wallet.getBalance());</span>
+        }
+
+<span class="nc" id="L69">        wallet.setBalance(wallet.getBalance().subtract(amount));</span>
+<span class="nc" id="L70">        Wallet saved = walletRepository.save(wallet);</span>
+
+<span class="nc" id="L72">        walletTransactionRepository.save(WalletTransaction.builder()</span>
+<span class="nc" id="L73">                .customer(customer)</span>
+<span class="nc" id="L74">                .type(&quot;debit&quot;)</span>
+<span class="nc" id="L75">                .amount(amount)</span>
+<span class="nc" id="L76">                .source(source)</span>
+<span class="nc" id="L77">                .description(description)</span>
+<span class="nc" id="L78">                .build());</span>
+
+<span class="nc" id="L80">        log.info(&quot;Debited ₹{} from wallet of customer {} (source={})&quot;, amount, customer.getId(), source);</span>
+<span class="nc" id="L81">        return saved;</span>
+    }
+
+    /** Full transaction history, newest first. */
+    public List&lt;WalletTransaction&gt; getTransactions(Long customerId) {
+<span class="nc" id="L86">        return walletTransactionRepository.findByCustomerIdOrderByCreatedAtDesc(customerId);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

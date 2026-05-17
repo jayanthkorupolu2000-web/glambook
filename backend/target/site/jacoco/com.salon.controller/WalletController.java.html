@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WalletController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">WalletController.java</span></div><h1>WalletController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.entity.WalletTransaction;
+import com.salon.exception.UnauthorizedException;
+import com.salon.security.JwtUtil;
+import com.salon.service.WalletService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/api/wallet&quot;)
+<span class="nc" id="L24">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Wallet&quot;, description = &quot;Customer wallet balance and transaction history&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+public class WalletController {
+
+    private final WalletService walletService;
+    private final JwtUtil jwtUtil;
+
+    /** GET /api/wallet/balance → { balance, currency } */
+    @GetMapping(&quot;/balance&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get wallet balance for the logged-in customer&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; getBalance(HttpServletRequest req) {
+<span class="nc" id="L37">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L38">        BigDecimal balance = walletService.getBalance(customerId);</span>
+<span class="nc" id="L39">        return ResponseEntity.ok(Map.of(</span>
+                &quot;balance&quot;, balance,
+                &quot;currency&quot;, &quot;INR&quot;
+        ));
+    }
+
+    /** GET /api/wallet/transactions → array of transaction records */
+    @GetMapping(&quot;/transactions&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get wallet transaction history for the logged-in customer&quot;)
+    public ResponseEntity&lt;List&lt;Map&lt;String, Object&gt;&gt;&gt; getTransactions(HttpServletRequest req) {
+<span class="nc" id="L50">        Long customerId = extractCustomerId(req);</span>
+<span class="nc" id="L51">        List&lt;WalletTransaction&gt; txns = walletService.getTransactions(customerId);</span>
+<span class="nc" id="L52">        List&lt;Map&lt;String, Object&gt;&gt; result = txns.stream().map(t -&gt; Map.&lt;String, Object&gt;of(</span>
+<span class="nc" id="L53">                &quot;id&quot;,          t.getId(),</span>
+<span class="nc" id="L54">                &quot;type&quot;,        t.getType(),</span>
+<span class="nc" id="L55">                &quot;amount&quot;,      t.getAmount(),</span>
+<span class="nc" id="L56">                &quot;source&quot;,      t.getSource(),</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                &quot;description&quot;, t.getDescription() != null ? t.getDescription() : &quot;&quot;,</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">                &quot;createdAt&quot;,   t.getCreatedAt() != null ? t.getCreatedAt().toString() : &quot;&quot;</span>
+<span class="nc" id="L59">        )).collect(Collectors.toList());</span>
+<span class="nc" id="L60">        return ResponseEntity.ok(result);</span>
+    }
+
+    private Long extractCustomerId(HttpServletRequest req) {
+<span class="nc" id="L64">        String auth = req.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L65" title="All 4 branches missed.">        if (auth == null || !auth.startsWith(&quot;Bearer &quot;))</span>
+<span class="nc" id="L66">            throw new UnauthorizedException(&quot;Missing or invalid authorization header&quot;);</span>
+<span class="nc" id="L67">        return jwtUtil.extractUserId(auth.substring(7));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

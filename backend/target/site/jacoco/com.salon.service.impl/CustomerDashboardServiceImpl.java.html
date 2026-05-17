@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CustomerDashboardServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">CustomerDashboardServiceImpl.java</span></div><h1>CustomerDashboardServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.response.*;
+import com.salon.entity.*;
+import com.salon.repository.*;
+import com.salon.service.CustomerDashboardService;
+import com.salon.service.CustomerNotificationService;
+import com.salon.service.PolicyService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L19">@RequiredArgsConstructor</span>
+<span class="nc" id="L20">@Slf4j</span>
+public class CustomerDashboardServiceImpl implements CustomerDashboardService {
+
+    private final CustomerRepository customerRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final LoyaltyRepository loyaltyRepository;
+    private final ReviewRepository reviewRepository;
+    private final BeautyProfileRepository beautyProfileRepository;
+    private final CustomerNotificationRepository notifRepository;
+    private final ProductOrderRepository productOrderRepository;
+    private final PolicyService policyService;
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public CustomerDashboardResponse getDashboard(Long customerId) {
+<span class="nc" id="L35">        CustomerDashboardResponse dashboard = new CustomerDashboardResponse();</span>
+        // Initialize lists to prevent NPE in frontend
+<span class="nc" id="L37">        dashboard.setUpcomingAppointments(Collections.emptyList());</span>
+<span class="nc" id="L38">        dashboard.setPendingAppointments(Collections.emptyList());</span>
+<span class="nc" id="L39">        dashboard.setPendingReviews(Collections.emptyList());</span>
+
+        try {
+<span class="nc" id="L42">            Customer customer = customerRepository.findById(customerId).orElse(null);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            if (customer == null) return dashboard;</span>
+
+<span class="nc" id="L45">            dashboard.setCustomerName(customer.getName());</span>
+<span class="nc" id="L46">            dashboard.setProfilePhotoUrl(customer.getProfilePhotoUrl());</span>
+<span class="nc" id="L47">            dashboard.setCityName(customer.getCity());</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            if (customer.getStatus() == UserStatus.SUSPENDED) {</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">                dashboard.setSuspensionReason(customer.getSuspensionReason() != null</span>
+<span class="nc" id="L50">                        ? customer.getSuspensionReason()</span>
+<span class="nc" id="L51">                        : &quot;Your account has been suspended. Please contact support to resolve this.&quot;);</span>
+            }
+
+            // Upcoming appointments — CONFIRMED or PENDING (not yet completed/cancelled)
+<span class="nc" id="L55">            List&lt;Appointment&gt; upcoming = appointmentRepository</span>
+<span class="nc" id="L56">                    .findByCustomerId(customerId)</span>
+<span class="nc" id="L57">                    .stream()</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">                    .filter(a -&gt; a.getStatus() == AppointmentStatus.CONFIRMED</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">                              || a.getStatus() == AppointmentStatus.PENDING)</span>
+<span class="nc" id="L60">                    .sorted((a, b) -&gt; a.getDateTime().compareTo(b.getDateTime()))</span>
+<span class="nc" id="L61">                    .limit(5)</span>
+<span class="nc" id="L62">                    .collect(Collectors.toList());</span>
+<span class="nc" id="L63">            dashboard.setUpcomingAppointments(upcoming.stream().map(this::toAppointmentResponse).collect(Collectors.toList()));</span>
+
+            // Pending appointments (awaiting assignment — subset of upcoming)
+<span class="nc" id="L66">            List&lt;Appointment&gt; pending = upcoming.stream()</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                    .filter(a -&gt; a.getStatus() == AppointmentStatus.PENDING)</span>
+<span class="nc" id="L68">                    .collect(Collectors.toList());</span>
+<span class="nc" id="L69">            dashboard.setPendingAppointments(pending.stream().map(this::toAppointmentResponse).collect(Collectors.toList()));</span>
+
+            // Pending reviews (COMPLETED with no review)
+<span class="nc" id="L72">            List&lt;Appointment&gt; completed = appointmentRepository</span>
+<span class="nc" id="L73">                    .findByCustomerIdAndStatus(customerId, AppointmentStatus.COMPLETED);</span>
+<span class="nc" id="L74">            List&lt;AppointmentResponse&gt; pendingReviews = completed.stream()</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">                    .filter(a -&gt; !reviewRepository.existsByCustomerIdAndAppointmentId(customerId, a.getId()))</span>
+<span class="nc" id="L76">                    .limit(5)</span>
+<span class="nc" id="L77">                    .map(this::toAppointmentResponse)</span>
+<span class="nc" id="L78">                    .collect(Collectors.toList());</span>
+<span class="nc" id="L79">            dashboard.setPendingReviews(pendingReviews);</span>
+
+            // Loyalty points total
+<span class="nc" id="L82">            int totalPoints = loyaltyRepository.findByCustomerId(customerId)</span>
+<span class="nc" id="L83">                    .stream().mapToInt(Loyalty::getPoints).sum();</span>
+<span class="nc" id="L84">            dashboard.setTotalLoyaltyPoints(totalPoints);</span>
+
+            // Unread notifications
+<span class="nc" id="L87">            dashboard.setUnreadNotificationCount((int) notifRepository.countByCustomerIdAndIsRead(customerId, false));</span>
+
+            // Active orders — PLACED (not yet delivered/cancelled)
+<span class="nc" id="L90">            dashboard.setPendingOrderCount(</span>
+<span class="nc" id="L91">                    productOrderRepository.findByCustomerIdAndStatus(customerId, ProductOrderStatus.PLACED).size());</span>
+
+            // Beauty profile complete
+<span class="nc" id="L94">            boolean bpComplete = beautyProfileRepository.findByCustomerId(customerId)</span>
+<span class="nc bnc" id="L95" title="All 4 branches missed.">                    .map(bp -&gt; bp.getSkinType() != null &amp;&amp; bp.getHairType() != null)</span>
+<span class="nc" id="L96">                    .orElse(false);</span>
+<span class="nc" id="L97">            dashboard.setBeautyProfileComplete(bpComplete);</span>
+
+            // Latest global policy
+            try {
+<span class="nc" id="L101">                dashboard.setLatestGlobalPolicy(policyService.getLatestPolicy());</span>
+<span class="nc" id="L102">            } catch (Exception e) {</span>
+<span class="nc" id="L103">                log.debug(&quot;No global policy found&quot;);</span>
+<span class="nc" id="L104">            }</span>
+
+<span class="nc" id="L106">        } catch (Exception e) {</span>
+<span class="nc" id="L107">            log.error(&quot;Dashboard error for customer {}: {}&quot;, customerId, e.getMessage(), e);</span>
+<span class="nc" id="L108">        }</span>
+
+<span class="nc" id="L110">        return dashboard;</span>
+    }
+
+    private AppointmentResponse toAppointmentResponse(Appointment a) {
+<span class="nc" id="L114">        AppointmentResponse res = new AppointmentResponse();</span>
+<span class="nc" id="L115">        res.setId(a.getId());</span>
+<span class="nc" id="L116">        res.setCustomerId(a.getCustomer().getId());</span>
+<span class="nc" id="L117">        res.setCustomerName(a.getCustomer().getName());</span>
+<span class="nc" id="L118">        res.setServiceId(a.getService().getId());</span>
+<span class="nc" id="L119">        res.setServiceName(a.getService().getName());</span>
+<span class="nc" id="L120">        res.setScheduledAt(a.getDateTime());</span>
+<span class="nc" id="L121">        res.setStatus(a.getStatus().name());</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (a.getProfessional() != null) {</span>
+<span class="nc" id="L123">            res.setProfessionalId(a.getProfessional().getId());</span>
+<span class="nc" id="L124">            res.setProfessionalName(a.getProfessional().getName());</span>
+<span class="nc" id="L125">            res.setProfessionalPhotoUrl(a.getProfessional().getProfilePhotoUrl());</span>
+        }
+<span class="nc" id="L127">        res.setCanCancel(</span>
+<span class="nc bnc" id="L128" title="All 4 branches missed.">            (a.getStatus() == AppointmentStatus.PENDING || a.getStatus() == AppointmentStatus.CONFIRMED)</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">            &amp;&amp; a.getDateTime().isAfter(LocalDateTime.now())</span>
+        );
+<span class="nc bnc" id="L131" title="All 4 branches missed.">        res.setCanRebook(a.getStatus() == AppointmentStatus.COMPLETED || a.getStatus() == AppointmentStatus.CANCELLED);</span>
+<span class="nc" id="L132">        res.setCanReview(</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">            a.getStatus() == AppointmentStatus.COMPLETED</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">            &amp;&amp; !reviewRepository.existsByCustomerIdAndAppointmentId(a.getCustomer().getId(), a.getId())</span>
+        );
+<span class="nc" id="L136">        return res;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

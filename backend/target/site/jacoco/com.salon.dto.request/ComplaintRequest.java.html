@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ComplaintRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.dto.request</a> &gt; <span class="el_source">ComplaintRequest.java</span></div><h1>ComplaintRequest.java</h1><pre class="source lang-java linenums">package com.salon.dto.request;
+
+import jakarta.validation.constraints.*;
+import lombok.Data;
+
+<span class="nc bnc" id="L6" title="All 46 branches missed.">@Data</span>
+public class ComplaintRequest {
+
+    @NotNull(message = &quot;Please provide a valid customerId&quot;)
+<span class="nc" id="L10">    private Long customerId;</span>
+
+    @NotNull(message = &quot;Please provide a valid professionalId&quot;)
+<span class="nc" id="L13">    private Long professionalId;</span>
+
+    @NotBlank(message = &quot;Please provide a valid description&quot;)
+    @Size(max = 1000, message = &quot;Description must not exceed 1000 characters&quot;)
+<span class="nc" id="L17">    private String description;</span>
+
+    @NotBlank(message = &quot;Please provide a valid feedback&quot;)
+    @Pattern(regexp = &quot;POOR|AVERAGE|GOOD|BETTER&quot;, message = &quot;Feedback must be POOR, AVERAGE, GOOD, or BETTER&quot;)
+<span class="nc" id="L21">    private String feedback;</span>
+
+    @NotNull(message = &quot;Please provide a valid rating&quot;)
+    @Min(value = 1, message = &quot;Rating must be at least 1&quot;)
+    @Max(value = 5, message = &quot;Rating must be at most 5&quot;)
+<span class="nc" id="L26">    private Integer rating;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

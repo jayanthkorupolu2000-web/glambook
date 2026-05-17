@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SecurityConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.config</a> &gt; <span class="el_source">SecurityConfig.java</span></div><h1>SecurityConfig.java</h1><pre class="source lang-java linenums">package com.salon.config;
+
+import com.salon.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
+
+@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+<span class="nc" id="L28">@RequiredArgsConstructor</span>
+public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value(&quot;${cors.allowed-origin:http://localhost:4200}&quot;)
+    private String allowedOrigin;
+
+    @Bean
+    @SuppressWarnings(&quot;deprecation&quot;)
+    public PasswordEncoder passwordEncoder() {
+<span class="nc" id="L39">        return NoOpPasswordEncoder.getInstance();</span>
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+<span class="nc" id="L44">        return config.getAuthenticationManager();</span>
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+<span class="nc" id="L49">        CorsConfiguration corsConfig = new CorsConfiguration();</span>
+<span class="nc" id="L50">        corsConfig.setAllowedOrigins(List.of(allowedOrigin));</span>
+<span class="nc" id="L51">        corsConfig.setAllowedMethods(List.of(&quot;GET&quot;, &quot;POST&quot;, &quot;PUT&quot;, &quot;DELETE&quot;, &quot;PATCH&quot;, &quot;OPTIONS&quot;));</span>
+<span class="nc" id="L52">        corsConfig.setAllowedHeaders(List.of(&quot;*&quot;));</span>
+<span class="nc" id="L53">        corsConfig.setAllowCredentials(true);</span>
+
+<span class="nc" id="L55">        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();</span>
+<span class="nc" id="L56">        source.registerCorsConfiguration(&quot;/**&quot;, corsConfig);</span>
+<span class="nc" id="L57">        return source;</span>
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+<span class="nc" id="L62">        http</span>
+<span class="nc" id="L63">            .csrf(csrf -&gt; csrf.disable())</span>
+<span class="nc" id="L64">            .cors(cors -&gt; cors.configurationSource(corsConfigurationSource()))</span>
+<span class="nc" id="L65">            .sessionManagement(session -&gt;</span>
+<span class="nc" id="L66">                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span>
+            // JWT filter will be added in task 5
+<span class="nc" id="L68">            .authorizeHttpRequests(auth -&gt; auth</span>
+                // Public routes
+<span class="nc" id="L70">                .requestMatchers(&quot;/api/auth/**&quot;).permitAll()</span>
+<span class="nc" id="L71">                .requestMatchers(HttpMethod.GET, &quot;/api/professionals/**&quot;).permitAll()</span>
+<span class="nc" id="L72">                .requestMatchers(HttpMethod.GET, &quot;/api/v1/professionals/*/profile&quot;).permitAll()</span>
+<span class="nc" id="L73">                .requestMatchers(HttpMethod.GET, &quot;/api/v1/professionals/search&quot;).permitAll()</span>
+<span class="nc" id="L74">                .requestMatchers(HttpMethod.GET, &quot;/api/v1/professionals/*/portfolio/public&quot;).permitAll()</span>
+<span class="nc" id="L75">                .requestMatchers(HttpMethod.GET, &quot;/api/v1/policies/city/**&quot;).authenticated()</span>
+<span class="nc" id="L76">                .requestMatchers(HttpMethod.GET, &quot;/api/v1/files/**&quot;).permitAll()</span>
+<span class="nc" id="L77">                .requestMatchers(HttpMethod.GET, &quot;/api/services&quot;).permitAll()</span>
+<span class="nc" id="L78">                .requestMatchers(HttpMethod.GET, &quot;/api/services/list&quot;).permitAll()</span>
+<span class="nc" id="L79">                .requestMatchers(&quot;/swagger-ui/**&quot;).permitAll()</span>
+<span class="nc" id="L80">                .requestMatchers(&quot;/v3/api-docs/**&quot;).permitAll()</span>
+                // Professional role
+<span class="nc" id="L82">                .requestMatchers(HttpMethod.PUT, &quot;/api/professionals/*/profile&quot;).hasRole(&quot;PROFESSIONAL&quot;)</span>
+                // Customer role
+<span class="nc" id="L84">                .requestMatchers(&quot;/api/customers/**&quot;).hasRole(&quot;CUSTOMER&quot;)</span>
+<span class="nc" id="L85">                .requestMatchers(&quot;/api/v1/customers/**&quot;).hasRole(&quot;CUSTOMER&quot;)</span>
+<span class="nc" id="L86">                .requestMatchers(HttpMethod.POST, &quot;/api/appointments/**&quot;).hasRole(&quot;CUSTOMER&quot;)</span>
+<span class="nc" id="L87">                .requestMatchers(&quot;/api/appointments&quot;).hasAnyRole(&quot;CUSTOMER&quot;, &quot;SALON_OWNER&quot;, &quot;PROFESSIONAL&quot;)</span>
+<span class="nc" id="L88">                .requestMatchers(&quot;/api/appointments/**&quot;).hasAnyRole(&quot;CUSTOMER&quot;, &quot;SALON_OWNER&quot;, &quot;PROFESSIONAL&quot;)</span>
+<span class="nc" id="L89">                .requestMatchers(&quot;/api/payments/**&quot;).hasRole(&quot;CUSTOMER&quot;)</span>
+<span class="nc" id="L90">                .requestMatchers(&quot;/api/reviews/**&quot;).hasRole(&quot;CUSTOMER&quot;)</span>
+                // Products — public GET, auth required for orders/favorites/reviews
+<span class="nc" id="L92">                .requestMatchers(HttpMethod.GET, &quot;/api/products&quot;).permitAll()</span>
+<span class="nc" id="L93">                .requestMatchers(HttpMethod.GET, &quot;/api/products/search&quot;).permitAll()</span>
+<span class="nc" id="L94">                .requestMatchers(HttpMethod.GET, &quot;/api/products/*&quot;).permitAll()</span>
+<span class="nc" id="L95">                .requestMatchers(HttpMethod.GET, &quot;/api/products/*/reviews&quot;).permitAll()</span>
+<span class="nc" id="L96">                .requestMatchers(&quot;/api/products/**&quot;).hasRole(&quot;CUSTOMER&quot;)</span>
+                // Salon owner role
+<span class="nc" id="L98">                .requestMatchers(&quot;/api/owners/**&quot;).hasRole(&quot;SALON_OWNER&quot;)</span>
+<span class="nc" id="L99">                .requestMatchers(&quot;/api/v1/owners/**&quot;).hasRole(&quot;SALON_OWNER&quot;)</span>
+                // Professional role
+<span class="nc" id="L101">                .requestMatchers(&quot;/api/v1/professionals/**&quot;).hasAnyRole(&quot;PROFESSIONAL&quot;, &quot;CUSTOMER&quot;, &quot;SALON_OWNER&quot;, &quot;ADMIN&quot;)</span>
+                // Admin role
+<span class="nc" id="L103">                .requestMatchers(&quot;/api/admin/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+<span class="nc" id="L104">                .requestMatchers(&quot;/api/v1/admin/**&quot;).hasRole(&quot;ADMIN&quot;)</span>
+<span class="nc" id="L105">                .requestMatchers(&quot;/api/v1/complaints&quot;).hasRole(&quot;CUSTOMER&quot;)</span>
+<span class="nc" id="L106">                .requestMatchers(HttpMethod.GET, &quot;/api/v1/policy/latest&quot;).authenticated()</span>
+<span class="nc" id="L107">                .requestMatchers(&quot;/api/v1/owners/*/policies/**&quot;).authenticated()</span>
+<span class="nc" id="L108">                .requestMatchers(&quot;/api/v1/owners/*/promotions&quot;).authenticated()</span>
+                // All other requests require authentication
+<span class="nc" id="L110">                .anyRequest().authenticated()</span>
+            )
+<span class="nc" id="L112">            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);</span>
+
+<span class="nc" id="L114">        return http.build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminNotificationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">AdminNotificationController.java</span></div><h1>AdminNotificationController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.response.AdminNotificationResponse;
+import com.salon.service.AdminNotificationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/admin/notifications&quot;)
+<span class="nc" id="L17">@RequiredArgsConstructor</span>
+@PreAuthorize(&quot;hasRole('ADMIN')&quot;)
+@Tag(name = &quot;Admin Notifications&quot;, description = &quot;Admin notification management&quot;)
+@SecurityRequirement(name = &quot;bearerAuth&quot;)
+public class AdminNotificationController {
+
+    private final AdminNotificationService adminNotificationService;
+
+    @GetMapping
+    @Operation(summary = &quot;Get all admin notifications ordered by createdAt descending&quot;)
+    public ResponseEntity&lt;List&lt;AdminNotificationResponse&gt;&gt; getAll() {
+<span class="nc" id="L28">        return ResponseEntity.ok(adminNotificationService.getAll());</span>
+    }
+
+    @PatchMapping(&quot;/{id}/read&quot;)
+    @Operation(summary = &quot;Mark an admin notification as read&quot;)
+    public ResponseEntity&lt;Void&gt; markAsRead(@PathVariable Long id) {
+<span class="nc" id="L34">        adminNotificationService.markAsRead(id);</span>
+<span class="nc" id="L35">        return ResponseEntity.ok().build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

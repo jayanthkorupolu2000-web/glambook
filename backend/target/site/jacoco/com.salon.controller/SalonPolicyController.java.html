@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SalonPolicyController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">SalonPolicyController.java</span></div><h1>SalonPolicyController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.SalonPolicyRequest;
+import com.salon.dto.response.SalonPolicyResponse;
+import com.salon.service.SalonPolicyService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+<span class="nc" id="L18">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Salon Policies&quot;, description = &quot;Salon-level policy management&quot;)
+public class SalonPolicyController {
+
+    private final SalonPolicyService policyService;
+
+    // ── Owner-scoped endpoints ────────────────────────────────────────────────
+
+    @PostMapping(&quot;/api/v1/owners/{ownerId}/policies&quot;)
+    @PreAuthorize(&quot;hasRole('SALON_OWNER')&quot;)
+    @Operation(summary = &quot;Publish a salon policy — notifies all mapped professionals&quot;)
+    public ResponseEntity&lt;SalonPolicyResponse&gt; publish(
+            @PathVariable Long ownerId,
+            @Valid @RequestBody SalonPolicyRequest dto) {
+<span class="nc" id="L32">        dto.setOwnerId(ownerId);</span>
+<span class="nc" id="L33">        return ResponseEntity.status(HttpStatus.CREATED).body(policyService.publishPolicy(dto));</span>
+    }
+
+    @GetMapping(&quot;/api/v1/owners/{ownerId}/policies&quot;)
+    @Operation(summary = &quot;Get all policies published by this salon owner&quot;)
+    public ResponseEntity&lt;List&lt;SalonPolicyResponse&gt;&gt; getAll(@PathVariable Long ownerId) {
+<span class="nc" id="L39">        return ResponseEntity.ok(policyService.getPoliciesByOwner(ownerId));</span>
+    }
+
+    @GetMapping(&quot;/api/v1/owners/{ownerId}/policies/latest&quot;)
+    @Operation(summary = &quot;Get the most recent policy for this salon owner&quot;)
+    public ResponseEntity&lt;SalonPolicyResponse&gt; getLatest(@PathVariable Long ownerId) {
+<span class="nc" id="L45">        return ResponseEntity.ok(policyService.getLatestPolicyByOwner(ownerId));</span>
+    }
+
+    // ── City-scoped endpoint (used by professionals) ──────────────────────────
+
+    @GetMapping(&quot;/api/v1/policies/city/{city}&quot;)
+    @Operation(
+        summary = &quot;Get all policies for a city&quot;,
+        description = &quot;Returns policies published by the salon owner of the given city. &quot; +
+                      &quot;Used by professionals to view their salon owner's policies.&quot;
+    )
+    public ResponseEntity&lt;List&lt;SalonPolicyResponse&gt;&gt; getByCity(@PathVariable String city) {
+<span class="nc" id="L57">        return ResponseEntity.ok(policyService.getPoliciesByCity(city));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

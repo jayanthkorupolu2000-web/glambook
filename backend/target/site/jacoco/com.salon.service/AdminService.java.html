@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AdminService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">AdminService.java</span></div><h1>AdminService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.response.CustomerResponse;
+import com.salon.dto.response.ProfessionalResponse;
+import com.salon.dto.response.SalonOwnerResponse;
+import com.salon.entity.Customer;
+import com.salon.entity.Professional;
+import com.salon.entity.SalonOwner;
+import com.salon.repository.AppointmentRepository;
+import com.salon.repository.CustomerRepository;
+import com.salon.repository.PaymentRepository;
+import com.salon.repository.ProfessionalRepository;
+import com.salon.repository.SalonOwnerRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L24">@RequiredArgsConstructor</span>
+<span class="nc" id="L25">@Slf4j</span>
+public class AdminService {
+
+    private final CustomerRepository customerRepository;
+    private final SalonOwnerRepository salonOwnerRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final PaymentRepository paymentRepository;
+
+    /**
+     * Returns all users across all roles: customers, salon owners, and professionals.
+     * Validates: Property 19 — user list contains all registered users across all roles.
+     */
+    public Map&lt;String, Object&gt; getAllUsers() {
+<span class="nc" id="L39">        log.info(&quot;Fetching all users across all roles&quot;);</span>
+
+<span class="nc" id="L41">        List&lt;CustomerResponse&gt; customers = customerRepository.findAll()</span>
+<span class="nc" id="L42">                .stream()</span>
+<span class="nc" id="L43">                .map(this::mapToCustomerResponse)</span>
+<span class="nc" id="L44">                .collect(Collectors.toList());</span>
+
+<span class="nc" id="L46">        List&lt;SalonOwnerResponse&gt; owners = salonOwnerRepository.findAll()</span>
+<span class="nc" id="L47">                .stream()</span>
+<span class="nc" id="L48">                .map(this::mapToSalonOwnerResponse)</span>
+<span class="nc" id="L49">                .collect(Collectors.toList());</span>
+
+<span class="nc" id="L51">        List&lt;ProfessionalResponse&gt; professionals = professionalRepository.findAll()</span>
+<span class="nc" id="L52">                .stream()</span>
+<span class="nc" id="L53">                .map(this::mapToProfessionalResponse)</span>
+<span class="nc" id="L54">                .collect(Collectors.toList());</span>
+
+<span class="nc" id="L56">        Map&lt;String, Object&gt; result = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L57">        result.put(&quot;customers&quot;, customers);</span>
+<span class="nc" id="L58">        result.put(&quot;owners&quot;, owners);</span>
+<span class="nc" id="L59">        result.put(&quot;professionals&quot;, professionals);</span>
+<span class="nc" id="L60">        result.put(&quot;totalCount&quot;, customers.size() + owners.size() + professionals.size());</span>
+
+<span class="nc" id="L62">        log.info(&quot;Fetched {} customers, {} owners, {} professionals&quot;,</span>
+<span class="nc" id="L63">                customers.size(), owners.size(), professionals.size());</span>
+<span class="nc" id="L64">        return result;</span>
+    }
+
+    /**
+     * Returns all pre-seeded salon owners.
+     */
+    public List&lt;SalonOwnerResponse&gt; getAllOwners() {
+<span class="nc" id="L71">        log.info(&quot;Fetching all salon owners&quot;);</span>
+<span class="nc" id="L72">        return salonOwnerRepository.findAll()</span>
+<span class="nc" id="L73">                .stream()</span>
+<span class="nc" id="L74">                .map(this::mapToSalonOwnerResponse)</span>
+<span class="nc" id="L75">                .collect(Collectors.toList());</span>
+    }
+
+    /**
+     * Returns a summary report of appointments and payments.
+     */
+    public Map&lt;String, Object&gt; getReports() {
+<span class="nc" id="L82">        log.info(&quot;Generating admin reports&quot;);</span>
+
+<span class="nc" id="L84">        long totalAppointments = appointmentRepository.count();</span>
+<span class="nc" id="L85">        long totalPayments = paymentRepository.count();</span>
+
+<span class="nc" id="L87">        Map&lt;String, Object&gt; report = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L88">        report.put(&quot;totalAppointments&quot;, totalAppointments);</span>
+<span class="nc" id="L89">        report.put(&quot;totalPayments&quot;, totalPayments);</span>
+
+<span class="nc" id="L91">        log.info(&quot;Report: {} appointments, {} payments&quot;, totalAppointments, totalPayments);</span>
+<span class="nc" id="L92">        return report;</span>
+    }
+
+    private CustomerResponse mapToCustomerResponse(Customer customer) {
+<span class="nc" id="L96">        return CustomerResponse.builder()</span>
+<span class="nc" id="L97">                .id(customer.getId())</span>
+<span class="nc" id="L98">                .name(customer.getName())</span>
+<span class="nc" id="L99">                .email(customer.getEmail())</span>
+<span class="nc" id="L100">                .phone(customer.getPhone())</span>
+<span class="nc" id="L101">                .city(customer.getCity())</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                .status(customer.getStatus() != null ? customer.getStatus().name() : &quot;ACTIVE&quot;)</span>
+<span class="nc" id="L103">                .cancelCount(customer.getCancelCount())</span>
+<span class="nc" id="L104">                .build();</span>
+    }
+
+    private SalonOwnerResponse mapToSalonOwnerResponse(SalonOwner owner) {
+<span class="nc" id="L108">        return SalonOwnerResponse.builder()</span>
+<span class="nc" id="L109">                .id(owner.getId())</span>
+<span class="nc" id="L110">                .name(owner.getName())</span>
+<span class="nc" id="L111">                .salonName(owner.getSalonName())</span>
+<span class="nc" id="L112">                .city(owner.getCity())</span>
+<span class="nc" id="L113">                .email(owner.getEmail())</span>
+<span class="nc" id="L114">                .phone(owner.getPhone())</span>
+<span class="nc" id="L115">                .build();</span>
+    }
+
+    private ProfessionalResponse mapToProfessionalResponse(Professional professional) {
+<span class="nc bnc" id="L119" title="All 2 branches missed.">        SalonOwnerResponse ownerResponse = professional.getSalonOwner() != null</span>
+<span class="nc" id="L120">                ? mapToSalonOwnerResponse(professional.getSalonOwner())</span>
+<span class="nc" id="L121">                : null;</span>
+<span class="nc" id="L122">        return ProfessionalResponse.builder()</span>
+<span class="nc" id="L123">                .id(professional.getId())</span>
+<span class="nc" id="L124">                .name(professional.getName())</span>
+<span class="nc" id="L125">                .email(professional.getEmail())</span>
+<span class="nc" id="L126">                .city(professional.getCity())</span>
+<span class="nc" id="L127">                .specialization(professional.getSpecialization())</span>
+<span class="nc" id="L128">                .experienceYears(professional.getExperienceYears())</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                .status(professional.getStatus() != null ? professional.getStatus().name() : &quot;ACTIVE&quot;)</span>
+<span class="nc" id="L130">                .salonOwner(ownerResponse)</span>
+<span class="nc" id="L131">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

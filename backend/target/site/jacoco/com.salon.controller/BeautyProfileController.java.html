@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BeautyProfileController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">BeautyProfileController.java</span></div><h1>BeautyProfileController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.BeautyProfileRequest;
+import com.salon.dto.response.BeautyProfileResponse;
+import com.salon.service.BeautyProfileService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * Handles GET and PUT for a customer's beauty profile.
+ * Mounted at both /api/v1/customers/{id}/beauty-profile (new standard)
+ * and /api/customers/{id}/beauty-profile (legacy — frontend currently uses this).
+ */
+@RestController
+<span class="nc" id="L21">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Beauty Profile&quot;, description = &quot;Customer beauty profile management&quot;)
+public class BeautyProfileController {
+
+    private final BeautyProfileService beautyProfileService;
+
+    // ── /api/v1/ prefix (standard) ────────────────────────────────────────────
+
+    @GetMapping(&quot;/api/v1/customers/{customerId}/beauty-profile&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get customer's beauty profile&quot;)
+    @ApiResponses({
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Profile returned (empty object if not yet created)&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Customer not found&quot;)
+    })
+    public ResponseEntity&lt;BeautyProfileResponse&gt; getProfile(@PathVariable Long customerId) {
+<span class="nc" id="L37">        return ResponseEntity.ok(beautyProfileService.getProfile(customerId));</span>
+    }
+
+    @PutMapping(&quot;/api/v1/customers/{customerId}/beauty-profile&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Save (create or update) customer's beauty profile&quot;)
+    @ApiResponses({
+        @ApiResponse(responseCode = &quot;200&quot;, description = &quot;Profile saved&quot;),
+        @ApiResponse(responseCode = &quot;400&quot;, description = &quot;Invalid input&quot;),
+        @ApiResponse(responseCode = &quot;404&quot;, description = &quot;Customer not found&quot;)
+    })
+    public ResponseEntity&lt;BeautyProfileResponse&gt; saveProfile(
+            @PathVariable Long customerId,
+            @RequestBody BeautyProfileRequest dto) {
+<span class="nc" id="L51">        return ResponseEntity.ok(beautyProfileService.saveProfile(customerId, dto));</span>
+    }
+
+    // ── /api/ prefix (legacy — matches what the frontend currently calls) ─────
+
+    @GetMapping(&quot;/api/customers/{customerId}/beauty-profile&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Get beauty profile (legacy path)&quot;)
+    public ResponseEntity&lt;BeautyProfileResponse&gt; getProfileLegacy(@PathVariable Long customerId) {
+<span class="nc" id="L60">        return ResponseEntity.ok(beautyProfileService.getProfile(customerId));</span>
+    }
+
+    @PutMapping(&quot;/api/customers/{customerId}/beauty-profile&quot;)
+    @PreAuthorize(&quot;hasRole('CUSTOMER')&quot;)
+    @Operation(summary = &quot;Save beauty profile (legacy path)&quot;)
+    public ResponseEntity&lt;BeautyProfileResponse&gt; saveProfileLegacy(
+            @PathVariable Long customerId,
+            @RequestBody BeautyProfileRequest dto) {
+<span class="nc" id="L69">        return ResponseEntity.ok(beautyProfileService.saveProfile(customerId, dto));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

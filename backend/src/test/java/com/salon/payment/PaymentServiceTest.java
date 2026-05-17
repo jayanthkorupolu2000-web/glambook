@@ -7,304 +7,217 @@ import com.salon.exception.ResourceNotFoundException;
 import com.salon.exception.ValidationException;
 import com.salon.repository.AppointmentRepository;
 import com.salon.repository.PaymentRepository;
+import com.salon.repository.ReviewRepository;
+import com.salon.service.LoyaltyService;
 import com.salon.service.PaymentService;
+import com.salon.service.WalletService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
 
-    @Mock
-    private PaymentRepository paymentRepository;
+    @Mock private PaymentRepository paymentRepository;
+    @Mock private AppointmentRepository appointmentRepository;
+    @Mock private ReviewRepository reviewRepository;
+    @Mock private LoyaltyService loyaltyService;
+    @Mock private WalletService walletService;
 
-    @Mock
-    private AppointmentRepository appointmentRepository;
+    @InjectMocks private PaymentService paymentService;
 
-    @Mock
-    private com.salon.repository.ReviewRepository reviewRepository;
-
-    @Mock
-    private ModelMapper modelMapper;
-
-    @InjectMocks
-    private PaymentService paymentService;
-
-    private Appointment appointment;
+    private Customer customer;
     private Service service;
-    private PaymentRequest paymentRequest;
-    private Payment payment;
-    private PaymentResponse paymentResponse;
+    private Appointment appointment;
 
     @BeforeEach
     void setUp() {
+        customer = Customer.builder().id(1L).name("Alice").email("alice@gmail.com").build();
+
         service = Service.builder()
-                .id(1L)
-                .name("Haircut")
-                .price(new BigDecimal("150.00"))
-                .build();
+                .id(1L).name("Haircut").price(new BigDecimal("300.00")).durationMins(30).build();
 
         appointment = Appointment.builder()
-                .id(1L)
-                .service(service)
-                .dateTime(LocalDateTime.now().minusHours(1)) // Past appointment
+                .id(1L).customer(customer).service(service)
+                .dateTime(LocalDateTime.now().minusHours(1))   // past — payment allowed
+                .status(AppointmentStatus.CONFIRMED)
                 .build();
+    }
 
-        paymentRequest = PaymentRequest.builder()
+    // ── processPayment ────────────────────────────────────────────────────────
+
+    @Test
+    void processPayment_CashFullAmount_ShouldSaveAndReturnResponse() {
+        PaymentRequest req = PaymentRequest.builder()
                 .appointmentId(1L)
-                .amount(new BigDecimal("150.00"))
+                .amount(new BigDecimal("300.00"))
                 .method(PaymentMethod.CASH)
                 .build();
 
-        payment = Payment.builder()
-                .id(1L)
-                .appointment(appointment)
-                .amount(new BigDecimal("150.00"))
+        Payment saved = Payment.builder()
+                .id(10L).appointment(appointment)
+                .amount(new BigDecimal("300.00"))
                 .method(PaymentMethod.CASH)
                 .status(PaymentStatus.PAID)
                 .paidAt(LocalDateTime.now())
                 .build();
 
-        paymentResponse = PaymentResponse.builder()
-                .id(1L)
-                .appointmentId(1L)
-                .amount(new BigDecimal("150.00"))
-                .method("CASH")
-                .status("PAID")
-                .build();
-    }
-
-    @Test
-    void processPayment_ValidRequest_ShouldCreatePayment() {
-        // Given
-        Long customerId = 1L;
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(reviewRepository.existsByCustomerIdAndAppointmentId(customerId, 1L)).thenReturn(true);
         when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.empty());
-        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-        when(modelMapper.map(payment, PaymentResponse.class)).thenReturn(paymentResponse);
+        when(paymentRepository.save(any(Payment.class))).thenReturn(saved);
+        doNothing().when(loyaltyService).awardPointsOnAppointmentCompletion(1L);
 
-        // When
-        PaymentResponse result = paymentService.processPayment(paymentRequest, customerId);
+        PaymentResponse response = paymentService.processPayment(req, 1L);
 
-        // Then
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals(1L, result.getAppointmentId());
-        assertEquals(new BigDecimal("150.00"), result.getAmount());
-        assertEquals("CASH", result.getMethod());
-        assertEquals("PAID", result.getStatus());
-
-        verify(appointmentRepository).findById(1L);
-        verify(reviewRepository).existsByCustomerIdAndAppointmentId(customerId, 1L);
-        verify(paymentRepository).findByAppointmentId(1L);
+        assertNotNull(response);
+        assertEquals(10L, response.getId());
+        assertEquals("PAID", response.getStatus());
+        assertEquals("CASH", response.getMethod());
+        assertEquals(new BigDecimal("300.00"), response.getAmount());
         verify(paymentRepository).save(any(Payment.class));
-        verify(modelMapper).map(payment, PaymentResponse.class);
     }
 
     @Test
-    void processPayment_AppointmentNotFound_ShouldThrowResourceNotFoundException() {
-        // Given
-        Long customerId = 1L;
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> 
-            paymentService.processPayment(paymentRequest, customerId));
-
-        verify(appointmentRepository).findById(1L);
-        verifyNoInteractions(paymentRepository);
-    }
-
-    @Test
-    void processPayment_AmountMismatch_ShouldThrowValidationException() {
-        // Given
-        Long customerId = 1L;
-        PaymentRequest invalidRequest = PaymentRequest.builder()
+    void processPayment_WithWallet_ShouldDebitWalletAndSave() {
+        PaymentRequest req = PaymentRequest.builder()
                 .appointmentId(1L)
-                .amount(new BigDecimal("100.00")) // Different from service price
+                .amount(new BigDecimal("100.00"))
+                .walletAmountUsed(new BigDecimal("200.00"))
                 .method(PaymentMethod.CASH)
                 .build();
 
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(reviewRepository.existsByCustomerIdAndAppointmentId(customerId, 1L)).thenReturn(true);
-
-        // When & Then
-        ValidationException exception = assertThrows(ValidationException.class, () -> 
-            paymentService.processPayment(invalidRequest, customerId));
-
-        assertTrue(exception.getMessage().contains("Payment amount must equal the service price"));
-
-        verify(appointmentRepository).findById(1L);
-        verifyNoInteractions(paymentRepository);
-    }
-
-    @Test
-    void processPayment_PaymentAlreadyExists_ShouldThrowValidationException() {
-        // Given
-        Long customerId = 1L;
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(reviewRepository.existsByCustomerIdAndAppointmentId(customerId, 1L)).thenReturn(true);
-        when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.of(payment));
-
-        // When & Then
-        ValidationException exception = assertThrows(ValidationException.class, () -> 
-            paymentService.processPayment(paymentRequest, customerId));
-
-        assertEquals("Payment already exists for this appointment", exception.getMessage());
-
-        verify(appointmentRepository).findById(1L);
-        verify(paymentRepository).findByAppointmentId(1L);
-        verify(paymentRepository, never()).save(any(Payment.class));
-    }
-
-    @Test
-    void processPayment_WithCashMethod_ShouldSucceed() {
-        // Given
-        Long customerId = 1L;
-        PaymentRequest cashRequest = PaymentRequest.builder()
-                .appointmentId(1L)
-                .amount(new BigDecimal("150.00"))
+        Payment saved = Payment.builder()
+                .id(11L).appointment(appointment)
+                .amount(new BigDecimal("300.00"))
                 .method(PaymentMethod.CASH)
-                .build();
-
-        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(reviewRepository.existsByCustomerIdAndAppointmentId(customerId, 1L)).thenReturn(true);
-        when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.empty());
-        when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
-        when(modelMapper.map(payment, PaymentResponse.class)).thenReturn(paymentResponse);
-
-        // When
-        PaymentResponse result = paymentService.processPayment(cashRequest, customerId);
-
-        // Then
-        assertNotNull(result);
-        assertEquals("CASH", result.getMethod());
-    }
-
-    @Test
-    void processPayment_WithCardMethod_ShouldSucceed() {
-        // Given
-        Long customerId = 1L;
-        PaymentRequest cardRequest = PaymentRequest.builder()
-                .appointmentId(1L)
-                .amount(new BigDecimal("150.00"))
-                .method(PaymentMethod.CARD)
-                .build();
-
-        Payment cardPayment = Payment.builder()
-                .id(1L)
-                .appointment(appointment)
-                .amount(new BigDecimal("150.00"))
-                .method(PaymentMethod.CARD)
                 .status(PaymentStatus.PAID)
                 .paidAt(LocalDateTime.now())
                 .build();
 
-        PaymentResponse cardResponse = PaymentResponse.builder()
-                .id(1L)
-                .appointmentId(1L)
-                .amount(new BigDecimal("150.00"))
-                .method("CARD")
-                .status("PAID")
-                .build();
-
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(reviewRepository.existsByCustomerIdAndAppointmentId(customerId, 1L)).thenReturn(true);
         when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.empty());
-        when(paymentRepository.save(any(Payment.class))).thenReturn(cardPayment);
-        when(modelMapper.map(cardPayment, PaymentResponse.class)).thenReturn(cardResponse);
+        when(paymentRepository.save(any(Payment.class))).thenReturn(saved);
+        doNothing().when(loyaltyService).awardPointsOnAppointmentCompletion(1L);
 
-        // When
-        PaymentResponse result = paymentService.processPayment(cardRequest, customerId);
+        paymentService.processPayment(req, 1L);
 
-        // Then
-        assertNotNull(result);
-        assertEquals("CARD", result.getMethod());
+        verify(walletService).debit(eq(customer), eq(new BigDecimal("200.00")), anyString(), anyString());
     }
 
     @Test
-    void processPayment_WithUpiMethod_ShouldSucceed() {
-        // Given
-        Long customerId = 1L;
-        PaymentRequest upiRequest = PaymentRequest.builder()
+    void processPayment_FullyByWallet_ShouldStoreWalletMethod() {
+        PaymentRequest req = PaymentRequest.builder()
                 .appointmentId(1L)
-                .amount(new BigDecimal("150.00"))
-                .method(PaymentMethod.UPI)
+                .amount(BigDecimal.ZERO)
+                .walletAmountUsed(new BigDecimal("300.00"))
+                .method(PaymentMethod.CASH)
                 .build();
 
-        Payment upiPayment = Payment.builder()
-                .id(1L)
-                .appointment(appointment)
-                .amount(new BigDecimal("150.00"))
-                .method(PaymentMethod.UPI)
+        Payment saved = Payment.builder()
+                .id(12L).appointment(appointment)
+                .amount(new BigDecimal("300.00"))
+                .method(PaymentMethod.WALLET)
                 .status(PaymentStatus.PAID)
                 .paidAt(LocalDateTime.now())
                 .build();
 
-        PaymentResponse upiResponse = PaymentResponse.builder()
-                .id(1L)
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.empty());
+        when(paymentRepository.save(any(Payment.class))).thenReturn(saved);
+        doNothing().when(loyaltyService).awardPointsOnAppointmentCompletion(1L);
+
+        PaymentResponse response = paymentService.processPayment(req, 1L);
+
+        assertEquals("WALLET", response.getMethod());
+    }
+
+    @Test
+    void processPayment_AppointmentNotFound_ShouldThrow() {
+        PaymentRequest req = PaymentRequest.builder()
+                .appointmentId(99L).amount(new BigDecimal("300.00")).build();
+
+        when(appointmentRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> paymentService.processPayment(req, 1L));
+    }
+
+    @Test
+    void processPayment_BeforeAppointmentTime_ShouldThrowValidationException() {
+        appointment.setDateTime(LocalDateTime.now().plusHours(2)); // future
+        PaymentRequest req = PaymentRequest.builder()
+                .appointmentId(1L).amount(new BigDecimal("300.00")).build();
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        assertThrows(ValidationException.class,
+                () -> paymentService.processPayment(req, 1L));
+    }
+
+    @Test
+    void processPayment_DuplicatePayment_ShouldThrowValidationException() {
+        PaymentRequest req = PaymentRequest.builder()
+                .appointmentId(1L).amount(new BigDecimal("300.00")).build();
+
+        Payment existing = Payment.builder().id(5L).build();
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.of(existing));
+
+        assertThrows(ValidationException.class,
+                () -> paymentService.processPayment(req, 1L));
+    }
+
+    @Test
+    void processPayment_WrongTotalAmount_ShouldThrowValidationException() {
+        PaymentRequest req = PaymentRequest.builder()
                 .appointmentId(1L)
-                .amount(new BigDecimal("150.00"))
-                .method("UPI")
-                .status("PAID")
+                .amount(new BigDecimal("200.00"))  // service price is 300
                 .build();
 
         when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
-        when(reviewRepository.existsByCustomerIdAndAppointmentId(customerId, 1L)).thenReturn(true);
         when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.empty());
-        when(paymentRepository.save(any(Payment.class))).thenReturn(upiPayment);
-        when(modelMapper.map(upiPayment, PaymentResponse.class)).thenReturn(upiResponse);
 
-        // When
-        PaymentResponse result = paymentService.processPayment(upiRequest, customerId);
-
-        // Then
-        assertNotNull(result);
-        assertEquals("UPI", result.getMethod());
+        assertThrows(ValidationException.class,
+                () -> paymentService.processPayment(req, 1L));
     }
 
+    // ── getPaymentByAppointmentId ─────────────────────────────────────────────
+
     @Test
-    void getPaymentByAppointmentId_ValidId_ShouldReturnPayment() {
-        // Given
+    void getPaymentByAppointmentId_Exists_ShouldReturnResponse() {
+        Payment payment = Payment.builder()
+                .id(10L).appointment(appointment)
+                .amount(new BigDecimal("300.00"))
+                .method(PaymentMethod.CASH)
+                .status(PaymentStatus.PAID)
+                .paidAt(LocalDateTime.now())
+                .build();
+
         when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.of(payment));
-        when(modelMapper.map(payment, PaymentResponse.class)).thenReturn(paymentResponse);
 
-        // When
-        PaymentResponse result = paymentService.getPaymentByAppointmentId(1L);
+        PaymentResponse response = paymentService.getPaymentByAppointmentId(1L);
 
-        // Then
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals(1L, result.getAppointmentId());
-
-        verify(paymentRepository).findByAppointmentId(1L);
-        verify(modelMapper).map(payment, PaymentResponse.class);
+        assertNotNull(response);
+        assertEquals(10L, response.getId());
+        assertEquals("PAID", response.getStatus());
     }
 
     @Test
-    void getPaymentByAppointmentId_PaymentNotFound_ShouldThrowResourceNotFoundException() {
-        // Given
-        when(paymentRepository.findByAppointmentId(1L)).thenReturn(Optional.empty());
+    void getPaymentByAppointmentId_NotFound_ShouldThrow() {
+        when(paymentRepository.findByAppointmentId(99L)).thenReturn(Optional.empty());
 
-        // When & Then
-        assertThrows(ResourceNotFoundException.class, () -> 
-            paymentService.getPaymentByAppointmentId(1L));
-
-        verify(paymentRepository).findByAppointmentId(1L);
-        verifyNoInteractions(modelMapper);
+        assertThrows(ResourceNotFoundException.class,
+                () -> paymentService.getPaymentByAppointmentId(99L));
     }
 }

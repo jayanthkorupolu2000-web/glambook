@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SalonOwnerService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">SalonOwnerService.java</span></div><h1>SalonOwnerService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.request.SuspendProfessionalRequest;
+import com.salon.dto.response.AppointmentResponse;
+import com.salon.dto.response.ProfessionalResponse;
+import com.salon.dto.response.SalonOwnerResponse;
+import com.salon.entity.Appointment;
+import com.salon.entity.AppointmentStatus;
+import com.salon.entity.Customer;
+import com.salon.entity.CustomerNotificationType;
+import com.salon.entity.Professional;
+import com.salon.entity.ProfessionalNotificationType;
+import com.salon.entity.SalonOwner;
+import com.salon.entity.UserStatus;
+import com.salon.exception.InvalidOperationException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.AppointmentRepository;
+import com.salon.repository.ProfessionalRepository;
+import com.salon.repository.SalonOwnerRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.ArrayList;
+
+@Service
+<span class="nc" id="L31">@RequiredArgsConstructor</span>
+<span class="nc" id="L32">@Slf4j</span>
+public class SalonOwnerService {
+
+    private final SalonOwnerRepository salonOwnerRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final AppointmentService appointmentService;
+    private final AppointmentRepository appointmentRepository;
+    private final ProfessionalNotificationService professionalNotificationService;
+    private final CustomerNotificationService customerNotificationService;
+
+    public SalonOwnerResponse getProfile(Long ownerId) {
+<span class="nc" id="L43">        log.info(&quot;Fetching profile for salon owner: {}&quot;, ownerId);</span>
+<span class="nc" id="L44">        SalonOwner owner = salonOwnerRepository.findById(ownerId)</span>
+<span class="nc" id="L45">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Salon owner not found with id: &quot; + ownerId));</span>
+<span class="nc" id="L46">        return mapToSalonOwnerResponse(owner);</span>
+    }
+
+    @Transactional
+    public SalonOwnerResponse updateProfile(Long ownerId, com.salon.dto.request.SalonOwnerEditRequest dto) {
+<span class="nc" id="L51">        SalonOwner owner = salonOwnerRepository.findById(ownerId)</span>
+<span class="nc" id="L52">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Salon owner not found with id: &quot; + ownerId));</span>
+<span class="nc" id="L53">        owner.setName(dto.getName().trim());</span>
+<span class="nc" id="L54">        owner.setPhone(dto.getPhone().trim());</span>
+<span class="nc" id="L55">        owner.setSalonName(dto.getSalonName().trim());</span>
+<span class="nc" id="L56">        return mapToSalonOwnerResponse(salonOwnerRepository.save(owner));</span>
+    }
+
+    public List&lt;ProfessionalResponse&gt; getStaff(Long ownerId) {
+<span class="nc" id="L60">        log.info(&quot;Fetching staff for salon owner: {}&quot;, ownerId);</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        if (!salonOwnerRepository.existsById(ownerId)) {</span>
+<span class="nc" id="L62">            throw new ResourceNotFoundException(&quot;Salon owner not found with id: &quot; + ownerId);</span>
+        }
+<span class="nc" id="L64">        List&lt;Professional&gt; professionals = professionalRepository.findBySalonOwnerId(ownerId);</span>
+<span class="nc" id="L65">        return professionals.stream()</span>
+<span class="nc" id="L66">                .map(this::mapToProfessionalResponse)</span>
+<span class="nc" id="L67">                .collect(Collectors.toList());</span>
+    }
+
+    public List&lt;AppointmentResponse&gt; getAppointments(Long ownerId) {
+<span class="nc" id="L71">        log.info(&quot;Fetching appointments for salon owner: {}&quot;, ownerId);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (!salonOwnerRepository.existsById(ownerId)) {</span>
+<span class="nc" id="L73">            throw new ResourceNotFoundException(&quot;Salon owner not found with id: &quot; + ownerId);</span>
+        }
+<span class="nc" id="L75">        return appointmentService.getAppointmentsBySalonOwner(ownerId);</span>
+    }
+
+    @Transactional
+    public ProfessionalResponse approveProfessional(Long ownerId, Long professionalId) {
+<span class="nc" id="L80">        SalonOwner owner = salonOwnerRepository.findById(ownerId)</span>
+<span class="nc" id="L81">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Salon owner not found: &quot; + ownerId));</span>
+<span class="nc" id="L82">        Professional prof = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L83">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found: &quot; + professionalId));</span>
+<span class="nc bnc" id="L84" title="All 4 branches missed.">        if (prof.getSalonOwner() == null || !prof.getSalonOwner().getId().equals(ownerId)) {</span>
+<span class="nc" id="L85">            throw new InvalidOperationException(&quot;This professional does not belong to your salon&quot;);</span>
+        }
+
+        // Capture status BEFORE changing it
+<span class="nc" id="L89">        boolean wasSuspended = UserStatus.SUSPENDED.equals(prof.getStatus());</span>
+
+<span class="nc" id="L91">        prof.setStatus(UserStatus.ACTIVE);</span>
+<span class="nc" id="L92">        prof.setApprovedBy(owner);</span>
+<span class="nc" id="L93">        prof.setApprovedAt(LocalDateTime.now());</span>
+<span class="nc" id="L94">        prof.setSuspensionReason(null);</span>
+<span class="nc" id="L95">        prof.setSuspendedUntil(null);</span>
+<span class="nc" id="L96">        professionalRepository.save(prof);</span>
+
+        // Always send reactivation notification when approving a suspended professional
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (wasSuspended) {</span>
+<span class="nc" id="L100">            log.info(&quot;Sending REACTIVATED notification to professional {}&quot;, professionalId);</span>
+<span class="nc" id="L101">            professionalNotificationService.createNotification(</span>
+                    professionalId,
+                    ProfessionalNotificationType.REACTIVATED,
+                    ownerId,
+<span class="nc" id="L105">                    &quot;✅ Your account has been reactivated by salon owner &quot; + owner.getName()</span>
+                    + &quot;. You can now accept bookings again. Welcome back!&quot;);
+        } else {
+            // First-time approval notification
+<span class="nc" id="L109">            professionalNotificationService.createNotification(</span>
+                    professionalId,
+                    ProfessionalNotificationType.APPOINTMENT_CONFIRMED,
+                    ownerId,
+<span class="nc" id="L113">                    &quot;✅ Your account has been approved by salon owner &quot; + owner.getName()</span>
+                    + &quot;. You can now start accepting bookings!&quot;);
+        }
+<span class="nc" id="L116">        return mapToProfessionalResponse(prof);</span>
+    }
+
+    @Transactional
+    public ProfessionalResponse rejectProfessional(Long ownerId, Long professionalId) {
+<span class="nc" id="L121">        Professional prof = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L122">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found: &quot; + professionalId));</span>
+<span class="nc bnc" id="L123" title="All 4 branches missed.">        if (prof.getSalonOwner() == null || !prof.getSalonOwner().getId().equals(ownerId)) {</span>
+<span class="nc" id="L124">            throw new InvalidOperationException(&quot;This professional does not belong to your salon&quot;);</span>
+        }
+<span class="nc" id="L126">        prof.setStatus(UserStatus.SUSPENDED);</span>
+<span class="nc" id="L127">        return mapToProfessionalResponse(professionalRepository.save(prof));</span>
+    }
+
+    @Transactional
+    public ProfessionalResponse suspendProfessional(Long ownerId, Long professionalId,
+                                                     SuspendProfessionalRequest request) {
+<span class="nc" id="L133">        SalonOwner owner = salonOwnerRepository.findById(ownerId)</span>
+<span class="nc" id="L134">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Salon owner not found: &quot; + ownerId));</span>
+<span class="nc" id="L135">        Professional prof = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L136">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found: &quot; + professionalId));</span>
+<span class="nc bnc" id="L137" title="All 4 branches missed.">        if (prof.getSalonOwner() == null || !prof.getSalonOwner().getId().equals(ownerId)) {</span>
+<span class="nc" id="L138">            throw new InvalidOperationException(&quot;This professional does not belong to your salon&quot;);</span>
+        }
+
+        // Set suspension fields
+<span class="nc" id="L142">        prof.setStatus(UserStatus.SUSPENDED);</span>
+<span class="nc" id="L143">        prof.setSuspensionReason(request.getReason());</span>
+<span class="nc bnc" id="L144" title="All 4 branches missed.">        LocalDateTime suspendedUntil = (request.getDurationDays() != null &amp;&amp; request.getDurationDays() &gt; 0)</span>
+<span class="nc" id="L145">                ? LocalDateTime.now().plusDays(request.getDurationDays())</span>
+<span class="nc" id="L146">                : null; // null = permanent</span>
+<span class="nc" id="L147">        prof.setSuspendedUntil(suspendedUntil);</span>
+<span class="nc" id="L148">        professionalRepository.save(prof);</span>
+
+        // Build notification message for professional
+<span class="nc bnc" id="L151" title="All 2 branches missed.">        String durationText = (suspendedUntil != null)</span>
+<span class="nc" id="L152">                ? &quot;for &quot; + request.getDurationDays() + &quot; day(s) (until &quot;</span>
+<span class="nc" id="L153">                  + suspendedUntil.toLocalDate() + &quot;)&quot;</span>
+<span class="nc" id="L154">                : &quot;permanently&quot;;</span>
+<span class="nc" id="L155">        String profMessage = &quot;Your account has been suspended &quot; + durationText</span>
+<span class="nc" id="L156">                + &quot; by salon owner &quot; + owner.getName()</span>
+<span class="nc" id="L157">                + &quot;. Reason: &quot; + request.getReason();</span>
+<span class="nc" id="L158">        professionalNotificationService.createNotification(</span>
+                professionalId,
+                ProfessionalNotificationType.SUSPENSION_NOTICE,
+                ownerId,
+                profMessage);
+
+        // Cancel all active (PENDING / CONFIRMED) appointments and notify customers
+<span class="nc" id="L165">        List&lt;Appointment&gt; activeAppointments = new ArrayList&lt;&gt;(appointmentRepository</span>
+<span class="nc" id="L166">                .findByProfessionalIdAndStatus(professionalId, AppointmentStatus.PENDING));</span>
+<span class="nc" id="L167">        activeAppointments.addAll(</span>
+<span class="nc" id="L168">                appointmentRepository.findByProfessionalIdAndStatus(professionalId, AppointmentStatus.CONFIRMED));</span>
+
+<span class="nc bnc" id="L170" title="All 2 branches missed.">        for (Appointment appt : activeAppointments) {</span>
+<span class="nc" id="L171">            appt.setStatus(AppointmentStatus.CANCELLED);</span>
+<span class="nc" id="L172">            appt.setCancelledAt(LocalDateTime.now());</span>
+<span class="nc" id="L173">            appointmentRepository.save(appt);</span>
+
+            // Notify the customer
+<span class="nc bnc" id="L176" title="All 2 branches missed.">            if (appt.getCustomer() != null) {</span>
+<span class="nc" id="L177">                Customer customer = appt.getCustomer();</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                String serviceName = appt.getService() != null ? appt.getService().getName() : &quot;your service&quot;;</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                String apptDate = appt.getDateTime() != null</span>
+<span class="nc" id="L180">                        ? appt.getDateTime().toLocalDate().toString() : &quot;scheduled date&quot;;</span>
+<span class="nc" id="L181">                String customerMessage = &quot;Your appointment for \&quot;&quot; + serviceName</span>
+                        + &quot;\&quot; on &quot; + apptDate
+<span class="nc" id="L183">                        + &quot; with &quot; + prof.getName()</span>
+                        + &quot; has been cancelled because the professional is no longer available. &quot;
+                        + &quot;We apologise for the inconvenience. Please rebook with another professional.&quot;;
+<span class="nc" id="L186">                customerNotificationService.createNotification(</span>
+<span class="nc" id="L187">                        customer.getId(),</span>
+                        CustomerNotificationType.BOOKING_CANCELLED,
+<span class="nc" id="L189">                        appt.getId(),</span>
+                        customerMessage);
+            }
+<span class="nc" id="L192">        }</span>
+
+<span class="nc" id="L194">        log.info(&quot;Professional {} suspended by owner {}. Cancelled {} appointments.&quot;,</span>
+<span class="nc" id="L195">                professionalId, ownerId, activeAppointments.size());</span>
+
+<span class="nc" id="L197">        return mapToProfessionalResponse(prof);</span>
+    }
+
+    private SalonOwnerResponse mapToSalonOwnerResponse(SalonOwner owner) {
+<span class="nc" id="L201">        return SalonOwnerResponse.builder()</span>
+<span class="nc" id="L202">                .id(owner.getId())</span>
+<span class="nc" id="L203">                .name(owner.getName())</span>
+<span class="nc" id="L204">                .salonName(owner.getSalonName())</span>
+<span class="nc" id="L205">                .city(owner.getCity())</span>
+<span class="nc" id="L206">                .email(owner.getEmail())</span>
+<span class="nc" id="L207">                .phone(owner.getPhone())</span>
+<span class="nc" id="L208">                .build();</span>
+    }
+
+    private ProfessionalResponse mapToProfessionalResponse(Professional professional) {
+<span class="nc bnc" id="L212" title="All 2 branches missed.">        SalonOwnerResponse ownerResponse = professional.getSalonOwner() != null</span>
+<span class="nc" id="L213">                ? mapToSalonOwnerResponse(professional.getSalonOwner())</span>
+<span class="nc" id="L214">                : null;</span>
+<span class="nc" id="L215">        return ProfessionalResponse.builder()</span>
+<span class="nc" id="L216">                .id(professional.getId())</span>
+<span class="nc" id="L217">                .name(professional.getName())</span>
+<span class="nc" id="L218">                .email(professional.getEmail())</span>
+<span class="nc" id="L219">                .city(professional.getCity())</span>
+<span class="nc" id="L220">                .specialization(professional.getSpecialization())</span>
+<span class="nc" id="L221">                .experienceYears(professional.getExperienceYears())</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">                .status(professional.getStatus() != null ? professional.getStatus().name() : &quot;PENDING&quot;)</span>
+<span class="nc" id="L223">                .suspensionReason(professional.getSuspensionReason())</span>
+<span class="nc" id="L224">                .suspendedUntil(professional.getSuspendedUntil())</span>
+<span class="nc" id="L225">                .salonOwner(ownerResponse)</span>
+<span class="nc" id="L226">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

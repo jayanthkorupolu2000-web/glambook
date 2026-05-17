@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConsultationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service</a> &gt; <span class="el_source">ConsultationService.java</span></div><h1>ConsultationService.java</h1><pre class="source lang-java linenums">package com.salon.service;
+
+import com.salon.dto.request.ConsultationReplyRequest;
+import com.salon.dto.request.ConsultationRequest;
+import com.salon.dto.response.ConsultationResponse;
+import com.salon.entity.*;
+import com.salon.exception.InvalidOperationException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L21">@RequiredArgsConstructor</span>
+<span class="nc" id="L22">@Slf4j</span>
+public class ConsultationService {
+
+    private final ConsultationRepository consultationRepository;
+    private final CustomerRepository customerRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final ServiceRepository serviceRepository;
+
+    /** Maps a ConsultationTopic to the category keywords used in the services table */
+<span class="nc" id="L32">    private static final Map&lt;ConsultationTopic, List&lt;String&gt;&gt; TOPIC_KEYWORDS = Map.of(</span>
+<span class="nc" id="L33">        ConsultationTopic.HAIR,    List.of(&quot;hair&quot;),</span>
+<span class="nc" id="L34">        ConsultationTopic.SKIN,    List.of(&quot;skin&quot;, &quot;facial&quot;, &quot;face&quot;),</span>
+<span class="nc" id="L35">        ConsultationTopic.MAKEUP,  List.of(&quot;makeup&quot;, &quot;cosmetic&quot;, &quot;bridal&quot;),</span>
+<span class="nc" id="L36">        ConsultationTopic.GENERAL, List.of()   // GENERAL → no filter, all professionals</span>
+    );
+
+    @Transactional
+    public ConsultationResponse create(ConsultationRequest req) {
+<span class="nc" id="L41">        Customer customer = customerRepository.findById(req.getCustomerId())</span>
+<span class="nc" id="L42">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (customer.getStatus() != UserStatus.ACTIVE) {</span>
+<span class="nc" id="L45">            throw new InvalidOperationException(&quot;Customer account is not active&quot;);</span>
+        }
+
+        ConsultationTopic topic;
+<span class="nc" id="L49">        try { topic = ConsultationTopic.valueOf(req.getTopic()); }</span>
+<span class="nc" id="L50">        catch (Exception e) { topic = ConsultationTopic.GENERAL; }</span>
+
+<span class="nc" id="L52">        Consultation.ConsultationBuilder builder = Consultation.builder()</span>
+<span class="nc" id="L53">                .customer(customer)</span>
+<span class="nc" id="L54">                .question(req.getQuestion())</span>
+<span class="nc" id="L55">                .topic(topic)</span>
+<span class="nc" id="L56">                .status(ConsultationStatus.PENDING);</span>
+
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (req.getProfessionalId() != null) {</span>
+            // Specific professional chosen — assign directly
+<span class="nc" id="L60">            Professional pro = professionalRepository.findById(req.getProfessionalId())</span>
+<span class="nc" id="L61">                    .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found&quot;));</span>
+<span class="nc" id="L62">            builder.professional(pro);</span>
+        }
+        // If no professional chosen, leave professional null — visible to all matching professionals
+
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (req.getAppointmentId() != null) {</span>
+<span class="nc" id="L67">            appointmentRepository.findById(req.getAppointmentId())</span>
+<span class="nc" id="L68">                    .ifPresent(builder::appointment);</span>
+        }
+
+<span class="nc" id="L71">        Consultation saved = consultationRepository.save(builder.build());</span>
+<span class="nc" id="L72">        log.info(&quot;Created consultation {} for customer {} (topic={}, professional={})&quot;,</span>
+<span class="nc" id="L73">                saved.getId(), customer.getId(), topic,</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                req.getProfessionalId() != null ? req.getProfessionalId() : &quot;broadcast&quot;);</span>
+<span class="nc" id="L75">        return toResponse(saved);</span>
+    }
+
+    public List&lt;ConsultationResponse&gt; getByCustomer(Long customerId) {
+<span class="nc" id="L79">        return consultationRepository.findByCustomerId(customerId)</span>
+<span class="nc" id="L80">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    /**
+     * Returns consultations visible to a professional:
+     * - Directly assigned to them, OR
+     * - Unassigned (broadcast) and matching their service topic categories
+     */
+    public List&lt;ConsultationResponse&gt; getByProfessional(Long professionalId, ConsultationStatus status) {
+        // Determine which topics this professional covers based on their services
+<span class="nc" id="L90">        Set&lt;ConsultationTopic&gt; coveredTopics = getTopicsCoveredByProfessional(professionalId);</span>
+
+<span class="nc" id="L92">        Set&lt;Long&gt; seen = new LinkedHashSet&lt;&gt;();</span>
+<span class="nc" id="L93">        List&lt;Consultation&gt; result = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        for (ConsultationTopic topic : coveredTopics) {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            List&lt;Consultation&gt; list = status != null</span>
+<span class="nc" id="L97">                    ? consultationRepository.findByProfessionalIdOrUnassignedByTopicAndStatus(professionalId, topic, status)</span>
+<span class="nc" id="L98">                    : consultationRepository.findByProfessionalIdOrUnassignedByTopic(professionalId, topic);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            for (Consultation c : list) {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                if (seen.add(c.getId())) result.add(c);</span>
+<span class="nc" id="L101">            }</span>
+<span class="nc" id="L102">        }</span>
+
+        // If professional covers no specific topics (or has no services), fall back to directly assigned only
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        if (coveredTopics.isEmpty()) {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            List&lt;Consultation&gt; direct = status != null</span>
+<span class="nc" id="L107">                    ? consultationRepository.findByProfessionalIdAndStatus(professionalId, status)</span>
+<span class="nc" id="L108">                    : consultationRepository.findByProfessionalId(professionalId);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            direct.forEach(c -&gt; { if (seen.add(c.getId())) result.add(c); });</span>
+        }
+
+        // Always include GENERAL unassigned consultations
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        List&lt;Consultation&gt; general = status != null</span>
+<span class="nc" id="L114">                ? consultationRepository.findByProfessionalIdOrUnassignedByTopicAndStatus(professionalId, ConsultationTopic.GENERAL, status)</span>
+<span class="nc" id="L115">                : consultationRepository.findByProfessionalIdOrUnassignedByTopic(professionalId, ConsultationTopic.GENERAL);</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        general.forEach(c -&gt; { if (seen.add(c.getId())) result.add(c); });</span>
+
+<span class="nc" id="L118">        result.sort(Comparator.comparing(Consultation::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));</span>
+<span class="nc" id="L119">        return result.stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    /** Returns professionals who have active services matching the given topic's categories */
+    public List&lt;com.salon.dto.response.ProfessionalResponse&gt; getProfessionalsByTopic(String topicStr) {
+        ConsultationTopic topic;
+<span class="nc" id="L125">        try { topic = ConsultationTopic.valueOf(topicStr.toUpperCase()); }</span>
+<span class="nc" id="L126">        catch (Exception e) { topic = ConsultationTopic.GENERAL; }</span>
+
+<span class="nc" id="L128">        List&lt;String&gt; keywords = TOPIC_KEYWORDS.getOrDefault(topic, List.of());</span>
+
+<span class="nc" id="L130">        Set&lt;Long&gt; matchingProfIds = new LinkedHashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (keywords.isEmpty()) {</span>
+            // GENERAL — return all active professionals
+<span class="nc" id="L133">            professionalRepository.findAll().stream()</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">                    .filter(p -&gt; p.getStatus() == UserStatus.ACTIVE)</span>
+<span class="nc" id="L135">                    .map(com.salon.entity.Professional::getId)</span>
+<span class="nc" id="L136">                    .forEach(matchingProfIds::add);</span>
+        } else {
+<span class="nc bnc" id="L138" title="All 2 branches missed.">            for (String kw : keywords) {</span>
+<span class="nc" id="L139">                matchingProfIds.addAll(serviceRepository.findProfessionalIdsByCategoryKeyword(kw));</span>
+<span class="nc" id="L140">            }</span>
+        }
+
+<span class="nc" id="L143">        return matchingProfIds.stream()</span>
+<span class="nc" id="L144">                .map(id -&gt; professionalRepository.findById(id).orElse(null))</span>
+<span class="nc bnc" id="L145" title="All 4 branches missed.">                .filter(p -&gt; p != null &amp;&amp; p.getStatus() == UserStatus.ACTIVE)</span>
+<span class="nc" id="L146">                .map(this::toProfessionalResponse)</span>
+<span class="nc" id="L147">                .collect(Collectors.toList());</span>
+    }
+
+    private Set&lt;ConsultationTopic&gt; getTopicsCoveredByProfessional(Long professionalId) {
+<span class="nc" id="L151">        List&lt;com.salon.entity.Service&gt; services = serviceRepository.findByProfessionalId(professionalId);</span>
+<span class="nc" id="L152">        Set&lt;ConsultationTopic&gt; topics = new LinkedHashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">        for (com.salon.entity.Service svc : services) {</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (svc.getCategory() == null) continue;</span>
+<span class="nc" id="L155">            String cat = svc.getCategory().toLowerCase();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            if (cat.contains(&quot;hair&quot;))                                    topics.add(ConsultationTopic.HAIR);</span>
+<span class="nc bnc" id="L157" title="All 6 branches missed.">            if (cat.contains(&quot;skin&quot;) || cat.contains(&quot;facial&quot;) || cat.contains(&quot;face&quot;)) topics.add(ConsultationTopic.SKIN);</span>
+<span class="nc bnc" id="L158" title="All 6 branches missed.">            if (cat.contains(&quot;makeup&quot;) || cat.contains(&quot;cosmetic&quot;) || cat.contains(&quot;bridal&quot;)) topics.add(ConsultationTopic.MAKEUP);</span>
+<span class="nc" id="L159">        }</span>
+<span class="nc" id="L160">        return topics;</span>
+    }
+
+    public List&lt;ConsultationResponse&gt; getBySalonOwner(Long ownerId) {
+<span class="nc" id="L164">        return consultationRepository.findBySalonOwnerId(ownerId)</span>
+<span class="nc" id="L165">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    public List&lt;ConsultationResponse&gt; getAll() {
+<span class="nc" id="L169">        return consultationRepository.findAll()</span>
+<span class="nc" id="L170">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    @Transactional
+    public void attachPhoto(Long consultationId, String photoUrl) {
+<span class="nc" id="L175">        Consultation c = consultationRepository.findById(consultationId)</span>
+<span class="nc" id="L176">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Consultation not found&quot;));</span>
+<span class="nc" id="L177">        c.setPhotoUrl(photoUrl);</span>
+<span class="nc" id="L178">        consultationRepository.save(c);</span>
+<span class="nc" id="L179">    }</span>
+
+    @Transactional
+    public ConsultationResponse reply(Long professionalId, Long consultationId, ConsultationReplyRequest req) {
+<span class="nc" id="L183">        Consultation c = consultationRepository.findById(consultationId)</span>
+<span class="nc" id="L184">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Consultation not found&quot;));</span>
+
+        // Allow reply if directly assigned OR if it's an unassigned broadcast consultation
+<span class="nc bnc" id="L187" title="All 4 branches missed.">        boolean isAssignedToMe = c.getProfessional() != null &amp;&amp; c.getProfessional().getId().equals(professionalId);</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">        boolean isBroadcast = c.getProfessional() == null;</span>
+
+<span class="nc bnc" id="L190" title="All 4 branches missed.">        if (!isAssignedToMe &amp;&amp; !isBroadcast) {</span>
+<span class="nc" id="L191">            throw new AccessDeniedException(&quot;This consultation is not assigned to you&quot;);</span>
+        }
+
+<span class="nc bnc" id="L194" title="All 2 branches missed.">        if (c.getStatus() == ConsultationStatus.CLOSED) {</span>
+<span class="nc" id="L195">            throw new InvalidOperationException(&quot;Consultation is already closed&quot;);</span>
+        }
+
+        // If broadcast, assign this professional as the responder
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        if (isBroadcast) {</span>
+<span class="nc" id="L200">            Professional pro = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L201">                    .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found&quot;));</span>
+<span class="nc" id="L202">            c.setProfessional(pro);</span>
+        }
+
+<span class="nc" id="L205">        c.setProfessionalReply(req.getProfessionalReply());</span>
+<span class="nc" id="L206">        c.setProfessionalRepliedAt(LocalDateTime.now());</span>
+<span class="nc" id="L207">        c.setStatus(ConsultationStatus.RESPONDED);</span>
+<span class="nc" id="L208">        return toResponse(consultationRepository.save(c));</span>
+    }
+
+    private ConsultationResponse toResponse(Consultation c) {
+<span class="nc" id="L212">        ConsultationResponse r = new ConsultationResponse();</span>
+<span class="nc" id="L213">        r.setId(c.getId());</span>
+<span class="nc" id="L214">        r.setQuestion(c.getQuestion());</span>
+<span class="nc" id="L215">        r.setNotes(c.getNotes());</span>
+<span class="nc" id="L216">        r.setProfessionalReply(c.getProfessionalReply());</span>
+<span class="nc" id="L217">        r.setProfessionalRepliedAt(c.getProfessionalRepliedAt());</span>
+<span class="nc" id="L218">        r.setPhotoUrl(c.getPhotoUrl());</span>
+<span class="nc" id="L219">        r.setStatus(c.getStatus().name());</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        r.setTopic(c.getTopic() != null ? c.getTopic().name() : null);</span>
+<span class="nc" id="L221">        r.setCreatedAt(c.getCreatedAt());</span>
+<span class="nc" id="L222">        r.setUpdatedAt(c.getUpdatedAt());</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (c.getCustomer() != null) {</span>
+<span class="nc" id="L224">            r.setCustomerId(c.getCustomer().getId());</span>
+<span class="nc" id="L225">            r.setCustomerName(c.getCustomer().getName());</span>
+        }
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (c.getProfessional() != null) {</span>
+<span class="nc" id="L228">            r.setProfessionalId(c.getProfessional().getId());</span>
+<span class="nc" id="L229">            r.setProfessionalName(c.getProfessional().getName());</span>
+        }
+<span class="nc" id="L231">        return r;</span>
+    }
+
+    private com.salon.dto.response.ProfessionalResponse toProfessionalResponse(Professional p) {
+<span class="nc" id="L235">        com.salon.dto.response.ProfessionalResponse r = new com.salon.dto.response.ProfessionalResponse();</span>
+<span class="nc" id="L236">        r.setId(p.getId());</span>
+<span class="nc" id="L237">        r.setName(p.getName());</span>
+<span class="nc" id="L238">        r.setSpecialization(p.getSpecialization());</span>
+<span class="nc" id="L239">        r.setCity(p.getCity());</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        r.setStatus(p.getStatus() != null ? p.getStatus().name() : null);</span>
+<span class="nc" id="L241">        return r;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

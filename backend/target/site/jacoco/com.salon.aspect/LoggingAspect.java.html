@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoggingAspect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.aspect</a> &gt; <span class="el_source">LoggingAspect.java</span></div><h1>LoggingAspect.java</h1><pre class="source lang-java linenums">package com.salon.aspect;
+
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+
+@Aspect
+@Component
+<span class="nc" id="L13">@Slf4j</span>
+<span class="nc" id="L14">public class LoggingAspect {</span>
+
+    @Around(&quot;execution(* com.salon.service.*.*(..))&quot;)
+    public Object logServiceMethods(ProceedingJoinPoint joinPoint) throws Throwable {
+<span class="nc" id="L18">        String methodName = joinPoint.getSignature().getName();</span>
+<span class="nc" id="L19">        String className = joinPoint.getTarget().getClass().getSimpleName();</span>
+<span class="nc" id="L20">        Object[] args = joinPoint.getArgs();</span>
+
+<span class="nc" id="L22">        log.info(&quot;Entering {}.{}() with args: {}&quot;, className, methodName, Arrays.toString(args));</span>
+<span class="nc" id="L23">        long startTime = System.currentTimeMillis();</span>
+
+        try {
+<span class="nc" id="L26">            Object result = joinPoint.proceed();</span>
+<span class="nc" id="L27">            long executionTime = System.currentTimeMillis() - startTime;</span>
+<span class="nc" id="L28">            log.info(&quot;Exiting {}.{}() - execution time: {}ms&quot;, className, methodName, executionTime);</span>
+<span class="nc" id="L29">            return result;</span>
+<span class="nc" id="L30">        } catch (Exception e) {</span>
+<span class="nc" id="L31">            long executionTime = System.currentTimeMillis() - startTime;</span>
+<span class="nc" id="L32">            log.error(&quot;Exception in {}.{}() after {}ms: {}&quot;, className, methodName, executionTime, e.getMessage());</span>
+<span class="nc" id="L33">            throw e;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

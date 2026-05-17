@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SalonPolicyServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">SalonPolicyServiceImpl.java</span></div><h1>SalonPolicyServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.request.SalonPolicyRequest;
+import com.salon.dto.response.SalonPolicyResponse;
+import com.salon.entity.*;
+import com.salon.exception.PolicyNotFoundException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.*;
+import com.salon.service.SalonPolicyService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L19">@RequiredArgsConstructor</span>
+<span class="nc" id="L20">@Slf4j</span>
+public class SalonPolicyServiceImpl implements SalonPolicyService {
+
+    private final SalonPolicyRepository policyRepository;
+    private final SalonOwnerRepository salonOwnerRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final ProfessionalNotificationRepository notificationRepository;
+
+    @Override
+    @Transactional
+    public SalonPolicyResponse publishPolicy(SalonPolicyRequest dto) {
+<span class="nc" id="L31">        SalonOwner owner = salonOwnerRepository.findById(dto.getOwnerId())</span>
+<span class="nc" id="L32">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Owner not found: &quot; + dto.getOwnerId()));</span>
+
+<span class="nc" id="L34">        SalonPolicy policy = SalonPolicy.builder()</span>
+<span class="nc" id="L35">                .owner(owner)</span>
+<span class="nc" id="L36">                .title(dto.getTitle())</span>
+<span class="nc" id="L37">                .content(dto.getContent())</span>
+<span class="nc" id="L38">                .build();</span>
+
+<span class="nc" id="L40">        SalonPolicy saved = policyRepository.save(policy);</span>
+<span class="nc" id="L41">        log.info(&quot;Policy '{}' published by owner {} ({})&quot;, saved.getTitle(), owner.getId(), owner.getCity());</span>
+
+        // Notify all professionals mapped to this salon owner
+<span class="nc" id="L44">        notifyProfessionals(owner, saved);</span>
+
+<span class="nc" id="L46">        return toResponse(saved);</span>
+    }
+
+    /**
+     * Send a POLICY_PUBLISHED notification to every professional
+     * who belongs to this salon owner.
+     */
+    private void notifyProfessionals(SalonOwner owner, SalonPolicy policy) {
+<span class="nc" id="L54">        List&lt;Professional&gt; professionals = professionalRepository.findBySalonOwnerId(owner.getId());</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (professionals.isEmpty()) {</span>
+<span class="nc" id="L56">            log.debug(&quot;No professionals found for owner {}&quot;, owner.getId());</span>
+<span class="nc" id="L57">            return;</span>
+        }
+
+<span class="nc" id="L60">        String message = &quot;📋 New Policy Published by &quot; + owner.getSalonName()</span>
+<span class="nc" id="L61">                + &quot;: &quot; + policy.getTitle();</span>
+
+<span class="nc" id="L63">        List&lt;ProfessionalNotification&gt; notifications = professionals.stream()</span>
+<span class="nc" id="L64">                .map(pro -&gt; ProfessionalNotification.builder()</span>
+<span class="nc" id="L65">                        .professional(pro)</span>
+<span class="nc" id="L66">                        .type(ProfessionalNotificationType.POLICY_PUBLISHED)</span>
+<span class="nc" id="L67">                        .referenceId(policy.getId())</span>
+<span class="nc" id="L68">                        .message(message)</span>
+<span class="nc" id="L69">                        .build())</span>
+<span class="nc" id="L70">                .collect(Collectors.toList());</span>
+
+<span class="nc" id="L72">        notificationRepository.saveAll(notifications);</span>
+<span class="nc" id="L73">        log.info(&quot;Sent POLICY_PUBLISHED notification to {} professionals for policy {}&quot;,</span>
+<span class="nc" id="L74">                notifications.size(), policy.getId());</span>
+<span class="nc" id="L75">    }</span>
+
+    @Override
+    public List&lt;SalonPolicyResponse&gt; getPoliciesByOwner(Long ownerId) {
+<span class="nc" id="L79">        return policyRepository.findByOwnerId(ownerId).stream()</span>
+<span class="nc" id="L80">                .map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    public SalonPolicyResponse getLatestPolicyByOwner(Long ownerId) {
+<span class="nc" id="L85">        return policyRepository.findTopByOwnerIdOrderByCreatedAtDesc(ownerId)</span>
+<span class="nc" id="L86">                .map(this::toResponse)</span>
+<span class="nc" id="L87">                .orElseThrow(() -&gt; new PolicyNotFoundException(&quot;No policies found for owner: &quot; + ownerId));</span>
+    }
+
+    @Override
+    public List&lt;SalonPolicyResponse&gt; getPoliciesByCity(String city) {
+<span class="nc" id="L92">        return policyRepository.findByOwnerCityIgnoreCaseOrderByCreatedAtDesc(city)</span>
+<span class="nc" id="L93">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    private SalonPolicyResponse toResponse(SalonPolicy p) {
+<span class="nc" id="L97">        SalonPolicyResponse res = new SalonPolicyResponse();</span>
+<span class="nc" id="L98">        res.setId(p.getId());</span>
+<span class="nc" id="L99">        res.setOwnerId(p.getOwner().getId());</span>
+<span class="nc" id="L100">        res.setOwnerName(p.getOwner().getName());</span>
+<span class="nc" id="L101">        res.setTitle(p.getTitle());</span>
+<span class="nc" id="L102">        res.setContent(p.getContent());</span>
+<span class="nc" id="L103">        res.setCreatedAt(p.getCreatedAt());</span>
+<span class="nc" id="L104">        return res;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

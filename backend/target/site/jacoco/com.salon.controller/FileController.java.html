@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">FileController.java</span></div><h1>FileController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+@RestController
+@RequestMapping(&quot;/api/v1/files&quot;)
+<span class="nc" id="L20">@Slf4j</span>
+@Tag(name = &quot;Files&quot;, description = &quot;Serve uploaded files&quot;)
+<span class="nc" id="L22">public class FileController {</span>
+
+    @Value(&quot;${file.upload-dir:uploads}&quot;)
+    private String uploadDir;
+
+    @GetMapping(&quot;/{subfolder}/{filename}&quot;)
+    @Operation(summary = &quot;Serve an uploaded file&quot;)
+    public ResponseEntity&lt;Resource&gt; serveFile(
+            @PathVariable String subfolder,
+            @PathVariable String filename) {
+        try {
+<span class="nc" id="L33">            Path filePath = Paths.get(System.getProperty(&quot;user.dir&quot;), uploadDir)</span>
+<span class="nc" id="L34">                    .resolve(subfolder).resolve(filename).normalize();</span>
+<span class="nc" id="L35">            Resource resource = new UrlResource(filePath.toUri());</span>
+
+<span class="nc bnc" id="L37" title="All 2 branches missed.">            if (!resource.exists()) {</span>
+<span class="nc" id="L38">                return ResponseEntity.notFound().build();</span>
+            }
+
+<span class="nc" id="L41">            String contentType = determineContentType(filename);</span>
+<span class="nc" id="L42">            return ResponseEntity.ok()</span>
+<span class="nc" id="L43">                    .contentType(MediaType.parseMediaType(contentType))</span>
+<span class="nc" id="L44">                    .header(HttpHeaders.CONTENT_DISPOSITION, &quot;inline; filename=\&quot;&quot; + filename + &quot;\&quot;&quot;)</span>
+<span class="nc" id="L45">                    .body(resource);</span>
+<span class="nc" id="L46">        } catch (MalformedURLException e) {</span>
+<span class="nc" id="L47">            return ResponseEntity.badRequest().build();</span>
+        }
+    }
+
+    private String determineContentType(String filename) {
+<span class="nc" id="L52">        String lower = filename.toLowerCase();</span>
+<span class="nc bnc" id="L53" title="All 4 branches missed.">        if (lower.endsWith(&quot;.jpg&quot;) || lower.endsWith(&quot;.jpeg&quot;)) return &quot;image/jpeg&quot;;</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (lower.endsWith(&quot;.png&quot;)) return &quot;image/png&quot;;</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (lower.endsWith(&quot;.webp&quot;)) return &quot;image/webp&quot;;</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (lower.endsWith(&quot;.mp4&quot;)) return &quot;video/mp4&quot;;</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (lower.endsWith(&quot;.webm&quot;)) return &quot;video/webm&quot;;</span>
+<span class="nc" id="L58">        return &quot;application/octet-stream&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

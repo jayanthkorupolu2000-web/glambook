@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuthController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">AuthController.java</span></div><h1>AuthController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.AdminLoginRequest;
+import com.salon.dto.request.CustomerRegisterRequest;
+import com.salon.dto.request.LoginRequest;
+import com.salon.dto.request.ProfessionalRegisterRequest;
+import com.salon.dto.response.AuthResponse;
+import com.salon.service.AuthService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping(&quot;/api/auth&quot;)
+<span class="nc" id="L17">@RequiredArgsConstructor</span>
+public class AuthController {
+
+    private final AuthService authService;
+
+    @PostMapping(&quot;/customer/register&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; registerCustomer(@Valid @RequestBody CustomerRegisterRequest request) {
+<span class="nc" id="L24">        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerCustomer(request));</span>
+    }
+
+    @PostMapping(&quot;/customer/login&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; loginCustomer(@Valid @RequestBody LoginRequest request) {
+<span class="nc" id="L29">        return ResponseEntity.ok(authService.loginCustomer(request));</span>
+    }
+
+    @PostMapping(&quot;/owner/login&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; loginOwner(@Valid @RequestBody LoginRequest request) {
+<span class="nc" id="L34">        return ResponseEntity.ok(authService.loginOwner(request));</span>
+    }
+
+    @PostMapping(&quot;/professional/register&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; registerProfessional(@Valid @RequestBody ProfessionalRegisterRequest request) {
+<span class="nc" id="L39">        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registerProfessional(request));</span>
+    }
+
+    @PostMapping(&quot;/professional/login&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; loginProfessional(@Valid @RequestBody LoginRequest request) {
+<span class="nc" id="L44">        return ResponseEntity.ok(authService.loginProfessional(request));</span>
+    }
+
+    @PostMapping(&quot;/admin/login&quot;)
+    public ResponseEntity&lt;AuthResponse&gt; loginAdmin(@Valid @RequestBody AdminLoginRequest request) {
+<span class="nc" id="L49">        return ResponseEntity.ok(authService.loginAdmin(request));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

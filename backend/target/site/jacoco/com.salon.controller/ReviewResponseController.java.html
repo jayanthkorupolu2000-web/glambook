@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReviewResponseController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">ReviewResponseController.java</span></div><h1>ReviewResponseController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.ReviewResponseRequest;
+import com.salon.dto.response.ReviewWithResponseDTO;
+import com.salon.service.ReviewResponseService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/v1/professionals/{id}/reviews&quot;)
+<span class="nc" id="L18">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Review Responses&quot;, description = &quot;Professional review response management&quot;)
+public class ReviewResponseController {
+
+    private final ReviewResponseService reviewResponseService;
+
+    @PostMapping(&quot;/{reviewId}/response&quot;)
+    @PreAuthorize(&quot;hasRole('PROFESSIONAL')&quot;)
+    @Operation(summary = &quot;Respond to a review&quot;)
+    public ResponseEntity&lt;ReviewWithResponseDTO&gt; respond(
+            @PathVariable Long id,
+            @PathVariable Long reviewId,
+            @Valid @RequestBody ReviewResponseRequest dto) {
+<span class="nc" id="L31">        return ResponseEntity.ok(reviewResponseService.respondToReview(id, reviewId, dto));</span>
+    }
+
+    @GetMapping
+    @Operation(summary = &quot;Get all reviews for professional (public)&quot;)
+    public ResponseEntity&lt;List&lt;ReviewWithResponseDTO&gt;&gt; getReviews(@PathVariable Long id) {
+<span class="nc" id="L37">        return ResponseEntity.ok(reviewResponseService.getReviewsForProfessional(id));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

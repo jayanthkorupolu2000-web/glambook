@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReminderScheduler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.scheduler</a> &gt; <span class="el_source">ReminderScheduler.java</span></div><h1>ReminderScheduler.java</h1><pre class="source lang-java linenums">package com.salon.scheduler;
+
+import com.salon.entity.*;
+import com.salon.repository.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+/**
+ * Scheduled job that runs every 30 minutes to:
+ *
+ * 1. Detect CONFIRMED appointments whose time has passed but payment hasn't been made.
+ * 2. Send numbered PAYMENT_REMINDER CustomerNotifications at 8-hour intervals (max 3).
+ *    - Reminder 1 (T+8h):  &quot;Hi [Name], you booked [Service] but your payment is still pending...&quot;
+ *    - Reminder 2 (T+16h): &quot;...second reminder. Please pay now to avoid account suspension.&quot;
+ *    - Reminder 3 (T+24h): &quot;...FINAL reminder. If you do not complete payment immediately,
+ *                            your account will be suspended.&quot;
+ * 3. After 3 unanswered reminders:
+ *    - Suspend the customer account with a clear reason.
+ *    - Send the customer an ACCOUNT_SUSPENDED notification.
+ *    - Send the admin a detailed AdminNotification (exactly once per appointment).
+ * 4. If payment is completed before the 3rd reminder, the appointment no longer appears
+ *    in findOverdueUnpaid() so no further reminders are sent automatically.
+ */
+@Component
+<span class="nc" id="L32">@RequiredArgsConstructor</span>
+<span class="nc" id="L33">@Slf4j</span>
+public class ReminderScheduler {
+
+    private final AppointmentRepository appointmentRepository;
+    private final CustomerNotificationRepository customerNotificationRepository;
+    private final AdminNotificationRepository adminNotificationRepository;
+    private final CustomerRepository customerRepository;
+
+    /** Interval between reminders in hours */
+    private static final int REMINDER_INTERVAL_HOURS = 8;
+    /** Maximum number of reminders before suspension */
+    private static final int MAX_REMINDERS = 3;
+
+<span class="nc" id="L46">    private static final DateTimeFormatter FMT =</span>
+<span class="nc" id="L47">            DateTimeFormatter.ofPattern(&quot;dd MMM yyyy, hh:mm a&quot;);</span>
+
+    /** Runs every 30 minutes */
+    @Scheduled(fixedRate = 1_800_000)
+    @Transactional
+    public void processOverdueAppointments() {
+<span class="nc" id="L53">        log.info(&quot;ReminderScheduler: checking for overdue unpaid appointments&quot;);</span>
+<span class="nc" id="L54">        LocalDateTime now = LocalDateTime.now();</span>
+<span class="nc" id="L55">        List&lt;Appointment&gt; overdueList = appointmentRepository.findOverdueUnpaid(now);</span>
+<span class="nc" id="L56">        log.info(&quot;ReminderScheduler: found {} overdue unpaid appointments&quot;, overdueList.size());</span>
+
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        for (Appointment appt : overdueList) {</span>
+            try {
+<span class="nc" id="L60">                processAppointment(appt, now);</span>
+<span class="nc" id="L61">            } catch (Exception e) {</span>
+<span class="nc" id="L62">                log.error(&quot;ReminderScheduler: error processing appointment id={}: {}&quot;,</span>
+<span class="nc" id="L63">                        appt.getId(), e.getMessage(), e);</span>
+<span class="nc" id="L64">            }</span>
+<span class="nc" id="L65">        }</span>
+<span class="nc" id="L66">    }</span>
+
+    private void processAppointment(Appointment appt, LocalDateTime now) {
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if (appt.getReminderCount() == null) appt.setReminderCount(0);</span>
+
+<span class="nc" id="L71">        Customer customer = appt.getCustomer();</span>
+<span class="nc" id="L72">        String customerName = customer.getName();</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        String serviceName  = appt.getService() != null ? appt.getService().getName() : &quot;your service&quot;;</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        String dateStr      = appt.getDateTime() != null ? appt.getDateTime().format(FMT) : &quot;N/A&quot;;</span>
+<span class="nc bnc" id="L75" title="All 4 branches missed.">        String amount       = appt.getService() != null &amp;&amp; appt.getService().getPrice() != null</span>
+<span class="nc" id="L76">                              ? &quot;₹&quot; + appt.getService().getPrice() : &quot;the service amount&quot;;</span>
+
+<span class="nc" id="L78">        int count = appt.getReminderCount();</span>
+
+        // ── Step 1: Send up to 3 reminders at 8-hour intervals ──────────────
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (count &lt; MAX_REMINDERS) {</span>
+            // Check if enough time has passed since the last reminder (or since appointment time)
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            LocalDateTime lastSent = appt.getLastReminderSentAt() != null</span>
+<span class="nc" id="L84">                    ? appt.getLastReminderSentAt()</span>
+<span class="nc" id="L85">                    : appt.getDateTime();</span>
+
+<span class="nc bnc" id="L87" title="All 4 branches missed.">            if (lastSent != null &amp;&amp; lastSent.isAfter(now.minusHours(REMINDER_INTERVAL_HOURS))) {</span>
+<span class="nc" id="L88">                log.debug(&quot;ReminderScheduler: skipping appt id={} — next reminder not due yet&quot;, appt.getId());</span>
+<span class="nc" id="L89">                return;</span>
+            }
+
+<span class="nc" id="L92">            int nextCount = count + 1;</span>
+<span class="nc" id="L93">            String message = buildReminderMessage(nextCount, customerName, serviceName, dateStr);</span>
+
+<span class="nc" id="L95">            customerNotificationRepository.save(CustomerNotification.builder()</span>
+<span class="nc" id="L96">                    .customer(customer)</span>
+<span class="nc" id="L97">                    .type(CustomerNotificationType.PAYMENT_REMINDER)</span>
+<span class="nc" id="L98">                    .referenceId(appt.getId())</span>
+<span class="nc" id="L99">                    .message(message)</span>
+<span class="nc" id="L100">                    .build());</span>
+
+<span class="nc" id="L102">            appt.setReminderCount(nextCount);</span>
+<span class="nc" id="L103">            appt.setLastReminderSentAt(now);</span>
+<span class="nc" id="L104">            appointmentRepository.save(appt);</span>
+
+<span class="nc" id="L106">            log.info(&quot;ReminderScheduler: sent PAYMENT_REMINDER #{} to customer id={} (appt id={})&quot;,</span>
+<span class="nc" id="L107">                    nextCount, customer.getId(), appt.getId());</span>
+
+        // ── Step 2: After 3 reminders — suspend + notify admin ───────────────
+<span class="nc" id="L110">        } else {</span>
+            // Only act once — check if admin has already been notified for this appointment
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            if (adminNotificationRepository.existsByReferenceId(appt.getId())) {</span>
+<span class="nc" id="L113">                log.debug(&quot;ReminderScheduler: already escalated appt id={}&quot;, appt.getId());</span>
+<span class="nc" id="L114">                return;</span>
+            }
+
+            // 2a. Suspend the customer
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            if (customer.getStatus() != UserStatus.SUSPENDED) {</span>
+<span class="nc" id="L119">                String suspensionReason = &quot;Your account has been suspended due to non-payment of &quot;</span>
+                        + amount + &quot; for &quot; + serviceName + &quot; booked on &quot; + dateStr
+                        + &quot;. Please complete your payment to have your account reactivated.&quot;;
+<span class="nc" id="L122">                customer.setStatus(UserStatus.SUSPENDED);</span>
+<span class="nc" id="L123">                customer.setSuspensionReason(suspensionReason);</span>
+<span class="nc" id="L124">                customerRepository.save(customer);</span>
+<span class="nc" id="L125">                log.warn(&quot;ReminderScheduler: suspended customer id={} for non-payment (appt id={})&quot;,</span>
+<span class="nc" id="L126">                        customer.getId(), appt.getId());</span>
+
+                // 2b. Notify the customer about suspension
+<span class="nc" id="L129">                String suspendMsg = &quot;Hi &quot; + customerName + &quot;, your account has been suspended &quot;</span>
+                        + &quot;due to non-payment of &quot; + amount + &quot; for &quot; + serviceName
+                        + &quot; booked on &quot; + dateStr + &quot;. &quot;
+                        + &quot;Please complete your payment immediately to restore your account. &quot;
+                        + &quot;Contact support if you need assistance.&quot;;
+<span class="nc" id="L134">                customerNotificationRepository.save(CustomerNotification.builder()</span>
+<span class="nc" id="L135">                        .customer(customer)</span>
+<span class="nc" id="L136">                        .type(CustomerNotificationType.ACCOUNT_SUSPENDED)</span>
+<span class="nc" id="L137">                        .referenceId(appt.getId())</span>
+<span class="nc" id="L138">                        .message(suspendMsg)</span>
+<span class="nc" id="L139">                        .build());</span>
+            }
+
+            // 2c. Notify admin with full details
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            String r1 = appt.getDateTime() != null</span>
+<span class="nc" id="L144">                    ? appt.getDateTime().plusHours(REMINDER_INTERVAL_HOURS).format(FMT) : &quot;N/A&quot;;</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">            String r2 = appt.getDateTime() != null</span>
+<span class="nc" id="L146">                    ? appt.getDateTime().plusHours(REMINDER_INTERVAL_HOURS * 2L).format(FMT) : &quot;N/A&quot;;</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">            String r3 = appt.getDateTime() != null</span>
+<span class="nc" id="L148">                    ? appt.getDateTime().plusHours(REMINDER_INTERVAL_HOURS * 3L).format(FMT) : &quot;N/A&quot;;</span>
+
+<span class="nc" id="L150">            String adminMessage = &quot;⚠️ ACTION REQUIRED: Customer &quot; + customerName</span>
+<span class="nc" id="L151">                    + &quot; (ID: &quot; + customer.getId() + &quot;)&quot;</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                    + &quot; | Email: &quot; + (customer.getEmail() != null ? customer.getEmail() : &quot;N/A&quot;)</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                    + &quot; | Phone: &quot; + (customer.getPhone() != null ? customer.getPhone() : &quot;N/A&quot;)</span>
+                    + &quot; has NOT completed payment of &quot; + amount
+                    + &quot; for service: &quot; + serviceName
+                    + &quot; | Booked: &quot; + dateStr
+                    + &quot; | Reminders sent: Reminder 1 @ &quot; + r1
+                    + &quot;, Reminder 2 @ &quot; + r2
+                    + &quot;, Reminder 3 @ &quot; + r3
+                    + &quot; | Account has been automatically suspended.&quot;
+                    + &quot; Please review and take further action.&quot;;
+
+<span class="nc" id="L163">            adminNotificationRepository.save(AdminNotification.builder()</span>
+<span class="nc" id="L164">                    .message(adminMessage)</span>
+<span class="nc" id="L165">                    .referenceId(appt.getId())</span>
+<span class="nc" id="L166">                    .build());</span>
+
+<span class="nc" id="L168">            log.warn(&quot;ReminderScheduler: admin notified and customer id={} suspended for appt id={}&quot;,</span>
+<span class="nc" id="L169">                    customer.getId(), appt.getId());</span>
+        }
+<span class="nc" id="L171">    }</span>
+
+    private String buildReminderMessage(int reminderNumber, String name,
+                                        String service, String date) {
+<span class="nc bnc" id="L175" title="All 4 branches missed.">        return switch (reminderNumber) {</span>
+<span class="nc" id="L176">            case 1 -&gt; &quot;Hi &quot; + name + &quot;, you booked &quot; + service + &quot; on &quot; + date</span>
+                    + &quot; but your payment is still pending. &quot;
+                    + &quot;Please complete your payment to confirm your booking.&quot;;
+<span class="nc" id="L179">            case 2 -&gt; &quot;Hi &quot; + name + &quot;, your payment for &quot; + service + &quot; on &quot; + date</span>
+                    + &quot; is still incomplete. This is your second reminder. &quot;
+                    + &quot;Please pay now to avoid account suspension.&quot;;
+<span class="nc" id="L182">            case 3 -&gt; &quot;Hi &quot; + name + &quot;, this is your FINAL reminder. &quot;</span>
+                    + &quot;Your payment for &quot; + service + &quot; on &quot; + date + &quot; is overdue. &quot;
+                    + &quot;If you do not complete payment immediately, your account will be suspended.&quot;;
+<span class="nc" id="L185">            default -&gt; &quot;Hi &quot; + name + &quot;, your payment for &quot; + service + &quot; is still pending. &quot;</span>
+                    + &quot;Please complete it as soon as possible.&quot;;
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

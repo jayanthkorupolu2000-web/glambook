@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfessionalAvailabilityController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">ProfessionalAvailabilityController.java</span></div><h1>ProfessionalAvailabilityController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.AvailabilityRequest;
+import com.salon.dto.response.AvailabilityResponse;
+import com.salon.entity.Professional;
+import com.salon.entity.ProfessionalAvailability;
+import com.salon.exception.ConflictException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.ProfessionalAvailabilityRepository;
+import com.salon.repository.ProfessionalRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/api/v1/professionals/{professionalId}/availability&quot;)
+<span class="nc" id="L25">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Professional Availability&quot;)
+public class ProfessionalAvailabilityController {
+
+    private final ProfessionalAvailabilityRepository availabilityRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final com.salon.repository.AppointmentRepository appointmentRepository;
+
+    @GetMapping
+    @Operation(summary = &quot;Get availability slots for a professional&quot;)
+    public ResponseEntity&lt;List&lt;AvailabilityResponse&gt;&gt; getSlots(@PathVariable Long professionalId) {
+<span class="nc" id="L36">        List&lt;AvailabilityResponse&gt; slots = availabilityRepository</span>
+<span class="nc" id="L37">                .findByProfessionalId(professionalId)</span>
+<span class="nc" id="L38">                .stream().map(this::toResponse)</span>
+<span class="nc" id="L39">                .collect(Collectors.toList());</span>
+<span class="nc" id="L40">        return ResponseEntity.ok(slots);</span>
+    }
+
+    @GetMapping(&quot;/by-date&quot;)
+    @Operation(summary = &quot;Get availability slots for a professional on a specific date&quot;)
+    public ResponseEntity&lt;List&lt;AvailabilityResponse&gt;&gt; getSlotsByDate(
+            @PathVariable Long professionalId,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate date) {
+<span class="nc" id="L48">        List&lt;AvailabilityResponse&gt; slots = availabilityRepository</span>
+<span class="nc" id="L49">                .findByProfessionalIdAndAvailDate(professionalId, date)</span>
+<span class="nc" id="L50">                .stream()</span>
+<span class="nc" id="L51">                .sorted((a, b) -&gt; a.getStartTime().compareTo(b.getStartTime()))</span>
+<span class="nc" id="L52">                .map(this::toResponse)</span>
+<span class="nc" id="L53">                .collect(Collectors.toList());</span>
+<span class="nc" id="L54">        return ResponseEntity.ok(slots);</span>
+    }
+
+    @GetMapping(&quot;/time-slots&quot;)
+    @Operation(summary = &quot;Generate bookable time slots for a date based on service duration&quot;)
+    public ResponseEntity&lt;List&lt;java.util.Map&lt;String, Object&gt;&gt;&gt; getTimeSlots(
+            @PathVariable Long professionalId,
+            @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(defaultValue = &quot;30&quot;) int durationMins) {
+
+        // Get all availability windows for this date
+<span class="nc" id="L65">        List&lt;ProfessionalAvailability&gt; windows = availabilityRepository</span>
+<span class="nc" id="L66">                .findByProfessionalIdAndAvailDate(professionalId, date)</span>
+<span class="nc" id="L67">                .stream()</span>
+<span class="nc" id="L68">                .sorted((a, b) -&gt; a.getStartTime().compareTo(b.getStartTime()))</span>
+<span class="nc" id="L69">                .collect(Collectors.toList());</span>
+
+        // Get all booked appointments for this professional on this date
+<span class="nc" id="L72">        List&lt;com.salon.entity.Appointment&gt; bookedAppts = appointmentRepository</span>
+<span class="nc" id="L73">                .findByProfessionalIdAndDateTimeBetween(</span>
+                        professionalId,
+<span class="nc" id="L75">                        date.atStartOfDay(),</span>
+<span class="nc" id="L76">                        date.atTime(23, 59, 59));</span>
+
+        // Build list of booked time ranges [start, end)
+<span class="nc" id="L79">        java.util.List&lt;java.time.LocalTime[]&gt; bookedRanges = bookedAppts.stream()</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                .filter(a -&gt; a.getStatus() == com.salon.entity.AppointmentStatus.PENDING</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                          || a.getStatus() == com.salon.entity.AppointmentStatus.CONFIRMED)</span>
+<span class="nc" id="L82">                .map(a -&gt; {</span>
+<span class="nc" id="L83">                    java.time.LocalTime s = a.getDateTime().toLocalTime();</span>
+<span class="nc bnc" id="L84" title="All 4 branches missed.">                    int dur = a.getService() != null &amp;&amp; a.getService().getDurationMins() != null</span>
+<span class="nc" id="L85">                            ? a.getService().getDurationMins() : durationMins;</span>
+<span class="nc" id="L86">                    return new java.time.LocalTime[]{ s, s.plusMinutes(dur) };</span>
+                })
+<span class="nc" id="L88">                .collect(Collectors.toList());</span>
+
+        // Completed appointment times
+<span class="nc" id="L91">        java.util.Set&lt;java.time.LocalTime&gt; completedTimes = bookedAppts.stream()</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                .filter(a -&gt; a.getStatus() == com.salon.entity.AppointmentStatus.COMPLETED)</span>
+<span class="nc" id="L93">                .map(a -&gt; a.getDateTime().toLocalTime())</span>
+<span class="nc" id="L94">                .collect(java.util.stream.Collectors.toSet());</span>
+
+        // Current time for today's past-slot detection
+<span class="nc" id="L97">        boolean isToday = date.equals(java.time.LocalDate.now());</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        java.time.LocalTime now = isToday ? java.time.LocalTime.now() : null;</span>
+
+        // Generate slots from WORKING windows only
+<span class="nc" id="L101">        java.util.List&lt;java.util.Map&lt;String, Object&gt;&gt; result = new java.util.ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        for (ProfessionalAvailability window : windows) {</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (window.getSlotType() != com.salon.entity.SlotType.WORKING) continue;</span>
+
+<span class="nc" id="L106">            java.time.LocalTime cursor = window.getStartTime();</span>
+<span class="nc" id="L107">            java.time.LocalTime windowEnd = window.getEndTime();</span>
+
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            while (!cursor.plusMinutes(durationMins).isAfter(windowEnd)) {</span>
+<span class="nc" id="L110">                java.time.LocalTime slotEnd = cursor.plusMinutes(durationMins);</span>
+<span class="nc" id="L111">                final java.time.LocalTime slotStart = cursor;</span>
+
+                // Check if this slot overlaps any booked appointment
+<span class="nc" id="L114">                boolean booked = bookedRanges.stream().anyMatch(r -&gt;</span>
+<span class="nc bnc" id="L115" title="All 4 branches missed.">                        slotStart.isBefore(r[1]) &amp;&amp; slotEnd.isAfter(r[0]));</span>
+
+                // Check if this slot overlaps any break/lunch window
+<span class="nc" id="L118">                boolean overlapsBreak = windows.stream()</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                        .filter(w -&gt; w.getSlotType() != com.salon.entity.SlotType.WORKING)</span>
+<span class="nc bnc" id="L120" title="All 4 branches missed.">                        .anyMatch(w -&gt; slotStart.isBefore(w.getEndTime()) &amp;&amp; slotEnd.isAfter(w.getStartTime()));</span>
+
+                // Past slot detection (today only)
+<span class="nc bnc" id="L123" title="All 4 branches missed.">                boolean past = now != null &amp;&amp; !slotEnd.isAfter(now);</span>
+
+                // Completed slot
+<span class="nc" id="L126">                boolean completed = completedTimes.contains(slotStart);</span>
+
+                // Compute slotStatus
+                String slotStatus;
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                if (completed) {</span>
+<span class="nc" id="L131">                    slotStatus = &quot;COMPLETED&quot;;</span>
+<span class="nc bnc" id="L132" title="All 6 branches missed.">                } else if (past || booked || overlapsBreak) {</span>
+<span class="nc" id="L133">                    slotStatus = &quot;UNAVAILABLE&quot;;</span>
+                } else {
+<span class="nc" id="L135">                    slotStatus = &quot;AVAILABLE&quot;;</span>
+                }
+
+<span class="nc" id="L138">                java.util.Map&lt;String, Object&gt; slot = new java.util.LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L139">                slot.put(&quot;startTime&quot;, cursor.toString());</span>
+<span class="nc" id="L140">                slot.put(&quot;endTime&quot;, slotEnd.toString());</span>
+<span class="nc bnc" id="L141" title="All 6 branches missed.">                slot.put(&quot;booked&quot;, booked || overlapsBreak || completed);</span>
+<span class="nc" id="L142">                slot.put(&quot;slotType&quot;, &quot;WORKING&quot;);</span>
+<span class="nc" id="L143">                slot.put(&quot;slotStatus&quot;, slotStatus);</span>
+<span class="nc" id="L144">                slot.put(&quot;past&quot;, past);</span>
+<span class="nc" id="L145">                result.add(slot);</span>
+
+<span class="nc" id="L147">                cursor = cursor.plusMinutes(durationMins);</span>
+<span class="nc" id="L148">            }</span>
+<span class="nc" id="L149">        }</span>
+
+<span class="nc" id="L151">        return ResponseEntity.ok(result);</span>
+    }
+
+    @PostMapping
+    @Operation(summary = &quot;Add an availability slot&quot;)
+    public ResponseEntity&lt;AvailabilityResponse&gt; addSlot(
+            @PathVariable Long professionalId,
+            @Valid @RequestBody AvailabilityRequest req) {
+
+<span class="nc" id="L160">        Professional professional = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L161">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found&quot;));</span>
+
+        // Check for duplicate slot
+<span class="nc" id="L164">        boolean exists = availabilityRepository</span>
+<span class="nc" id="L165">                .findByProfessionalIdAndAvailDateAndStartTime(professionalId, req.getAvailDate(), req.getStartTime())</span>
+<span class="nc" id="L166">                .isPresent();</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        if (exists) {</span>
+<span class="nc" id="L168">            throw new ConflictException(&quot;A slot already exists for this date and time&quot;);</span>
+        }
+
+<span class="nc" id="L171">        ProfessionalAvailability slot = ProfessionalAvailability.builder()</span>
+<span class="nc" id="L172">                .professional(professional)</span>
+<span class="nc" id="L173">                .availDate(req.getAvailDate())</span>
+<span class="nc" id="L174">                .startTime(req.getStartTime())</span>
+<span class="nc" id="L175">                .endTime(req.getEndTime())</span>
+<span class="nc" id="L176">                .isBooked(false)</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">                .slotType(req.getSlotType() != null</span>
+<span class="nc" id="L178">                        ? com.salon.entity.SlotType.valueOf(req.getSlotType())</span>
+<span class="nc" id="L179">                        : com.salon.entity.SlotType.WORKING)</span>
+<span class="nc" id="L180">                .build();</span>
+
+<span class="nc" id="L182">        ProfessionalAvailability saved = availabilityRepository.save(slot);</span>
+<span class="nc" id="L183">        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(saved));</span>
+    }
+
+    @DeleteMapping(&quot;/{slotId}&quot;)
+    @Operation(summary = &quot;Delete an availability slot&quot;)
+    public ResponseEntity&lt;Void&gt; deleteSlot(
+            @PathVariable Long professionalId,
+            @PathVariable Long slotId) {
+<span class="nc" id="L191">        ProfessionalAvailability slot = availabilityRepository.findById(slotId)</span>
+<span class="nc" id="L192">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Slot not found&quot;));</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (slot.isBooked()) {</span>
+<span class="nc" id="L194">            throw new ConflictException(&quot;Cannot delete a booked slot&quot;);</span>
+        }
+<span class="nc" id="L196">        availabilityRepository.delete(slot);</span>
+<span class="nc" id="L197">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @PatchMapping(&quot;/{slotId}/type&quot;)
+    @Operation(summary = &quot;Update the slot type (e.g. WORKING ↔ BREAK)&quot;)
+    public ResponseEntity&lt;AvailabilityResponse&gt; updateSlotType(
+            @PathVariable Long professionalId,
+            @PathVariable Long slotId,
+            @RequestBody java.util.Map&lt;String, String&gt; body) {
+<span class="nc" id="L206">        ProfessionalAvailability slot = availabilityRepository.findById(slotId)</span>
+<span class="nc" id="L207">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Slot not found&quot;));</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        if (slot.isBooked()) {</span>
+<span class="nc" id="L209">            throw new ConflictException(&quot;Cannot change type of a booked slot&quot;);</span>
+        }
+<span class="nc" id="L211">        String newType = body.get(&quot;slotType&quot;);</span>
+<span class="nc bnc" id="L212" title="All 4 branches missed.">        if (newType == null || newType.isBlank()) {</span>
+<span class="nc" id="L213">            throw new com.salon.exception.ValidationException(&quot;slotType is required&quot;);</span>
+        }
+        try {
+<span class="nc" id="L216">            slot.setSlotType(com.salon.entity.SlotType.valueOf(newType));</span>
+<span class="nc" id="L217">        } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L218">            throw new com.salon.exception.ValidationException(&quot;Invalid slotType: &quot; + newType);</span>
+<span class="nc" id="L219">        }</span>
+<span class="nc" id="L220">        ProfessionalAvailability saved = availabilityRepository.save(slot);</span>
+<span class="nc" id="L221">        return ResponseEntity.ok(toResponse(saved));</span>
+    }
+
+    private AvailabilityResponse toResponse(ProfessionalAvailability s) {
+<span class="nc" id="L225">        AvailabilityResponse r = new AvailabilityResponse();</span>
+<span class="nc" id="L226">        r.setId(s.getId());</span>
+<span class="nc" id="L227">        r.setProfessionalId(s.getProfessional().getId());</span>
+<span class="nc" id="L228">        r.setAvailDate(s.getAvailDate());</span>
+<span class="nc" id="L229">        r.setStartTime(s.getStartTime());</span>
+<span class="nc" id="L230">        r.setEndTime(s.getEndTime());</span>
+<span class="nc" id="L231">        r.setBooked(s.isBooked());</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">        r.setSlotType(s.getSlotType() != null ? s.getSlotType().name() : &quot;WORKING&quot;);</span>
+<span class="nc" id="L233">        return r;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

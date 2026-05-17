@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProductServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">ProductServiceImpl.java</span></div><h1>ProductServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.request.ProductOrderRequest;
+import com.salon.dto.request.ProductReviewRequest;
+import com.salon.dto.response.FavoriteResponseDTO;
+import com.salon.dto.response.ProductOrderResponseDTO;
+import com.salon.dto.response.ProductResponseDTO;
+import com.salon.dto.response.ProductReviewResponseDTO;
+import com.salon.entity.*;
+import com.salon.exception.ConflictException;
+import com.salon.exception.InvalidOperationException;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.*;
+import com.salon.service.LoyaltyService;
+import com.salon.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+<span class="fc" id="L29">@RequiredArgsConstructor</span>
+<span class="fc" id="L30">@Slf4j</span>
+public class ProductServiceImpl implements ProductService {
+
+    private static final int POINTS_PER_100_RUPEES = 10;
+
+    private final ProductRepository productRepository;
+    private final ProductReviewRepository reviewRepository;
+    private final ProductOrderRepository orderRepository;
+    private final FavoriteProductRepository favoriteProductRepository;
+    private final CustomerRepository customerRepository;
+    private final AppointmentRepository appointmentRepository;
+    private final LoyaltyService loyaltyService;
+    private final com.salon.service.WalletService walletService;
+
+    // ── Browse / Search ───────────────────────────────────────────────────────
+
+    @Override
+    public Page&lt;ProductResponseDTO&gt; getAllProducts(String category, BigDecimal minPrice,
+                                                   BigDecimal maxPrice, String brand,
+                                                   Long customerId, Pageable pageable) {
+<span class="fc" id="L50">        List&lt;Product&gt; all = productRepository.findByIsActiveTrue();</span>
+
+<span class="fc" id="L52">        List&lt;Product&gt; filtered = all.stream()</span>
+<span class="pc bpc" id="L53" title="1 of 4 branches missed.">                .filter(p -&gt; category == null || category.isBlank()</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">                        || p.getCategory().equalsIgnoreCase(category))</span>
+<span class="pc bpc" id="L55" title="3 of 4 branches missed.">                .filter(p -&gt; brand == null || brand.isBlank()</span>
+<span class="pc bnc" id="L56" title="All 2 branches missed.">                        || p.getBrand().toLowerCase().contains(brand.toLowerCase()))</span>
+<span class="pc bpc" id="L57" title="3 of 4 branches missed.">                .filter(p -&gt; minPrice == null || p.getPrice().compareTo(minPrice) &gt;= 0)</span>
+<span class="pc bpc" id="L58" title="3 of 4 branches missed.">                .filter(p -&gt; maxPrice == null || maxPrice.compareTo(BigDecimal.ZERO) &lt;= 0</span>
+<span class="pc bnc" id="L59" title="All 2 branches missed.">                        || p.getPrice().compareTo(maxPrice) &lt;= 0)</span>
+<span class="fc" id="L60">                .collect(Collectors.toList());</span>
+
+<span class="fc" id="L62">        Set&lt;Long&gt; favIds = getFavIds(customerId);</span>
+
+<span class="fc" id="L64">        List&lt;ProductResponseDTO&gt; dtos = filtered.stream()</span>
+<span class="fc" id="L65">                .map(p -&gt; toDTO(p, favIds))</span>
+<span class="fc" id="L66">                .collect(Collectors.toList());</span>
+
+        // Manual pagination
+<span class="fc" id="L69">        int start = (int) pageable.getOffset();</span>
+<span class="fc" id="L70">        int end   = Math.min(start + pageable.getPageSize(), dtos.size());</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">        List&lt;ProductResponseDTO&gt; page = start &gt;= dtos.size() ? List.of() : dtos.subList(start, end);</span>
+<span class="fc" id="L72">        return new PageImpl&lt;&gt;(page, pageable, dtos.size());</span>
+    }
+
+    @Override
+    public ProductResponseDTO getProductById(Long productId, Long customerId) {
+<span class="fc" id="L77">        Product p = productRepository.findById(productId)</span>
+<span class="fc" id="L78">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product not found: &quot; + productId));</span>
+<span class="fc" id="L79">        Set&lt;Long&gt; favIds = getFavIds(customerId);</span>
+<span class="fc" id="L80">        return toDTO(p, favIds);</span>
+    }
+
+    @Override
+    public List&lt;ProductResponseDTO&gt; searchProducts(String keyword, Long customerId) {
+<span class="pc bpc" id="L85" title="1 of 4 branches missed.">        if (keyword == null || keyword.isBlank())</span>
+<span class="fc" id="L86">            throw new InvalidOperationException(&quot;Please provide a valid keyword&quot;);</span>
+<span class="fc" id="L87">        Set&lt;Long&gt; favIds = getFavIds(customerId);</span>
+<span class="fc" id="L88">        return productRepository.searchProducts(keyword).stream()</span>
+<span class="fc" id="L89">                .map(p -&gt; toDTO(p, favIds))</span>
+<span class="fc" id="L90">                .collect(Collectors.toList());</span>
+    }
+
+    @Override
+    public List&lt;ProductResponseDTO&gt; getRecommendedProducts(Long customerId) {
+        // Recommend products whose category matches the customer's past appointment service categories
+<span class="nc" id="L96">        List&lt;Appointment&gt; appointments = appointmentRepository.findByCustomerId(customerId);</span>
+<span class="nc" id="L97">        Set&lt;String&gt; serviceCategories = appointments.stream()</span>
+<span class="nc bnc" id="L98" title="All 4 branches missed.">                .filter(a -&gt; a.getService() != null &amp;&amp; a.getService().getCategory() != null)</span>
+<span class="nc" id="L99">                .map(a -&gt; a.getService().getCategory().toUpperCase())</span>
+<span class="nc" id="L100">                .collect(Collectors.toSet());</span>
+
+<span class="nc" id="L102">        Set&lt;Long&gt; favIds = getFavIds(customerId);</span>
+<span class="nc" id="L103">        List&lt;Product&gt; all = productRepository.findByIsActiveTrue();</span>
+
+        // Map service categories to product categories
+<span class="nc" id="L106">        Map&lt;String, String&gt; categoryMap = Map.of(</span>
+                &quot;HAIR&quot;, &quot;HAIRCARE&quot;,
+                &quot;HAIRCARE&quot;, &quot;HAIRCARE&quot;,
+                &quot;SKIN&quot;, &quot;SKINCARE&quot;,
+                &quot;SKINCARE&quot;, &quot;SKINCARE&quot;,
+                &quot;MAKEUP&quot;, &quot;MAKEUP&quot;,
+                &quot;NAIL&quot;, &quot;NAILCARE&quot;,
+                &quot;NAILCARE&quot;, &quot;NAILCARE&quot;,
+                &quot;FRAGRANCE&quot;, &quot;FRAGRANCE&quot;
+        );
+
+<span class="nc" id="L117">        Set&lt;String&gt; productCategories = serviceCategories.stream()</span>
+<span class="nc" id="L118">                .map(sc -&gt; categoryMap.getOrDefault(sc, sc))</span>
+<span class="nc" id="L119">                .collect(Collectors.toSet());</span>
+
+<span class="nc" id="L121">        List&lt;Product&gt; recommended = all.stream()</span>
+<span class="nc" id="L122">                .filter(p -&gt; productCategories.contains(p.getCategory().toUpperCase()))</span>
+<span class="nc" id="L123">                .collect(Collectors.toList());</span>
+
+        // Fall back to top-rated products if no match
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (recommended.isEmpty()) {</span>
+<span class="nc" id="L127">            recommended = all.stream()</span>
+<span class="nc" id="L128">                    .sorted(Comparator.comparingDouble(</span>
+<span class="nc" id="L129">                            p -&gt; -reviewRepository.findAverageRatingByProductId(p.getId())))</span>
+<span class="nc" id="L130">                    .limit(6)</span>
+<span class="nc" id="L131">                    .collect(Collectors.toList());</span>
+        }
+
+<span class="nc" id="L134">        return recommended.stream().map(p -&gt; toDTO(p, favIds)).collect(Collectors.toList());</span>
+    }
+
+    // ── Orders ────────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public ProductOrderResponseDTO placeOrder(Long customerId, ProductOrderRequest request) {
+<span class="fc" id="L142">        Customer customer = customerRepository.findById(customerId)</span>
+<span class="fc" id="L143">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+
+<span class="fc bfc" id="L145" title="All 2 branches covered.">        if (customer.getStatus() == UserStatus.SUSPENDED) {</span>
+<span class="fc" id="L146">            throw new InvalidOperationException(&quot;Your account is suspended. You cannot place orders.&quot;);</span>
+        }
+
+<span class="fc" id="L149">        Product product = productRepository.findById(request.getProductId())</span>
+<span class="pc" id="L150">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product not found: &quot; + request.getProductId()));</span>
+
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        if (!product.isActive())</span>
+<span class="nc" id="L153">            throw new InvalidOperationException(&quot;Product is not available&quot;);</span>
+
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        if (product.getStock() &lt; request.getQuantity())</span>
+<span class="fc" id="L156">            throw new InvalidOperationException(</span>
+<span class="fc" id="L157">                    &quot;Insufficient stock. Available: &quot; + product.getStock());</span>
+
+        // Deduct stock
+<span class="fc" id="L160">        product.setStock(product.getStock() - request.getQuantity());</span>
+<span class="fc" id="L161">        productRepository.save(product);</span>
+
+<span class="fc" id="L163">        BigDecimal unitPrice  = product.getPrice();</span>
+<span class="fc" id="L164">        BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(request.getQuantity()));</span>
+
+<span class="fc" id="L166">        ProductOrder order = ProductOrder.builder()</span>
+<span class="fc" id="L167">                .customer(customer)</span>
+<span class="fc" id="L168">                .product(product)</span>
+<span class="fc" id="L169">                .quantity(request.getQuantity())</span>
+<span class="fc" id="L170">                .unitPrice(unitPrice)</span>
+<span class="fc" id="L171">                .totalPrice(totalPrice)</span>
+<span class="fc" id="L172">                .status(ProductOrderStatus.PLACED)</span>
+<span class="fc" id="L173">                .build();</span>
+
+<span class="fc" id="L175">        ProductOrder saved = orderRepository.save(order);</span>
+<span class="fc" id="L176">        log.info(&quot;Product order {} placed by customer {} for product {}&quot;,</span>
+<span class="fc" id="L177">                saved.getId(), customerId, product.getId());</span>
+
+        // Do NOT award loyalty points here — they are awarded on payment (payOrder)
+<span class="fc" id="L180">        return toOrderDTO(saved, 0);</span>
+    }
+
+    @Override
+    public List&lt;ProductOrderResponseDTO&gt; getOrderHistory(Long customerId) {
+<span class="fc" id="L185">        return orderRepository.findByCustomerIdOrderByOrderDateDesc(customerId)</span>
+<span class="fc" id="L186">                .stream().map(o -&gt; toOrderDTO(o, 0)).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    public ProductOrderResponseDTO getOrderById(Long customerId, Long orderId) {
+<span class="nc" id="L191">        ProductOrder order = orderRepository.findById(orderId)</span>
+<span class="nc" id="L192">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Order not found: &quot; + orderId));</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (!order.getCustomer().getId().equals(customerId))</span>
+<span class="nc" id="L194">            throw new InvalidOperationException(&quot;Order does not belong to this customer&quot;);</span>
+<span class="nc" id="L195">        return toOrderDTO(order, 0);</span>
+    }
+
+    @Override
+    @Transactional
+    public ProductOrderResponseDTO payOrder(Long customerId, Long orderId, String method) {
+<span class="fc" id="L201">        return payOrder(customerId, orderId, method, BigDecimal.ZERO);</span>
+    }
+
+    @Transactional
+    public ProductOrderResponseDTO payOrder(Long customerId, Long orderId, String method, BigDecimal walletAmountUsed) {
+<span class="fc" id="L206">        ProductOrder order = orderRepository.findById(orderId)</span>
+<span class="pc" id="L207">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Order not found: &quot; + orderId));</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">        if (!order.getCustomer().getId().equals(customerId))</span>
+<span class="fc" id="L209">            throw new InvalidOperationException(&quot;Order does not belong to this customer&quot;);</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">        if (order.getStatus() == ProductOrderStatus.CANCELLED)</span>
+<span class="fc" id="L211">            throw new InvalidOperationException(&quot;Cannot pay for a cancelled order&quot;);</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">        if (order.getStatus() == ProductOrderStatus.DELIVERED)</span>
+<span class="fc" id="L213">            throw new InvalidOperationException(&quot;Order has already been paid&quot;);</span>
+
+        // Deduct wallet if used
+<span class="pc bpc" id="L216" title="2 of 4 branches missed.">        if (walletAmountUsed != null &amp;&amp; walletAmountUsed.compareTo(BigDecimal.ZERO) &gt; 0) {</span>
+<span class="nc" id="L217">            walletService.debit(</span>
+<span class="nc" id="L218">                order.getCustomer(),</span>
+                walletAmountUsed,
+                &quot;product_payment&quot;,
+<span class="nc" id="L221">                &quot;Wallet payment for order #&quot; + orderId + &quot; (&quot; + order.getProduct().getName() + &quot;)&quot;</span>
+            );
+        }
+
+        // Mark as DELIVERED
+<span class="fc" id="L226">        order.setStatus(ProductOrderStatus.DELIVERED);</span>
+<span class="fc" id="L227">        order.setDeliveryDate(java.time.LocalDate.now());</span>
+<span class="fc" id="L228">        ProductOrder saved = orderRepository.save(order);</span>
+
+<span class="fc" id="L230">        log.info(&quot;Product order {} paid via {} (wallet: ₹{}) by customer {} — marked DELIVERED&quot;,</span>
+                orderId, method, walletAmountUsed, customerId);
+
+        // Award loyalty points on payment: ₹100 = 10 pts
+<span class="fc" id="L234">        int points = saved.getTotalPrice()</span>
+<span class="fc" id="L235">                .divide(BigDecimal.valueOf(100), 0, java.math.RoundingMode.DOWN)</span>
+<span class="fc" id="L236">                .multiply(BigDecimal.valueOf(POINTS_PER_100_RUPEES)).intValue();</span>
+
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">        if (points &gt; 0) {</span>
+            try {
+<span class="fc" id="L240">                loyaltyService.awardPointsForProductPurchase(customerId, saved.getTotalPrice());</span>
+<span class="nc" id="L241">            } catch (Exception e) {</span>
+<span class="nc" id="L242">                log.warn(&quot;Could not award loyalty points for order {}: {}&quot;, orderId, e.getMessage());</span>
+<span class="fc" id="L243">            }</span>
+        }
+
+<span class="fc" id="L246">        return toOrderDTO(saved, points);</span>
+    }
+
+    // ── Favorites ─────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public FavoriteResponseDTO addToFavorites(Long customerId, Long productId) {
+<span class="fc" id="L254">        Customer customer = customerRepository.findById(customerId)</span>
+<span class="pc" id="L255">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+<span class="fc" id="L256">        Product product = productRepository.findById(productId)</span>
+<span class="pc" id="L257">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product not found: &quot; + productId));</span>
+
+<span class="fc bfc" id="L259" title="All 2 branches covered.">        if (favoriteProductRepository.existsByCustomerIdAndProductId(customerId, productId))</span>
+<span class="fc" id="L260">            throw new ConflictException(&quot;Product already in favorites&quot;);</span>
+
+<span class="fc" id="L262">        FavoriteProduct fav = favoriteProductRepository.save(</span>
+<span class="fc" id="L263">                FavoriteProduct.builder().customer(customer).product(product).build());</span>
+
+<span class="fc" id="L265">        return FavoriteResponseDTO.builder()</span>
+<span class="fc" id="L266">                .favoriteId(fav.getId())</span>
+<span class="fc" id="L267">                .product(toDTO(product, Set.of(productId)))</span>
+<span class="fc" id="L268">                .addedAt(fav.getCreatedAt())</span>
+<span class="fc" id="L269">                .build();</span>
+    }
+
+    @Override
+    @Transactional
+    public void removeFromFavorites(Long customerId, Long productId) {
+<span class="fc bfc" id="L275" title="All 2 branches covered.">        if (!favoriteProductRepository.existsByCustomerIdAndProductId(customerId, productId))</span>
+<span class="fc" id="L276">            throw new ResourceNotFoundException(&quot;Favorite not found&quot;);</span>
+<span class="fc" id="L277">        favoriteProductRepository.deleteByCustomerIdAndProductId(customerId, productId);</span>
+<span class="fc" id="L278">    }</span>
+
+    @Override
+    public List&lt;FavoriteResponseDTO&gt; getFavorites(Long customerId) {
+<span class="nc" id="L282">        return favoriteProductRepository.findByCustomerId(customerId).stream()</span>
+<span class="nc" id="L283">                .map(fp -&gt; FavoriteResponseDTO.builder()</span>
+<span class="nc" id="L284">                        .favoriteId(fp.getId())</span>
+<span class="nc" id="L285">                        .product(toDTO(fp.getProduct(), Set.of(fp.getProduct().getId())))</span>
+<span class="nc" id="L286">                        .addedAt(fp.getCreatedAt())</span>
+<span class="nc" id="L287">                        .build())</span>
+<span class="nc" id="L288">                .collect(Collectors.toList());</span>
+    }
+
+    // ── Reviews ───────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public ProductReviewResponseDTO addReview(Long customerId, Long productId,
+                                              ProductReviewRequest request) {
+<span class="fc" id="L297">        Customer customer = customerRepository.findById(customerId)</span>
+<span class="pc" id="L298">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found&quot;));</span>
+<span class="fc" id="L299">        Product product = productRepository.findById(productId)</span>
+<span class="pc" id="L300">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Product not found: &quot; + productId));</span>
+
+        // Must have a DELIVERED order for this product
+<span class="fc bfc" id="L303" title="All 2 branches covered.">        if (!orderRepository.existsDeliveredOrderByCustomerIdAndProductId(customerId, productId))</span>
+<span class="fc" id="L304">            throw new InvalidOperationException(</span>
+                    &quot;You can only review products from a delivered order&quot;);
+
+<span class="fc bfc" id="L307" title="All 2 branches covered.">        if (reviewRepository.existsByCustomerIdAndProductId(customerId, productId))</span>
+<span class="fc" id="L308">            throw new ConflictException(&quot;You have already reviewed this product&quot;);</span>
+
+<span class="fc" id="L310">        ProductReview review = reviewRepository.save(ProductReview.builder()</span>
+<span class="fc" id="L311">                .customer(customer)</span>
+<span class="fc" id="L312">                .product(product)</span>
+<span class="fc" id="L313">                .rating(request.getRating())</span>
+<span class="fc" id="L314">                .reviewText(request.getReviewText())</span>
+<span class="fc" id="L315">                .build());</span>
+
+<span class="fc" id="L317">        return toReviewDTO(review);</span>
+    }
+
+    @Override
+    @Transactional
+    public ProductReviewResponseDTO updateReview(Long customerId, Long productId,
+                                                 ProductReviewRequest request) {
+<span class="nc" id="L324">        ProductReview review = reviewRepository.findByCustomerIdAndProductId(customerId, productId)</span>
+<span class="nc" id="L325">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Review not found&quot;));</span>
+
+<span class="nc" id="L327">        review.setRating(request.getRating());</span>
+<span class="nc" id="L328">        review.setReviewText(request.getReviewText());</span>
+<span class="nc" id="L329">        return toReviewDTO(reviewRepository.save(review));</span>
+    }
+
+    @Override
+    public List&lt;ProductReviewResponseDTO&gt; getReviews(Long productId) {
+<span class="nc" id="L334">        return reviewRepository.findByProductIdOrderByCreatedAtDesc(productId)</span>
+<span class="nc" id="L335">                .stream().map(this::toReviewDTO).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    public boolean hasDeliveredOrder(Long customerId, Long productId) {
+<span class="nc" id="L340">        return orderRepository.existsDeliveredOrderByCustomerIdAndProductId(customerId, productId);</span>
+    }
+
+    @Override
+    public boolean hasReviewed(Long customerId, Long productId) {
+<span class="nc" id="L345">        return reviewRepository.existsByCustomerIdAndProductId(customerId, productId);</span>
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private Set&lt;Long&gt; getFavIds(Long customerId) {
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">        if (customerId == null) return Set.of();</span>
+<span class="fc" id="L352">        return favoriteProductRepository.findByCustomerId(customerId).stream()</span>
+<span class="pc" id="L353">                .map(fp -&gt; fp.getProduct().getId())</span>
+<span class="fc" id="L354">                .collect(Collectors.toSet());</span>
+    }
+
+    private ProductResponseDTO toDTO(Product p, Set&lt;Long&gt; favIds) {
+<span class="fc" id="L358">        double avg = reviewRepository.findAverageRatingByProductId(p.getId());</span>
+<span class="fc" id="L359">        long count = reviewRepository.countByProductId(p.getId());</span>
+<span class="fc" id="L360">        return ProductResponseDTO.builder()</span>
+<span class="fc" id="L361">                .id(p.getId())</span>
+<span class="fc" id="L362">                .name(p.getName())</span>
+<span class="fc" id="L363">                .description(p.getDescription())</span>
+<span class="fc" id="L364">                .category(p.getCategory())</span>
+<span class="fc" id="L365">                .brand(p.getBrand())</span>
+<span class="fc" id="L366">                .price(p.getPrice())</span>
+<span class="fc" id="L367">                .stockQuantity(p.getStock())</span>
+<span class="fc" id="L368">                .imageUrl(p.getImageUrl())</span>
+<span class="fc" id="L369">                .ingredients(p.getIngredients())</span>
+<span class="fc" id="L370">                .usageTips(p.getUsageTips())</span>
+<span class="fc" id="L371">                .averageRating(Math.round(avg * 10.0) / 10.0)</span>
+<span class="fc" id="L372">                .reviewCount(count)</span>
+<span class="fc" id="L373">                .favorited(favIds.contains(p.getId()))</span>
+<span class="fc" id="L374">                .build();</span>
+    }
+
+    private ProductOrderResponseDTO toOrderDTO(ProductOrder o, int loyaltyPoints) {
+<span class="fc" id="L378">        return ProductOrderResponseDTO.builder()</span>
+<span class="fc" id="L379">                .orderId(o.getId())</span>
+<span class="fc" id="L380">                .productId(o.getProduct().getId())</span>
+<span class="fc" id="L381">                .productName(o.getProduct().getName())</span>
+<span class="fc" id="L382">                .productImageUrl(o.getProduct().getImageUrl())</span>
+<span class="fc" id="L383">                .quantity(o.getQuantity())</span>
+<span class="fc" id="L384">                .unitPrice(o.getUnitPrice())</span>
+<span class="fc" id="L385">                .totalPrice(o.getTotalPrice())</span>
+<span class="fc" id="L386">                .status(o.getStatus().name())</span>
+<span class="fc" id="L387">                .trackingNumber(o.getTrackingNumber())</span>
+<span class="fc" id="L388">                .orderDate(o.getOrderDate())</span>
+<span class="fc" id="L389">                .loyaltyPointsEarned(loyaltyPoints)</span>
+<span class="fc" id="L390">                .build();</span>
+    }
+
+    private ProductReviewResponseDTO toReviewDTO(ProductReview r) {
+<span class="fc" id="L394">        return ProductReviewResponseDTO.builder()</span>
+<span class="fc" id="L395">                .id(r.getId())</span>
+<span class="fc" id="L396">                .customerId(r.getCustomer().getId())</span>
+<span class="fc" id="L397">                .customerName(r.getCustomer().getName())</span>
+<span class="fc" id="L398">                .rating(r.getRating())</span>
+<span class="fc" id="L399">                .reviewText(r.getReviewText())</span>
+<span class="fc" id="L400">                .createdAt(r.getCreatedAt())</span>
+<span class="fc" id="L401">                .build();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

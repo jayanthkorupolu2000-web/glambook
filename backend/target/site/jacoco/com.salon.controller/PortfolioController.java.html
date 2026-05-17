@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PortfolioController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.controller</a> &gt; <span class="el_source">PortfolioController.java</span></div><h1>PortfolioController.java</h1><pre class="source lang-java linenums">package com.salon.controller;
+
+import com.salon.dto.request.PortfolioMetadataRequest;
+import com.salon.dto.response.PortfolioResponse;
+import com.salon.entity.Portfolio;
+import com.salon.entity.PortfolioMediaType;
+import com.salon.entity.Professional;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.PortfolioRepository;
+import com.salon.repository.ProfessionalRepository;
+import com.salon.service.FileStorageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping(&quot;/api/v1/professionals/{professionalId}/portfolio&quot;)
+<span class="nc" id="L26">@RequiredArgsConstructor</span>
+@Tag(name = &quot;Portfolio&quot;)
+public class PortfolioController {
+
+    private final PortfolioRepository portfolioRepository;
+    private final ProfessionalRepository professionalRepository;
+    private final FileStorageService fileStorageService;
+
+    @GetMapping
+    @Operation(summary = &quot;Get portfolio items for a professional (authenticated)&quot;)
+    public ResponseEntity&lt;List&lt;PortfolioResponse&gt;&gt; getPortfolio(@PathVariable Long professionalId) {
+<span class="nc" id="L37">        List&lt;PortfolioResponse&gt; items = portfolioRepository.findByProfessionalId(professionalId)</span>
+<span class="nc" id="L38">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+<span class="nc" id="L39">        return ResponseEntity.ok(items);</span>
+    }
+
+    /**
+     * Public endpoint — no JWT required.
+     * Customers browsing professionals can view portfolios without being logged in.
+     * Mapped at /api/v1/professionals/{id}/portfolio/public so the security config
+     * can permit it without affecting the authenticated endpoint above.
+     */
+    @GetMapping(&quot;/public&quot;)
+    @Operation(summary = &quot;Get portfolio items for a professional (public — no auth required)&quot;)
+    public ResponseEntity&lt;List&lt;PortfolioResponse&gt;&gt; getPortfolioPublic(@PathVariable Long professionalId) {
+<span class="nc" id="L51">        List&lt;PortfolioResponse&gt; items = portfolioRepository.findByProfessionalId(professionalId)</span>
+<span class="nc" id="L52">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+<span class="nc" id="L53">        return ResponseEntity.ok(items);</span>
+    }
+
+    /**
+     * Unified metadata POST.
+     * If dataUrl / beforeDataUrl / afterDataUrl are provided, the backend
+     * decodes them and saves as real files — so ALL users can view the images.
+     * Falls back to filePath fields if data-URLs are not provided.
+     */
+    @PostMapping(&quot;/metadata&quot;)
+    @PreAuthorize(&quot;hasRole('PROFESSIONAL')&quot;)
+    @Operation(summary = &quot;Add a portfolio entry — accepts data-URLs or file paths&quot;)
+    public ResponseEntity&lt;PortfolioResponse&gt; addMetadataItem(
+            @PathVariable Long professionalId,
+            @RequestBody PortfolioMetadataRequest req) {
+
+<span class="nc" id="L69">        Professional professional = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L70">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found&quot;));</span>
+
+<span class="nc bnc" id="L72" title="All 4 branches missed.">        boolean isPair = hasValue(req.getBeforeDataUrl()) || hasValue(req.getBeforeFilePath());</span>
+
+<span class="nc" id="L74">        Portfolio.PortfolioBuilder builder = Portfolio.builder()</span>
+<span class="nc" id="L75">                .professional(professional)</span>
+<span class="nc" id="L76">                .serviceTag(req.getServiceTag())</span>
+<span class="nc" id="L77">                .tags(req.getTags())</span>
+<span class="nc" id="L78">                .caption(req.getCaption())</span>
+<span class="nc" id="L79">                .testimonial(req.getTestimonial())</span>
+<span class="nc" id="L80">                .isFeatured(req.isFeatured());</span>
+
+        PortfolioMediaType mediaType;
+
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (isPair) {</span>
+<span class="nc" id="L85">            mediaType = PortfolioMediaType.BEFORE_AFTER_PHOTO;</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            String beforeUrl = hasValue(req.getBeforeDataUrl())</span>
+<span class="nc" id="L87">                    ? fileStorageService.storeBase64(req.getBeforeDataUrl(), &quot;portfolio&quot;)</span>
+<span class="nc" id="L88">                    : req.getBeforeFilePath();</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            String afterUrl = hasValue(req.getAfterDataUrl())</span>
+<span class="nc" id="L90">                    ? fileStorageService.storeBase64(req.getAfterDataUrl(), &quot;portfolio&quot;)</span>
+<span class="nc" id="L91">                    : req.getAfterFilePath();</span>
+<span class="nc" id="L92">            builder.beforePhotoUrl(beforeUrl)</span>
+<span class="nc" id="L93">                   .afterPhotoUrl(afterUrl)</span>
+<span class="nc" id="L94">                   .filePath(beforeUrl);</span>
+<span class="nc" id="L95">        } else {</span>
+            String resolvedPath;
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (hasValue(req.getDataUrl())) {</span>
+<span class="nc" id="L98">                resolvedPath = fileStorageService.storeBase64(req.getDataUrl(), &quot;portfolio&quot;);</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">            } else if (hasValue(req.getFilePath())) {</span>
+<span class="nc" id="L100">                resolvedPath = req.getFilePath();</span>
+            } else {
+<span class="nc" id="L102">                return ResponseEntity.badRequest().build();</span>
+            }
+<span class="nc" id="L104">            String lower = resolvedPath.toLowerCase();</span>
+<span class="nc bnc" id="L105" title="All 4 branches missed.">            mediaType = (lower.endsWith(&quot;.mp4&quot;) || lower.endsWith(&quot;.webm&quot;))</span>
+<span class="nc" id="L106">                    ? PortfolioMediaType.VIDEO_CLIP</span>
+<span class="nc" id="L107">                    : PortfolioMediaType.SINGLE_PHOTO;</span>
+<span class="nc" id="L108">            builder.filePath(resolvedPath)</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                   .photoUrl(mediaType == PortfolioMediaType.SINGLE_PHOTO ? resolvedPath : null)</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                   .videoUrl(mediaType == PortfolioMediaType.VIDEO_CLIP   ? resolvedPath : null);</span>
+        }
+
+<span class="nc" id="L113">        builder.mediaType(mediaType);</span>
+<span class="nc" id="L114">        Portfolio saved = portfolioRepository.save(builder.build());</span>
+<span class="nc" id="L115">        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(saved));</span>
+    }
+
+<span class="nc bnc" id="L118" title="All 4 branches missed.">    private boolean hasValue(String s) { return s != null &amp;&amp; !s.isBlank(); }</span>
+
+    @PostMapping(consumes = &quot;multipart/form-data&quot;)
+    @Operation(summary = &quot;Add a portfolio item&quot;)
+    public ResponseEntity&lt;PortfolioResponse&gt; addItem(
+            @PathVariable Long professionalId,
+            @RequestPart(&quot;dto&quot;) String dtoJson,
+            @RequestPart(value = &quot;beforeFile&quot;, required = false) MultipartFile beforeFile,
+            @RequestPart(value = &quot;afterFile&quot;, required = false) MultipartFile afterFile,
+            @RequestPart(value = &quot;singleFile&quot;, required = false) MultipartFile singleFile,
+            @RequestPart(value = &quot;videoFile&quot;, required = false) MultipartFile videoFile) {
+
+<span class="nc" id="L130">        Professional professional = professionalRepository.findById(professionalId)</span>
+<span class="nc" id="L131">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found&quot;));</span>
+
+        // Parse DTO JSON manually
+<span class="nc" id="L134">        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();</span>
+        java.util.Map&lt;String, Object&gt; dto;
+        try {
+<span class="nc" id="L137">            dto = mapper.readValue(dtoJson, new com.fasterxml.jackson.core.type.TypeReference&lt;&gt;() {});</span>
+<span class="nc" id="L138">        } catch (Exception e) {</span>
+<span class="nc" id="L139">            return ResponseEntity.badRequest().build();</span>
+<span class="nc" id="L140">        }</span>
+
+<span class="nc" id="L142">        String mediaTypeStr = (String) dto.getOrDefault(&quot;mediaType&quot;, &quot;SINGLE_PHOTO&quot;);</span>
+        PortfolioMediaType mediaType;
+<span class="nc" id="L144">        try { mediaType = PortfolioMediaType.valueOf(mediaTypeStr); }</span>
+<span class="nc" id="L145">        catch (Exception e) { mediaType = PortfolioMediaType.SINGLE_PHOTO; }</span>
+
+<span class="nc" id="L147">        Portfolio.PortfolioBuilder builder = Portfolio.builder()</span>
+<span class="nc" id="L148">                .professional(professional)</span>
+<span class="nc" id="L149">                .mediaType(mediaType)</span>
+<span class="nc" id="L150">                .serviceTag((String) dto.get(&quot;serviceTag&quot;))</span>
+<span class="nc" id="L151">                .caption((String) dto.get(&quot;caption&quot;))</span>
+<span class="nc" id="L152">                .testimonial((String) dto.get(&quot;testimonial&quot;))</span>
+<span class="nc" id="L153">                .isFeatured(Boolean.TRUE.equals(dto.get(&quot;isFeatured&quot;)));</span>
+
+        // Store files based on media type
+<span class="nc bnc" id="L156" title="All 2 branches missed.">        if (mediaType == PortfolioMediaType.BEFORE_AFTER_PHOTO) {</span>
+<span class="nc bnc" id="L157" title="All 4 branches missed.">            if (beforeFile != null &amp;&amp; !beforeFile.isEmpty())</span>
+<span class="nc" id="L158">                builder.beforePhotoUrl(fileStorageService.storePhoto(beforeFile, &quot;portfolio&quot;));</span>
+<span class="nc bnc" id="L159" title="All 4 branches missed.">            if (afterFile != null &amp;&amp; !afterFile.isEmpty())</span>
+<span class="nc" id="L160">                builder.afterPhotoUrl(fileStorageService.storePhoto(afterFile, &quot;portfolio&quot;));</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        } else if (mediaType == PortfolioMediaType.SINGLE_PHOTO) {</span>
+<span class="nc bnc" id="L162" title="All 4 branches missed.">            if (singleFile != null &amp;&amp; !singleFile.isEmpty())</span>
+<span class="nc" id="L163">                builder.photoUrl(fileStorageService.storePhoto(singleFile, &quot;portfolio&quot;));</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        } else if (mediaType == PortfolioMediaType.VIDEO_CLIP) {</span>
+<span class="nc bnc" id="L165" title="All 4 branches missed.">            if (videoFile != null &amp;&amp; !videoFile.isEmpty())</span>
+<span class="nc" id="L166">                builder.videoUrl(fileStorageService.storeVideo(videoFile, &quot;portfolio&quot;));</span>
+        }
+
+<span class="nc" id="L169">        Portfolio saved = portfolioRepository.save(builder.build());</span>
+<span class="nc" id="L170">        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(saved));</span>
+    }
+
+    @DeleteMapping(&quot;/{itemId}&quot;)
+    @Operation(summary = &quot;Delete a portfolio item&quot;)
+    public ResponseEntity&lt;Void&gt; deleteItem(
+            @PathVariable Long professionalId,
+            @PathVariable Long itemId) {
+<span class="nc" id="L178">        Portfolio item = portfolioRepository.findById(itemId)</span>
+<span class="nc" id="L179">                .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Portfolio item not found&quot;));</span>
+        // Clean up stored files
+<span class="nc" id="L181">        fileStorageService.deleteFile(item.getBeforePhotoUrl());</span>
+<span class="nc" id="L182">        fileStorageService.deleteFile(item.getAfterPhotoUrl());</span>
+<span class="nc" id="L183">        fileStorageService.deleteFile(item.getPhotoUrl());</span>
+<span class="nc" id="L184">        fileStorageService.deleteFile(item.getVideoUrl());</span>
+<span class="nc" id="L185">        portfolioRepository.delete(item);</span>
+<span class="nc" id="L186">        return ResponseEntity.noContent().build();</span>
+    }
+
+    private PortfolioResponse toResponse(Portfolio p) {
+<span class="nc" id="L190">        PortfolioResponse r = new PortfolioResponse();</span>
+<span class="nc" id="L191">        r.setId(p.getId());</span>
+<span class="nc" id="L192">        r.setProfessionalId(p.getProfessional().getId());</span>
+<span class="nc" id="L193">        r.setProfessionalName(p.getProfessional().getName());</span>
+<span class="nc" id="L194">        r.setMediaType(p.getMediaType().name());</span>
+<span class="nc" id="L195">        r.setServiceTag(p.getServiceTag());</span>
+<span class="nc" id="L196">        r.setFilePath(p.getFilePath());</span>
+<span class="nc" id="L197">        r.setTags(p.getTags());</span>
+<span class="nc" id="L198">        r.setCaption(p.getCaption());</span>
+<span class="nc" id="L199">        r.setTestimonial(p.getTestimonial());</span>
+<span class="nc" id="L200">        r.setBeforePhotoUrl(p.getBeforePhotoUrl());</span>
+<span class="nc" id="L201">        r.setAfterPhotoUrl(p.getAfterPhotoUrl());</span>
+<span class="nc" id="L202">        r.setPhotoUrl(p.getPhotoUrl());</span>
+<span class="nc" id="L203">        r.setVideoUrl(p.getVideoUrl());</span>
+<span class="nc" id="L204">        r.setFeatured(p.isFeatured());</span>
+<span class="nc" id="L205">        r.setCreatedAt(p.getCreatedAt());</span>
+<span class="nc" id="L206">        return r;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SuspensionServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">SuspensionServiceImpl.java</span></div><h1>SuspensionServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.response.UserStatusResponse;
+import com.salon.entity.ComplaintStatus;
+import com.salon.entity.CustomerNotificationType;
+import com.salon.entity.UserStatus;
+import com.salon.exception.ResourceNotFoundException;
+import com.salon.repository.ComplaintRepository;
+import com.salon.repository.CustomerRepository;
+import com.salon.repository.ProfessionalRepository;
+import com.salon.service.CustomerNotificationService;
+import com.salon.service.SuspensionService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Service
+<span class="fc" id="L22">@RequiredArgsConstructor</span>
+<span class="fc" id="L23">@Slf4j</span>
+public class SuspensionServiceImpl implements SuspensionService {
+
+    private final ProfessionalRepository professionalRepository;
+    private final CustomerRepository customerRepository;
+    private final ComplaintRepository complaintRepository;
+    private final CustomerNotificationService customerNotificationService;
+
+    private static final int AUTO_SUSPEND_THRESHOLD = 5;
+
+    @Override
+    @Transactional
+    public void autoSuspendProfessionalIfNeeded(Long professionalId) {
+<span class="fc" id="L36">        long openCount = complaintRepository.countByProfessionalIdAndStatusIn(</span>
+<span class="fc" id="L37">                professionalId, List.of(ComplaintStatus.OPEN, ComplaintStatus.FORWARDED));</span>
+
+<span class="fc bfc" id="L39" title="All 2 branches covered.">        if (openCount &gt; AUTO_SUSPEND_THRESHOLD) {</span>
+<span class="fc" id="L40">            professionalRepository.findById(professionalId).ifPresent(p -&gt; {</span>
+<span class="fc" id="L41">                p.setStatus(UserStatus.SUSPENDED);</span>
+<span class="fc" id="L42">                professionalRepository.save(p);</span>
+<span class="fc" id="L43">                log.warn(&quot;Professional {} auto-suspended due to {} unresolved complaints&quot;, professionalId, openCount);</span>
+<span class="fc" id="L44">            });</span>
+        }
+<span class="fc" id="L46">    }</span>
+
+    @Override
+    @Transactional
+    public void handleAppointmentCancellation(Long customerId, LocalDate appointmentDate) {
+<span class="fc bfc" id="L51" title="All 2 branches covered.">        if (!appointmentDate.equals(LocalDate.now())) {</span>
+<span class="fc" id="L52">            return; // Only track same-day cancellations</span>
+        }
+
+<span class="fc" id="L55">        customerRepository.findById(customerId).ifPresent(customer -&gt; {</span>
+<span class="fc" id="L56">            int newCount = customer.getCancelCount() + 1;</span>
+<span class="fc" id="L57">            customer.setCancelCount(newCount);</span>
+
+<span class="fc bfc" id="L59" title="All 2 branches covered.">            if (newCount == 1) {</span>
+<span class="fc" id="L60">                log.warn(&quot;Customer {} has their first same-day cancellation — warning issued&quot;, customerId);</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">            } else if (newCount &gt;= 3) {</span>
+<span class="fc" id="L62">                customer.setStatus(UserStatus.SUSPENDED);</span>
+<span class="fc" id="L63">                customer.setSuspensionReason(&quot;Account suspended due to &quot; + newCount</span>
+                        + &quot; same-day appointment cancellations. Your account will be reactivated once reviewed by admin.&quot;);
+<span class="fc" id="L65">                log.warn(&quot;Customer {} suspended after {} same-day cancellations&quot;, customerId, newCount);</span>
+            }
+
+<span class="fc" id="L68">            customerRepository.save(customer);</span>
+<span class="fc" id="L69">        });</span>
+<span class="fc" id="L70">    }</span>
+
+    @Override
+    @Transactional
+    public UserStatusResponse updateUserStatus(Long userId, String userType, String status) {
+<span class="fc" id="L75">        return updateUserStatus(userId, userType, status, null);</span>
+    }
+
+    @Override
+    @Transactional
+    public UserStatusResponse updateUserStatus(Long userId, String userType, String status, String reason) {
+<span class="fc" id="L81">        UserStatus newStatus = UserStatus.valueOf(status.toUpperCase());</span>
+
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (&quot;CUSTOMER&quot;.equalsIgnoreCase(userType)) {</span>
+<span class="fc" id="L84">            var customer = customerRepository.findById(userId)</span>
+<span class="fc" id="L85">                    .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Customer not found with id: &quot; + userId));</span>
+<span class="fc" id="L86">            boolean wasSuspended = UserStatus.SUSPENDED.equals(customer.getStatus());</span>
+<span class="fc" id="L87">            customer.setStatus(newStatus);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">            if (newStatus == UserStatus.SUSPENDED) {</span>
+<span class="pc bpc" id="L89" title="2 of 4 branches missed.">                customer.setSuspensionReason(reason != null &amp;&amp; !reason.isBlank()</span>
+<span class="fc" id="L90">                        ? reason</span>
+<span class="nc" id="L91">                        : &quot;Your account has been suspended by the admin. Please contact support to resolve this.&quot;);</span>
+            } else {
+<span class="fc" id="L93">                customer.setSuspensionReason(null);</span>
+            }
+<span class="fc" id="L95">            customerRepository.save(customer);</span>
+
+            // Send notification to customer
+<span class="fc bfc" id="L98" title="All 2 branches covered.">            if (newStatus == UserStatus.SUSPENDED) {</span>
+                String msg = &quot;🚫 Your account has been suspended by the admin.&quot;
+<span class="pc bpc" id="L100" title="2 of 4 branches missed.">                        + (reason != null &amp;&amp; !reason.isBlank() ? &quot; Reason: &quot; + reason : &quot;&quot;)</span>
+                        + &quot; You cannot book appointments until your account is reactivated. Please contact support.&quot;;
+<span class="fc" id="L102">                customerNotificationService.createNotification(</span>
+                        userId, CustomerNotificationType.BOOKING_CANCELLED, null, msg);
+<span class="pc bpc" id="L104" title="2 of 4 branches missed.">            } else if (newStatus == UserStatus.ACTIVE &amp;&amp; wasSuspended) {</span>
+<span class="fc" id="L105">                customerNotificationService.createNotification(</span>
+                        userId, CustomerNotificationType.BOOKING_CONFIRMED, null,
+                        &quot;✅ Your account has been reactivated by the admin. You can now book appointments again. Welcome back!&quot;);
+            }
+
+<span class="fc" id="L110">            return new UserStatusResponse(customer.getId(), customer.getName(), &quot;CUSTOMER&quot;, newStatus.name());</span>
+
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        } else if (&quot;PROFESSIONAL&quot;.equalsIgnoreCase(userType)) {</span>
+<span class="fc" id="L113">            var professional = professionalRepository.findById(userId)</span>
+<span class="fc" id="L114">                    .orElseThrow(() -&gt; new ResourceNotFoundException(&quot;Professional not found with id: &quot; + userId));</span>
+<span class="fc" id="L115">            professional.setStatus(newStatus);</span>
+<span class="fc" id="L116">            professionalRepository.save(professional);</span>
+<span class="fc" id="L117">            return new UserStatusResponse(professional.getId(), professional.getName(), &quot;PROFESSIONAL&quot;, newStatus.name());</span>
+
+        } else {
+<span class="fc" id="L120">            throw new IllegalArgumentException(&quot;Invalid userType: must be CUSTOMER or PROFESSIONAL&quot;);</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProfessionalAvailability.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.entity</a> &gt; <span class="el_source">ProfessionalAvailability.java</span></div><h1>ProfessionalAvailability.java</h1><pre class="source lang-java linenums">package com.salon.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+<span class="nc bnc" id="L11" title="All 74 branches missed.">@Data</span>
+<span class="nc bnc" id="L12" title="All 6 branches missed.">@Builder</span>
+<span class="nc" id="L13">@NoArgsConstructor</span>
+<span class="nc" id="L14">@AllArgsConstructor</span>
+@Entity
+@Table(name = &quot;professional_availability&quot;)
+public class ProfessionalAvailability {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+<span class="nc" id="L21">    private Long id;</span>
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;professional_id&quot;, nullable = false)
+<span class="nc" id="L25">    private Professional professional;</span>
+
+    @Column(name = &quot;avail_date&quot;, nullable = false)
+<span class="nc" id="L28">    private LocalDate availDate;</span>
+
+    @Column(name = &quot;start_time&quot;, nullable = false)
+<span class="nc" id="L31">    private LocalTime startTime;</span>
+
+    @Column(name = &quot;end_time&quot;, nullable = false)
+<span class="nc" id="L34">    private LocalTime endTime;</span>
+
+    @Builder.Default
+    @Column(name = &quot;is_booked&quot;)
+<span class="nc" id="L38">    private boolean isBooked = false;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(name = &quot;slot_type&quot;)
+<span class="nc" id="L43">    private SlotType slotType = SlotType.WORKING;</span>
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(name = &quot;slot_status&quot;, columnDefinition = &quot;VARCHAR(20)&quot;)
+<span class="nc" id="L48">    private SlotStatus slotStatus = SlotStatus.AVAILABLE;</span>
+
+    @CreationTimestamp
+    @Column(name = &quot;created_at&quot;, updatable = false)
+<span class="nc" id="L52">    private LocalDateTime createdAt;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

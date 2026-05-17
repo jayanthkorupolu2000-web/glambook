@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ComplaintIntegrationServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">salon-management</a> &gt; <a href="index.source.html" class="el_package">com.salon.service.impl</a> &gt; <span class="el_source">ComplaintIntegrationServiceImpl.java</span></div><h1>ComplaintIntegrationServiceImpl.java</h1><pre class="source lang-java linenums">package com.salon.service.impl;
+
+import com.salon.dto.request.MediationActionRequest;
+import com.salon.dto.response.ComplaintResponse;
+import com.salon.entity.Complaint;
+import com.salon.entity.ComplaintStatus;
+import com.salon.exception.ComplaintNotFoundException;
+import com.salon.exception.InvalidOperationException;
+import com.salon.repository.ComplaintRepository;
+import com.salon.service.ComplaintIntegrationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+<span class="nc" id="L21">@RequiredArgsConstructor</span>
+public class ComplaintIntegrationServiceImpl implements ComplaintIntegrationService {
+
+    private final ComplaintRepository complaintRepository;
+
+    @Override
+    public List&lt;ComplaintResponse&gt; getForwardedComplaintsForOwner(Long ownerId) {
+<span class="nc" id="L28">        return complaintRepository.findByProfessionalSalonOwnerIdAndStatus(ownerId, ComplaintStatus.FORWARDED)</span>
+<span class="nc" id="L29">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    public List&lt;ComplaintResponse&gt; getAllComplaintsForOwner(Long ownerId) {
+<span class="nc" id="L34">        return complaintRepository.findByProfessionalSalonOwnerId(ownerId)</span>
+<span class="nc" id="L35">                .stream().map(this::toResponse).collect(Collectors.toList());</span>
+    }
+
+    @Override
+    @Transactional
+    public ComplaintResponse logOwnerAction(Long ownerId, Long complaintId, MediationActionRequest dto) {
+<span class="nc" id="L41">        Complaint complaint = complaintRepository.findById(complaintId)</span>
+<span class="nc" id="L42">                .orElseThrow(() -&gt; new ComplaintNotFoundException(&quot;Complaint not found: &quot; + complaintId));</span>
+
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (!complaint.getProfessional().getSalonOwner().getId().equals(ownerId)) {</span>
+<span class="nc" id="L45">            throw new AccessDeniedException(&quot;This complaint does not belong to your salon&quot;);</span>
+        }
+
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (complaint.getStatus() != ComplaintStatus.FORWARDED) {</span>
+<span class="nc" id="L49">            throw new InvalidOperationException(&quot;Can only log action on FORWARDED complaints&quot;);</span>
+        }
+
+<span class="nc" id="L52">        complaint.setOwnerActionNotes(dto.getOwnerActionNotes());</span>
+<span class="nc" id="L53">        complaint.setOwnerActionAt(LocalDateTime.now());</span>
+
+<span class="nc" id="L55">        return toResponse(complaintRepository.save(complaint));</span>
+    }
+
+    @Override
+    public ComplaintResponse getComplaintById(Long complaintId) {
+<span class="nc" id="L60">        Complaint complaint = complaintRepository.findById(complaintId)</span>
+<span class="nc" id="L61">                .orElseThrow(() -&gt; new ComplaintNotFoundException(&quot;Complaint not found: &quot; + complaintId));</span>
+<span class="nc" id="L62">        return toResponse(complaint);</span>
+    }
+
+    private ComplaintResponse toResponse(Complaint c) {
+<span class="nc" id="L66">        ComplaintResponse res = new ComplaintResponse();</span>
+<span class="nc" id="L67">        res.setId(c.getId());</span>
+<span class="nc" id="L68">        res.setCustomerId(c.getCustomer().getId());</span>
+<span class="nc" id="L69">        res.setCustomerName(c.getCustomer().getName());</span>
+<span class="nc" id="L70">        res.setProfessionalId(c.getProfessional().getId());</span>
+<span class="nc" id="L71">        res.setProfessionalName(c.getProfessional().getName());</span>
+<span class="nc" id="L72">        res.setDescription(c.getDescription());</span>
+<span class="nc" id="L73">        res.setFeedback(c.getFeedback().name());</span>
+<span class="nc" id="L74">        res.setRating(c.getRating());</span>
+<span class="nc" id="L75">        res.setStatus(c.getStatus().name());</span>
+<span class="nc" id="L76">        res.setResolutionNotes(c.getResolutionNotes());</span>
+<span class="nc" id="L77">        res.setOwnerActionNotes(c.getOwnerActionNotes());</span>
+<span class="nc" id="L78">        res.setOwnerActionAt(c.getOwnerActionAt());</span>
+<span class="nc" id="L79">        res.setCreatedAt(c.getCreatedAt());</span>
+<span class="nc" id="L80">        return res;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
