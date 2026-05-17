@@ -45,7 +45,7 @@
                     [class.status-confirmed]="a.status==='CONFIRMED'">
                 {{ a.status === 'PENDING' ? 'Awaiting Assignment' : a.status }}
               </span>
-              <button *ngIf="a.status === 'CONFIRMED'" class="btn-pay"
+              <button *ngIf="a.status === 'CONFIRMED' && !hasPayLaterPending(a)" class="btn-pay"
                       [disabled]="!isPayButtonEnabled(a)"
                       [title]="payButtonTooltip(a)"
                       (click)="openPayGuarded(a)">

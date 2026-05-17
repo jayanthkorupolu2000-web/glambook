@@ -509,9 +509,9 @@
             <div class="col-6">
               <label class="form-label fw-semibold">Expiry <span class="text-muted small">(MM/YY)</span></label>
               <input type="text" class="form-control"
-                     [class.is-invalid]="paySubmitted && cardExpiry.length !== 5"
+                     [class.is-invalid]="paySubmitted && !isValidExpiry(cardExpiry)"
                      [(ngModel)]="cardExpiry" maxlength="5" placeholder="MM/YY" autocomplete="off">
-              <div class="invalid-feedback">Enter a valid expiry date (MM/YY).</div>
+              <div class="invalid-feedback">Enter a valid expiry (MM/YY) that hasn't passed.</div>
             </div>
             <div class="col-6">
               <label class="form-label fw-semibold">CVV <span class="text-muted small">(3 digits)</span></label>

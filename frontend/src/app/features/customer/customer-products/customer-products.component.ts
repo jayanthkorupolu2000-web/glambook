@@ -384,7 +384,16 @@ export class CustomerProductsComponent implements OnInit {
 
   get cardValid(): boolean {
     if (this.payMethod !== 'CARD') return true;
-    return this.cardNumber.length === 12 && this.cardExpiry.length === 5 && this.cardCvv.length === 3;
+    return this.cardNumber.length === 12 && this.isValidExpiry(this.cardExpiry) && this.cardCvv.length === 3;
+  }
+
+  isValidExpiry(expiry: string): boolean {
+    if (!/^\d{2}\/\d{2}$/.test(expiry)) return false;
+    const [mm, yy] = expiry.split('/').map(Number);
+    if (mm < 1 || mm > 12) return false;
+    const now = new Date();
+    const expDate = new Date(2000 + yy, mm - 1, 1);
+    return expDate >= new Date(now.getFullYear(), now.getMonth(), 1);
   }
 
   get walletDeduction(): number {
@@ -405,7 +414,7 @@ export class CustomerProductsComponent implements OnInit {
     if (this.useProdPayLater) { this.confirmPayLaterProduct(); return; }
     if (!this.fullyPaidByWallet && this.payMethod === 'CARD') {
       this.paySubmitted = true;
-      if (!this.cardValid) return;
+      if (this.cardNumber.length !== 12 || !this.isValidExpiry(this.cardExpiry) || this.cardCvv.length !== 3) return;
     }
     this.confirmPayment();
   }
@@ -414,9 +423,15 @@ export class CustomerProductsComponent implements OnInit {
     if (!this.payingOrder) return;
     this.payLoading = true;
     this.payError = '';
-    // For products, Pay Later means: place the order but defer payment 24h
-    // We store a note and show success — the scheduler handles follow-up
-    this.prodPayLaterSuccess = `✅ Pay Later activated! ₹${this.payingOrder.totalPrice} due by ${this.prodPayLaterDeadline}. You'll receive reminders before the deadline.`;
+    // Track this order as pay-later pending in sessionStorage so My Orders shows Settle Now
+    try {
+      const key = `order_pay_later_pending_${this.auth.getUserId() ?? 'anon'}`;
+      const raw = sessionStorage.getItem(key);
+      const ids: number[] = raw ? JSON.parse(raw) : [];
+      if (!ids.includes(this.payingOrder.orderId)) ids.push(this.payingOrder.orderId);
+      sessionStorage.setItem(key, JSON.stringify(ids));
+    } catch {}
+    this.prodPayLaterSuccess = `✅ Pay Later activated! ₹${this.payingOrder.totalPrice} due by ${this.prodPayLaterDeadline}. Go to My Orders to settle anytime before the deadline.`;
     this.paySuccess = this.prodPayLaterSuccess;
     this.payLoading = false;
     setTimeout(() => { this.closePayment(); this.load(this.currentPage); }, 2500);
