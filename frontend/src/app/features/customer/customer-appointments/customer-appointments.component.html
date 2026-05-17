@@ -148,23 +148,6 @@
             </div>
           </div>
 
-          <!-- Professional reply strip — shown when professional has replied -->
-          <div *ngIf="getReviewForAppt(a.id)?.professionalResponse" class="prof-reply-strip">
-            <div class="reply-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/>
-              </svg>
-            </div>
-            <div class="reply-content">
-              <div class="reply-label">{{ getReviewForAppt(a.id)?.professionalName || 'Professional' }} replied</div>
-              <p class="reply-text">{{ getReviewForAppt(a.id)?.professionalResponse }}</p>
-              <div class="reply-date">
-                {{ getReviewForAppt(a.id)?.professionalResponseAt | date:'dd MMM yyyy, hh:mm a' }}
-              </div>
-            </div>
-          </div>
-
         </div>
         <div *ngIf="past.length === 0" class="empty-state">
           <div class="empty-icon">
@@ -476,7 +459,17 @@
           <label class="form-label fw-semibold">Feedback (optional)</label>
           <textarea class="form-control" rows="3" [(ngModel)]="reviewComment"
                     maxlength="1000" placeholder="Share your experience..."></textarea>
-          <small class="text-muted">{{ reviewComment.length }}/1000</small>
+          <div class="d-flex align-items-start justify-content-between mt-1 gap-2">
+            <small class="text-muted">{{ reviewComment.length }}/1000</small>
+          </div>
+          <!-- Disclaimer -->
+          <div class="review-disclaimer">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>
+              Please use respectful and constructive language. Reviews containing offensive, abusive,
+              or inappropriate words may be removed. Be honest and helpful to the community.
+            </span>
+          </div>
         </div>
         <div class="mb-3">
           <label class="form-label fw-semibold">Photos (optional)</label>

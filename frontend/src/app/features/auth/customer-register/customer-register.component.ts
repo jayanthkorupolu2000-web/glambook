@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { VALID_CITIES, cityValidator } from '../../../validators/city.validator';
+import { emailDomainValidator } from '../../../validators/email-domain.validator';
+import { fullNameValidator } from '../../../validators/full-name.validator';
 import { passwordStrengthValidator } from '../../../validators/password-strength.validator';
 
 @Component({
@@ -17,8 +19,8 @@ export class CustomerRegisterComponent {
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
     this.form = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
+      name: ['', [Validators.required, fullNameValidator()]],
+      email: ['', [Validators.required, Validators.email, emailDomainValidator()]],
       password: ['', [Validators.required, Validators.minLength(8), passwordStrengthValidator()]],
       city: ['', [Validators.required, cityValidator()]]
     });

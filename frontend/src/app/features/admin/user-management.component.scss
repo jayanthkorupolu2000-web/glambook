@@ -194,12 +194,19 @@
 .um-table-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.5rem;
   padding: 1rem 1.5rem;
   font-size: 0.88rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   border-bottom: 1px solid #f1f5f9;
+}
+
+.um-table-header__left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .um-table-header__count {
@@ -216,6 +223,43 @@
   background: rgba(13,27,62,0.04);
   i { color: #0d1b3e; }
   .um-table-header__count { background: #0d1b3e; }
+}
+
+/* ── Role filter dropdown ───────────────────────────────────── */
+.um-filter-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.um-filter-icon {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.um-filter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 0.6rem center;
+  background-size: 0.75rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.35rem 2rem 0.35rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #0d1b3e;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #0d1b3e;
+    box-shadow: 0 0 0 3px rgba(13,27,62,0.1);
+  }
+
+  &:hover {
+    border-color: #94a3b8;
+  }
 }
 
 /* ── Table ──────────────────────────────────────────────────── */
@@ -350,6 +394,40 @@
   background: rgba(124,58,237,0.12);
   color: #7c3aed;
   border: 1px solid rgba(124,58,237,0.25);
+}
+
+/* ── Status badges ──────────────────────────────────────────── */
+.um-status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.um-status-badge--active {
+  background: rgba(22,163,74,0.10);
+  color: #15803d;
+  border: 1px solid rgba(22,163,74,0.25);
+}
+
+.um-status-badge--suspended {
+  background: rgba(220,38,38,0.10);
+  color: #b91c1c;
+  border: 1px solid rgba(220,38,38,0.25);
+}
+
+/* ── Status filter select variant ───────────────────────────── */
+.um-filter-select--status {
+  border-color: #e2e8f0;
+
+  &:focus {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220,38,38,0.10);
+  }
 }
 
 /* ── Additional info ────────────────────────────────────────── */

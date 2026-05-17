@@ -16,6 +16,9 @@ export function passwordStrengthValidator(): ValidatorFn {
     if (!/[0-9]/.test(value)) {
       errors['noNumber'] = true;
     }
+    if (!/[^A-Za-z0-9]/.test(value)) {
+      errors['noSpecialChar'] = true;
+    }
 
     return Object.keys(errors).length ? { passwordStrength: errors } : null;
   };

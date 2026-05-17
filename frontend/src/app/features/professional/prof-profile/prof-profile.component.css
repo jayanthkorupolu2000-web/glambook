@@ -383,18 +383,58 @@
   transition:background 0.15s; cursor:pointer;
 }
 .pp-service-area-list .form-check:hover { background:rgba(13,148,136,0.08); }
-.pp-service-area-list .form-check-input {
-  width:1rem; height:1rem; min-width:1rem; margin:0; flex-shrink:0;
-  cursor:pointer; accent-color:var(--teal);
-  border:2px solid #94a3b8; border-radius:3px; position:static;
-  background:#fff;
+
+/* Full override — beats Bootstrap's specificity */
+.pp-service-area-list .form-check .form-check-input[type="checkbox"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  width: 1.15rem !important;
+  height: 1.15rem !important;
+  min-width: 1.15rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 2px solid #94a3b8 !important;
+  border-radius: 4px !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  position: static !important;
+  float: none !important;
+  transition: border-color 0.15s, background-color 0.15s;
+  box-shadow: none !important;
 }
-.pp-service-area-list .form-check-input:checked {
-  background-color:var(--teal); border-color:var(--teal);
+
+.pp-service-area-list .form-check .form-check-input[type="checkbox"]:checked {
+  border-color: #1e6fd9 !important;
+  background-color: #ffffff !important;
+  /* Blue tick SVG */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%231e6fd9' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' d='M3 8l3.5 3.5L13 4'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 0.8rem !important;
 }
+
+.pp-service-area-list .form-check .form-check-input[type="checkbox"]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(30,111,217,0.20) !important;
+  border-color: #1e6fd9 !important;
+}
+
 .pp-service-area-list .form-check-label {
   font-size:0.86rem; font-weight:500; color:var(--text-main);
   cursor:pointer; user-select:none; margin:0;
+}
+
+/* ── Required star ────────────────────────────────────────────────── */
+.pp-required-star {
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin-left: 0.15rem;
+  vertical-align: super;
+  line-height: 1;
 }
 
 /* ── Toggle switches ──────────────────────────────────────────────── */

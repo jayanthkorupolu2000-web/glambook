@@ -10,6 +10,7 @@ interface UserTableRow {
   city: string;
   role: 'CUSTOMER' | 'SALON_OWNER' | 'PROFESSIONAL';
   additionalInfo?: string;
+  status?: string;
 }
 
 @Component({
@@ -22,6 +23,26 @@ export class UserManagementComponent implements OnInit {
   users: UserTableRow[] = [];
   loading = false;
   error: string | null = null;
+
+  selectedRole: 'ALL' | 'CUSTOMER' | 'SALON_OWNER' | 'PROFESSIONAL' = 'ALL';
+  selectedStatus: 'ALL' | 'ACTIVE' | 'SUSPENDED' = 'ALL';
+
+  get filteredUsers(): UserTableRow[] {
+    let list = this.users;
+    if (this.selectedRole !== 'ALL') {
+      list = list.filter(u => u.role === this.selectedRole);
+    }
+    if (this.selectedStatus === 'SUSPENDED') {
+      list = list.filter(u => u.status === 'SUSPENDED');
+    } else if (this.selectedStatus === 'ACTIVE') {
+      list = list.filter(u => u.status !== 'SUSPENDED');
+    }
+    return list;
+  }
+
+  countSuspended(): number {
+    return this.users.filter(u => u.status === 'SUSPENDED').length;
+  }
 
   // Edit modal state
   showEditModal = false;
@@ -111,19 +132,22 @@ export class UserManagementComponent implements OnInit {
 
     response.customers.forEach(c => users.push({
       id: c.id, name: c.name, email: c.email,
-      phone: c.phone, city: c.city, role: 'CUSTOMER'
+      phone: c.phone, city: c.city, role: 'CUSTOMER',
+      status: c.status || 'ACTIVE'
     }));
 
     response.owners.forEach(o => users.push({
       id: o.id, name: o.name, email: o.email,
       phone: o.phone, city: o.city, role: 'SALON_OWNER',
-      additionalInfo: o.salonName
+      additionalInfo: o.salonName,
+      status: (o as any).status || 'ACTIVE'
     }));
 
     response.professionals.forEach(p => users.push({
       id: p.id, name: p.name, email: p.email,
       city: p.city, role: 'PROFESSIONAL',
-      additionalInfo: p.specialization
+      additionalInfo: p.specialization,
+      status: p.status || 'ACTIVE'
     }));
 
     return users.sort((a, b) => a.name.localeCompare(b.name));

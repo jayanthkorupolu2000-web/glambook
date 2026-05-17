@@ -386,3 +386,25 @@
   .appt-card-body { flex-direction: column; }
   .appt-actions { align-items: flex-start; }
 }
+
+/* ── Review disclaimer ────────────────────────────────────────── */
+.review-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.55rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  background: rgba(217, 119, 6, 0.07);
+  border: 1px solid rgba(217, 119, 6, 0.22);
+  font-size: 0.78rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.review-disclaimer i {
+  color: #d97706;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}

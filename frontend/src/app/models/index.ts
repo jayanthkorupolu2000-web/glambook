@@ -40,6 +40,7 @@ export interface Customer {
   profilePicture?: string;
   emergencyContact?: string;
   medicalNotes?: string;
+  status?: string;
 }
 
 export interface SalonOwner {
@@ -69,6 +70,7 @@ export interface Professional {
   salonOwner: SalonOwner;
   services: Service[];
   rating?: number;
+  status?: string;
 }
 
 export interface AppointmentRequest {

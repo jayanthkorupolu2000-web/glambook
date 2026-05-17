@@ -17,11 +17,19 @@
       <span class="rating-value">{{ avgRating() | number:'1.1-1' }}</span>
       <span class="rating-count">({{ reviews.length }} {{ reviews.length === 1 ? 'review' : 'reviews' }})</span>
 
+      <!-- Liked count badge -->
+      <span class="liked-count-badge" *ngIf="likedCount() > 0">
+        <svg viewBox="0 0 24 24" fill="currentColor" style="width:13px;height:13px;">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        {{ likedCount() }} liked
+      </span>
+
       <!-- Filter -->
       <select class="filter-select" [(ngModel)]="filter" (change)="applyFilter()">
-        <option value="ALL">All</option>
-        <option value="RESPONDED">Replied</option>
-        <option value="PENDING">Not Replied</option>
+        <option value="ALL">All Reviews</option>
+        <option value="LIKED">Liked</option>
+        <option value="NOT_LIKED">Not Liked</option>
       </select>
     </div>
   </div>
@@ -44,8 +52,9 @@
     </div>
     <div class="empty-title">No reviews found</div>
     <div class="empty-hint">
-      {{ filter === 'ALL' ? 'You haven\'t received any reviews yet.' :
-         filter === 'RESPONDED' ? 'No responded reviews.' : 'No reviews awaiting response.' }}
+      {{ filter === 'ALL'      ? 'You haven\'t received any reviews yet.' :
+         filter === 'LIKED'    ? 'You haven\'t liked any reviews yet.' :
+                                 'No reviews without a like.' }}
     </div>
   </div>
 
@@ -69,10 +78,28 @@
           </div>
         </div>
       </div>
-      <div class="review-stars">
-        <span *ngFor="let s of stars(5)"
-              [class.star-filled]="s <= r.rating"
-              [class.star-empty]="s > r.rating">★</span>
+
+      <div class="review-header-right">
+        <!-- Star rating -->
+        <div class="review-stars">
+          <span *ngFor="let s of stars(5)"
+                [class.star-filled]="s <= r.rating"
+                [class.star-empty]="s > r.rating">★</span>
+        </div>
+
+        <!-- Like button -->
+        <button class="btn-like"
+                [class.btn-like--active]="isLiked(r.id)"
+                (click)="toggleLike(r.id)"
+                [title]="isLiked(r.id) ? 'Unlike this review' : 'Like this review'">
+          <svg viewBox="0 0 24 24"
+               [attr.fill]="isLiked(r.id) ? 'currentColor' : 'none'"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          {{ isLiked(r.id) ? 'Liked' : 'Like' }}
+        </button>
       </div>
     </div>
 
@@ -110,81 +137,7 @@
       </div>
     </div>
 
-    <!-- Professional response (if exists) -->
-    <div *ngIf="r.professionalResponse" class="response-box">
-      <div class="response-label">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/>
-        </svg>
-        Your Reply
-      </div>
-      <p class="response-text">{{ r.professionalResponse }}</p>
-      <div class="response-date">{{ r.professionalResponseAt | date:'dd MMM yyyy, hh:mm a' }}</div>
-    </div>
-
-    <!-- Action bar — shown when no reply yet -->
-    <div *ngIf="!r.professionalResponse" class="action-bar">
-
-      <!-- Acknowledged state -->
-      <div *ngIf="isAcknowledged(r.id) && !isReplyOpen(r.id)" class="ack-state">
-        <svg viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-        </svg>
-        Acknowledged
-        <button class="btn-reply-link" (click)="toggleReply(r.id)">Add a reply</button>
-      </div>
-
-      <!-- Default action buttons (not yet acknowledged, reply not open) -->
-      <div *ngIf="!isAcknowledged(r.id) && !isReplyOpen(r.id)" class="action-buttons">
-        <button class="btn-acknowledge" (click)="acknowledge(r.id)">
-          <svg viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-          </svg>
-          Mark as Viewed
-        </button>
-        <button class="btn-open-reply" (click)="toggleReply(r.id)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/>
-          </svg>
-          Reply
-        </button>
-      </div>
-
-      <!-- Inline reply box (collapsible) -->
-      <div *ngIf="isReplyOpen(r.id)" class="reply-box">
-        <div class="reply-box-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;">
-            <polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 00-4-4H4"/>
-          </svg>
-          Reply to {{ r.customerName }}
-        </div>
-        <textarea class="reply-textarea"
-                  rows="2"
-                  [(ngModel)]="responseText[r.id]"
-                  placeholder="Write a thoughtful reply…"></textarea>
-        <div class="reply-actions">
-          <button class="btn-send-reply"
-                  [disabled]="!responseText[r.id]?.trim() || submitting[r.id]"
-                  (click)="respond(r)">
-            <span *ngIf="submitting[r.id]" class="spin"></span>
-            <svg *ngIf="!submitting[r.id]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                 style="width:13px;height:13px;">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-            Send Reply
-          </button>
-          <button class="btn-cancel-reply" (click)="toggleReply(r.id)">Cancel</button>
-        </div>
-      </div>
-
-    </div>
-
-  </div>
+  </div><!-- /review-card -->
 
   </div><!-- /.reviews-content -->
 
@@ -202,16 +155,11 @@
          class="lightbox-img"
          alt="Review photo {{ lightboxIndex + 1 }}">
 
-    <!-- Navigation (only if multiple photos) -->
     <div *ngIf="lightboxPhotos.length > 1" class="lightbox-nav">
-      <button class="lightbox-nav-btn" (click)="prevPhoto()" [disabled]="lightboxIndex === 0">
-        ‹
-      </button>
+      <button class="lightbox-nav-btn" (click)="prevPhoto()" [disabled]="lightboxIndex === 0">‹</button>
       <span class="lightbox-counter">{{ lightboxIndex + 1 }} / {{ lightboxPhotos.length }}</span>
       <button class="lightbox-nav-btn" (click)="nextPhoto()"
-              [disabled]="lightboxIndex === lightboxPhotos.length - 1">
-        ›
-      </button>
+              [disabled]="lightboxIndex === lightboxPhotos.length - 1">›</button>
     </div>
 
   </div>

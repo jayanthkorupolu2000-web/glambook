@@ -12,8 +12,8 @@
         <p class="um-hero__eyebrow">
           <i class="fa-solid fa-shield-halved me-2"></i>Administration
         </p>
-        <h1 class="um-hero__title">User Management</h1>
-        <p class="um-hero__sub">View, search and manage all platform users</p>
+        <h1 class="um-hero__title">Users Directory</h1>
+        <p class="um-hero__sub">Browse and view all registered platform users</p>
       </div>
       <button class="um-refresh-btn" (click)="loadUsers()" [disabled]="loading">
         <i class="fa-solid fa-rotate-right me-2" [class.fa-spin]="loading"></i>
@@ -44,6 +44,11 @@
       <span class="um-chip__label">Professionals</span>
       <span class="um-chip__count">{{ countByRole('PROFESSIONAL') }}</span>
     </div>
+    <div class="um-chip um-chip--red">
+      <i class="fa-solid fa-ban"></i>
+      <span class="um-chip__label">Suspended</span>
+      <span class="um-chip__count">{{ countSuspended() }}</span>
+    </div>
   </div>
 
   <!-- ── Loading ───────────────────────────────────────────── -->
@@ -64,9 +69,31 @@
   <div *ngIf="!loading && !error" class="um-table-wrap">
 
     <div class="um-table-header um-table-header--navy">
-      <i class="fa-solid fa-users me-2"></i>
-      All Users
-      <span class="um-table-header__count">{{ users.length }}</span>
+      <div class="um-table-header__left">
+        <i class="fa-solid fa-users me-2"></i>
+        <span *ngIf="selectedRole === 'ALL'">All Users</span>
+        <span *ngIf="selectedRole === 'CUSTOMER'">Customers</span>
+        <span *ngIf="selectedRole === 'SALON_OWNER'">Salon Owners</span>
+        <span *ngIf="selectedRole === 'PROFESSIONAL'">Professionals</span>
+        <span class="um-table-header__count">{{ filteredUsers.length }}</span>
+      </div>
+
+      <!-- Role filter dropdown -->
+      <div class="um-filter-wrap">
+        <i class="fa-solid fa-filter um-filter-icon"></i>
+        <select class="um-filter-select" [(ngModel)]="selectedRole">
+          <option value="ALL">All Users</option>
+          <option value="CUSTOMER">Customers</option>
+          <option value="SALON_OWNER">Salon Owners</option>
+          <option value="PROFESSIONAL">Professionals</option>
+        </select>
+        <!-- Suspension filter -->
+        <select class="um-filter-select um-filter-select--status" [(ngModel)]="selectedStatus">
+          <option value="ALL">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="SUSPENDED">Suspended</option>
+        </select>
+      </div>
     </div>
 
     <div class="table-responsive">
@@ -80,11 +107,11 @@
             <th>City</th>
             <th>Role</th>
             <th>Additional Info</th>
-            <th>Actions</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let user of users; trackBy: trackByUserId" class="um-row">
+          <tr *ngFor="let user of filteredUsers; trackBy: trackByUserId" class="um-row">
 
             <td class="um-cell--id">{{ user.id }}</td>
 
@@ -139,13 +166,14 @@
             </td>
 
             <td>
-              <button
-                *ngIf="user.role === 'SALON_OWNER'"
-                class="um-edit-btn"
-                (click)="openEditModal(user)"
-                title="Edit Salon Owner">
-                <i class="fa-solid fa-pen me-1"></i>Edit
-              </button>
+              <span class="um-status-badge"
+                    [class.um-status-badge--active]="user.status !== 'SUSPENDED'"
+                    [class.um-status-badge--suspended]="user.status === 'SUSPENDED'">
+                <i class="fa-solid me-1"
+                   [class.fa-circle-check]="user.status !== 'SUSPENDED'"
+                   [class.fa-ban]="user.status === 'SUSPENDED'"></i>
+                {{ user.status === 'SUSPENDED' ? 'Suspended' : 'Active' }}
+              </span>
             </td>
 
           </tr>
@@ -154,9 +182,11 @@
     </div>
 
     <!-- Empty state -->
-    <div *ngIf="users.length === 0" class="um-empty">
+    <div *ngIf="filteredUsers.length === 0" class="um-empty">
       <i class="fa-solid fa-users-slash"></i>
-      <span>No users found.</span>
+      <span *ngIf="selectedStatus === 'SUSPENDED'">No suspended users found.</span>
+      <span *ngIf="selectedStatus === 'ACTIVE'">No active users found.</span>
+      <span *ngIf="selectedStatus === 'ALL'">No users found.</span>
     </div>
 
   </div><!-- /um-table-wrap -->

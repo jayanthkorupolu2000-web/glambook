@@ -199,33 +199,68 @@
           <div class="row g-3">
 
             <div class="col-md-6">
-              <label class="form-label">Specialization</label>
-              <select class="form-select" formControlName="specialization">
+              <label class="form-label">
+                Specialization <span class="pp-required-star">*</span>
+              </label>
+              <select class="form-select" formControlName="specialization"
+                [class.is-invalid]="form.get('specialization')?.invalid && form.get('specialization')?.touched">
                 <option value="" disabled>Select specialization…</option>
                 <option *ngFor="let opt of specializationOptions" [value]="opt">{{ opt }}</option>
               </select>
-              <div *ngIf="form.get('specialization')?.invalid && form.get('specialization')?.touched" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">Specialization is required.</div>
+              <div *ngIf="form.get('specialization')?.invalid && form.get('specialization')?.touched" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>Specialization is required.
+              </div>
             </div>
 
             <div class="col-md-6">
               <label class="form-label">Experience (years)</label>
-              <input type="number" class="form-control" formControlName="experienceYears" min="0" (blur)="clampExperience()" (input)="clampExperience()">
-              <small class="text-muted" style="font-size:.75rem;">Auto-corrects negative values to 0.</small>
+              <input type="number" class="form-control" formControlName="experienceYears"
+                min="0" max="45" step="any"
+                [class.is-invalid]="form.get('experienceYears')?.invalid && form.get('experienceYears')?.touched"
+                (blur)="clampExperience()" (input)="clampExperience()">
+              <div *ngIf="form.get('experienceYears')?.errors?.['max']" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>Maximum 45 years of experience allowed.
+              </div>
+              <div *ngIf="form.get('experienceYears')?.errors?.['min']" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>Experience cannot be negative.
+              </div>
+              <small class="text-muted" style="font-size:.75rem;">0–45 years. Decimals are rounded (1.5 → 1, 1.6 → 2).</small>
             </div>
 
             <div class="col-md-6">
               <label class="form-label">Response Time (hrs)</label>
-              <input type="number" class="form-control" formControlName="responseTimeHrs">
+              <input type="number" class="form-control" formControlName="responseTimeHrs"
+                min="1" max="4"
+                [class.is-invalid]="form.get('responseTimeHrs')?.invalid && form.get('responseTimeHrs')?.touched">
+              <div *ngIf="form.get('responseTimeHrs')?.errors?.['min']" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>Minimum response time is 1 hour.
+              </div>
+              <div *ngIf="form.get('responseTimeHrs')?.errors?.['max']" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>Maximum response time is 4 hours — customers expect a prompt reply.
+              </div>
+              <small class="text-muted" style="font-size:.75rem;">1–4 hrs. Industry standard: respond within 2–4 hours.</small>
             </div>
 
             <div class="col-md-6">
               <label class="form-label">Instagram Handle</label>
-              <input class="form-control" formControlName="instagramHandle" placeholder="@username">
+              <input class="form-control" formControlName="instagramHandle" placeholder="@username"
+                [class.is-invalid]="form.get('instagramHandle')?.invalid && form.get('instagramHandle')?.touched">
+              <div *ngIf="form.get('instagramHandle')?.errors?.['pattern']" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>Must start with @ followed by 1–30 letters, numbers, dots or underscores (e.g. @priya.styles).
+              </div>
+              <small class="text-muted" style="font-size:.75rem;">Optional. Format: @username</small>
             </div>
 
             <div class="col-12">
               <label class="form-label">Bio</label>
-              <textarea class="form-control" rows="3" formControlName="bio"></textarea>
+              <textarea class="form-control" rows="3" formControlName="bio"
+                [class.is-invalid]="form.get('bio')?.invalid && form.get('bio')?.touched"></textarea>
+              <div *ngIf="form.get('bio')?.errors?.['bioTrim']" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>Bio must not start or end with a space.
+              </div>
+              <div *ngIf="form.get('bio')?.errors?.['maxlength']" class="text-danger" style="font-size:.78rem;margin-top:.25rem;">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>Bio cannot exceed 1000 characters.
+              </div>
             </div>
 
             <div class="col-12">

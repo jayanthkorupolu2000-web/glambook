@@ -193,16 +193,16 @@ export class ProfProfileComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       specialization: ['', Validators.required],
-      experienceYears: [0, [Validators.required, Validators.min(0)]],
-      bio: ['', Validators.maxLength(1000)],
+      experienceYears: [0, [Validators.required, Validators.min(0), Validators.max(45)]],
+      bio: ['', [Validators.maxLength(1000), this.noBioTrimValidator()]],
       certifications: [''],
       trainingDetails: [''],
       serviceAreas: [''],
       travelRadiusKm: [0, [Validators.min(0), Validators.max(10)]],
-      instagramHandle: [''],
+      instagramHandle: ['', [Validators.pattern(/^(@[a-zA-Z0-9](?:[a-zA-Z0-9._]{0,28}[a-zA-Z0-9])?)?$/)]],
       isAvailableHome: [false],
       isAvailableSalon: [true],
-      responseTimeHrs: [24, Validators.min(1)]
+      responseTimeHrs: [2, [Validators.required, Validators.min(1), Validators.max(4)]]
     });
   }
 
@@ -361,8 +361,14 @@ export class ProfProfileComponent implements OnInit {
   // ── Experience clamping ──────────────────────────────────────────────────
   clampExperience(): void {
     const ctrl = this.form.get('experienceYears')!;
-    const val = Number(ctrl.value);
-    if (isNaN(val) || val < 0) ctrl.setValue(0, { emitEvent: false });
+    let val = Number(ctrl.value);
+    if (isNaN(val)) val = 0;
+    // Round: exactly .5 rounds down, above .5 rounds up
+    const decimal = val % 1;
+    val = decimal > 0.5 ? Math.ceil(val) : Math.floor(val);
+    if (val < 0) val = 0;
+    if (val > 45) val = 45;
+    ctrl.setValue(val, { emitEvent: false });
   }
 
   // ── Travel radius clamping (0–10) ────────────────────────────────────────
@@ -546,5 +552,15 @@ export class ProfProfileComponent implements OnInit {
     if (!checked) {
       this.form.patchValue({ travelRadiusKm: 0 });
     }
+  }
+
+  // ── Bio trim validator ───────────────────────────────────────────────────
+  private noBioTrimValidator() {
+    return (control: import('@angular/forms').AbstractControl) => {
+      const v: string = control.value || '';
+      if (!v) return null;
+      if (v !== v.trim()) return { bioTrim: true };
+      return null;
+    };
   }
 }

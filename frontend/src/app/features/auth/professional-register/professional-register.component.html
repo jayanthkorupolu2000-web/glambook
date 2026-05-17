@@ -28,12 +28,19 @@
           class="gb-input"
           [class.gb-input--error]="f['name'].invalid && (f['name'].touched || f['name'].dirty)"
           formControlName="name"
-          placeholder="Enter your full name"
+          placeholder="E.g. Priya Sharma Reddy"
         />
         <div class="gb-error" *ngIf="f['name'].invalid && (f['name'].touched || f['name'].dirty)">
           <i class="fa-solid fa-circle-exclamation"></i>
           <span *ngIf="f['name'].errors?.['required']">Name is required.</span>
-          <span *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters.</span>
+          <span *ngIf="f['name'].errors?.['fullName']?.['trailingSpace']">Name must not have leading or trailing spaces.</span>
+          <span *ngIf="f['name'].errors?.['fullName']?.['invalidChars']">Only letters are allowed — no digits or special characters.</span>
+          <span *ngIf="f['name'].errors?.['fullName']?.['wordCount']">Name can have 1 to 3 words only.</span>
+          <span *ngIf="f['name'].errors?.['fullName']?.['wordTooShort']">Each word must be at least 3 letters long.</span>
+          <span *ngIf="f['name'].errors?.['fullName']?.['notCapitalized']">Each word must start with a capital letter (e.g. Priya).</span>
+        </div>
+        <div class="gb-hint" *ngIf="f['name'].valid && f['name'].value">
+          <i class="fa-solid fa-circle-check me-1"></i> Looks good!
         </div>
       </div>
 
@@ -46,12 +53,15 @@
           class="gb-input"
           [class.gb-input--error]="f['email'].invalid && (f['email'].touched || f['email'].dirty)"
           formControlName="email"
-          placeholder="you@example.com"
+          placeholder="you@gmail.com"
         />
         <div class="gb-error" *ngIf="f['email'].invalid && (f['email'].touched || f['email'].dirty)">
           <i class="fa-solid fa-circle-exclamation"></i>
           <span *ngIf="f['email'].errors?.['required']">Email is required.</span>
           <span *ngIf="f['email'].errors?.['email']">Enter a valid email address.</span>
+          <span *ngIf="f['email'].errors?.['emailDomain'] && !f['email'].errors?.['email']">
+            Only common providers are accepted (gmail.com, yahoo.com, outlook.com, hotmail.com, icloud.com, etc.).
+          </span>
         </div>
       </div>
 
@@ -64,14 +74,15 @@
           class="gb-input"
           [class.gb-input--error]="f['password'].invalid && (f['password'].touched || f['password'].dirty)"
           formControlName="password"
-          placeholder="Min 8 chars, 1 uppercase, 1 number"
+          placeholder="Min 8 chars, uppercase, number, special char"
         />
         <div class="gb-error" *ngIf="f['password'].invalid && (f['password'].touched || f['password'].dirty)">
           <i class="fa-solid fa-circle-exclamation"></i>
           <span *ngIf="f['password'].errors?.['required']">Password is required.</span>
           <span *ngIf="f['password'].errors?.['minlength']">At least 8 characters required.</span>
-          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noUppercase']">Must include an uppercase letter.</span>
-          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noNumber']">Must include a number.</span>
+          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noUppercase']">Must include at least one uppercase letter.</span>
+          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noNumber']">Must include at least one digit.</span>
+          <span *ngIf="f['password'].errors?.['passwordStrength']?.['noSpecialChar']">Must include at least one special character (e.g. @, #, !).</span>
         </div>
       </div>
 

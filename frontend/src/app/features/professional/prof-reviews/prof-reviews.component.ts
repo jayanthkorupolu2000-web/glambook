@@ -14,21 +14,16 @@ export class ProfReviewsComponent implements OnInit {
   loading = false;
   filter = 'ALL';
   profId = 0;
-  responseText: Record<number, string | undefined> = {};
-  submitting: Record<number, boolean> = {};
 
-  /** Track which review cards have the reply box open */
-  replyOpen: Record<number, boolean> = {};
-
-  /** Track locally-acknowledged review IDs (stored in localStorage) */
-  acknowledgedIds: Set<number> = new Set();
+  /** Track liked review IDs (stored in localStorage) */
+  likedIds: Set<number> = new Set();
 
   // ── Lightbox state ───────────────────────────────────────────────
   lightboxPhotos: string[] = [];
   lightboxIndex  = 0;
   lightboxOpen   = false;
 
-  private readonly ACK_KEY = 'prof_ack_reviews';
+  private readonly LIKE_KEY = 'prof_liked_reviews';
 
   constructor(
     private reviewService: ProfessionalReviewService,
@@ -37,46 +32,41 @@ export class ProfReviewsComponent implements OnInit {
 
   ngOnInit(): void {
     this.profId = this.auth.getUserId() || 0;
-    this.loadAcknowledged();
+    this.loadLiked();
     this.load();
   }
 
-  // ── Acknowledged state (localStorage) ────────────────────────────
-  private loadAcknowledged(): void {
+  // ── Like state (localStorage) ─────────────────────────────────────
+  private loadLiked(): void {
     try {
-      const raw = localStorage.getItem(this.ACK_KEY);
+      const raw = localStorage.getItem(this.LIKE_KEY);
       const ids: number[] = raw ? JSON.parse(raw) : [];
-      this.acknowledgedIds = new Set(ids);
-    } catch { this.acknowledgedIds = new Set(); }
+      this.likedIds = new Set(ids);
+    } catch { this.likedIds = new Set(); }
   }
 
-  private saveAcknowledged(): void {
-    localStorage.setItem(this.ACK_KEY, JSON.stringify([...this.acknowledgedIds]));
+  private saveLiked(): void {
+    localStorage.setItem(this.LIKE_KEY, JSON.stringify([...this.likedIds]));
   }
 
-  isAcknowledged(reviewId: number): boolean {
-    return this.acknowledgedIds.has(reviewId);
+  isLiked(reviewId: number): boolean {
+    return this.likedIds.has(reviewId);
   }
 
-  acknowledge(reviewId: number): void {
-    this.acknowledgedIds.add(reviewId);
-    this.saveAcknowledged();
-  }
-
-  // ── Reply toggle ──────────────────────────────────────────────────
-  toggleReply(reviewId: number): void {
-    this.replyOpen[reviewId] = !this.replyOpen[reviewId];
-  }
-
-  isReplyOpen(reviewId: number): boolean {
-    return !!this.replyOpen[reviewId];
+  toggleLike(reviewId: number): void {
+    if (this.likedIds.has(reviewId)) {
+      this.likedIds.delete(reviewId);
+    } else {
+      this.likedIds.add(reviewId);
+    }
+    this.saveLiked();
+    this.applyFilter();
   }
 
   load(): void {
     this.loading = true;
     this.reviewService.getReviews(this.profId).subscribe({
       next: data => {
-        // Photos are now served directly from the backend — no localStorage merge needed
         this.reviews = data as ReviewWithResponse[];
         this.applyFilter();
         this.loading = false;
@@ -86,30 +76,12 @@ export class ProfReviewsComponent implements OnInit {
   }
 
   applyFilter(): void {
-    if (this.filter === 'RESPONDED')
-      this.filtered = this.reviews.filter(r => r.professionalResponse);
-    else if (this.filter === 'PENDING')
-      this.filtered = this.reviews.filter(r => !r.professionalResponse);
+    if (this.filter === 'LIKED')
+      this.filtered = this.reviews.filter(r => this.isLiked(r.id));
+    else if (this.filter === 'NOT_LIKED')
+      this.filtered = this.reviews.filter(r => !this.isLiked(r.id));
     else
       this.filtered = this.reviews;
-  }
-
-  respond(review: ReviewWithResponse): void {
-    const text = this.responseText[review.id];
-    if (!text?.trim()) return;
-    this.submitting[review.id] = true;
-    this.reviewService.respondToReview(this.profId, review.id, text).subscribe({
-      next: updated => {
-        const idx = this.reviews.findIndex(r => r.id === review.id);
-        if (idx !== -1) this.reviews[idx] = updated;
-        this.replyOpen[review.id] = false;
-        // Also mark as acknowledged when a reply is sent
-        this.acknowledge(review.id);
-        this.applyFilter();
-        this.submitting[review.id] = false;
-      },
-      error: () => { this.submitting[review.id] = false; }
-    });
   }
 
   // ── Lightbox ─────────────────────────────────────────────────────
@@ -143,13 +115,16 @@ export class ProfReviewsComponent implements OnInit {
     return this.reviews.reduce((s, r) => s + r.rating, 0) / this.reviews.length;
   }
 
+  likedCount(): number {
+    return this.reviews.filter(r => this.isLiked(r.id)).length;
+  }
+
   stars(n: number): number[] { return Array.from({ length: 5 }, (_, i) => i + 1); }
 
   initials(name: string): string {
     return (name || '?').charAt(0).toUpperCase();
   }
 
-  /** Resolve a photo path to a full URL */
   resolvePhotoUrl(url: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;

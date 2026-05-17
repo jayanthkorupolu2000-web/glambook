@@ -94,9 +94,12 @@ const SERVICE_NAMES_BY_CATEGORY: Record<string, string[]> = {
     .ps-cell--price{font-weight:700;color:#334155;}
     .ps-cell--effective{font-weight:800;color:#16a34a;}
     .ps-tg-pill{display:inline-flex;align-items:center;font-size:0.72rem;font-weight:800;padding:0.22rem 0.65rem;border-radius:999px;}
-    .ps-status-select{padding:0.3rem 0.65rem;border-radius:8px;font-size:0.75rem;font-weight:700;cursor:pointer;outline:none;border:1.5px solid transparent;}
-    .ps-status-select--active{background:rgba(22,163,74,0.10);color:#15803d;border-color:rgba(22,163,74,0.25);}
-    .ps-status-select--inactive{background:rgba(220,38,38,0.08);color:#b91c1c;border-color:rgba(220,38,38,0.20);}
+    .ps-status-select{appearance:none;-webkit-appearance:none;padding:0.32rem 1.8rem 0.32rem 0.75rem;border-radius:999px;font-size:0.75rem;font-weight:700;cursor:pointer;outline:none;border:1.5px solid transparent;background-repeat:no-repeat;background-position:right 0.5rem center;background-size:0.65rem;}
+    .ps-status-select--available{background-color:rgba(22,163,74,0.10);color:#15803d;border-color:rgba(22,163,74,0.30);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2315803d'/%3E%3C/svg%3E");}
+    .ps-status-select--unavailable{background-color:rgba(220,38,38,0.08);color:#b91c1c;border-color:rgba(220,38,38,0.25);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b91c1c'/%3E%3C/svg%3E");}
+    .ps-status-select:focus{box-shadow:0 0 0 3px rgba(13,148,136,0.18);}
+    .ps-filter-select{appearance:none;-webkit-appearance:none;padding:0.3rem 2rem 0.3rem 0.7rem;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;outline:none;border:1.5px solid #e2e8f0;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E") no-repeat right 0.55rem center;color:#334155;transition:border-color 0.2s;}
+    .ps-filter-select:focus{border-color:#e8476a;box-shadow:0 0 0 3px rgba(232,71,106,0.12);}
     .ps-delete-btn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;border:1px solid rgba(220,38,38,0.25);background:rgba(220,38,38,0.08);color:#dc2626;font-size:0.75rem;cursor:pointer;}
     .ps-delete-btn:hover{background:rgba(220,38,38,0.18);}
     .ps-empty{text-align:center;padding:3rem !important;color:#94a3b8;font-weight:600;}
@@ -118,6 +121,13 @@ export class ProfServicesComponent implements OnInit {
   successType: 'success' | 'warning' | 'danger' = 'success';
   categories: string[] = [];
   durations = [15, 30, 45, 60, 90, 120];
+  availabilityFilter: 'ALL' | 'available' | 'unavailable' = 'ALL';
+
+  get filteredServices(): ServiceItem[] {
+    if (this.availabilityFilter === 'ALL') return this.services;
+    if (this.availabilityFilter === 'available') return this.services.filter(s => s.isActive !== false);
+    return this.services.filter(s => s.isActive === false);
+  }
 
   // Service name dropdown options based on selected category
   serviceNameOptions: string[] = [];
@@ -195,7 +205,7 @@ export class ProfServicesComponent implements OnInit {
   // ── Discount clamp ───────────────────────────────────────────────────────
   clampDiscount(): void {
     const ctrl = this.form.get('discountPct')!;
-    let val = Number(ctrl.value);
+    let val = parseFloat(Number(ctrl.value).toFixed(2));
     if (isNaN(val) || val < 0) val = 0;
     if (val > 100) val = 100;
     ctrl.setValue(val, { emitEvent: false });

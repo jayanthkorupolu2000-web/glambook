@@ -313,205 +313,69 @@
 }
 
 /* ── Professional response ────────────────────────────────────────── */
-.response-box {
-  margin: 0 1.4rem 0.9rem;
-  background: linear-gradient(135deg, rgba(30, 111, 217, 0.05) 0%, rgba(30, 111, 217, 0.08) 100%);
-  border-left: 3px solid var(--primary);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-}
-.response-label {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.35rem;
+/* (removed — professional now likes reviews instead of replying) */
+
+/* ── Action bar / Like button ─────────────────────────────────────── */
+.review-header-right {
   display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-.response-label svg { width: 11px; height: 11px; }
-.response-text {
-  font-size: 0.88rem;
-  line-height: 1.6;
-  color: #3a3f5c;
-  margin: 0;
-}
-.response-date {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 0.3rem;
-  font-weight: 500;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+  flex-shrink: 0;
 }
 
-/* ── Action bar ───────────────────────────────────────────────────── */
-.action-bar {
-  margin: 0 1.4rem 1.1rem;
-}
-
-.action-buttons {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.btn-acknowledge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.32rem 0.9rem;
-  border-radius: 999px;
-  border: 1.5px solid rgba(26, 158, 92, 0.25);
-  background: var(--success-bg);
-  color: var(--success);
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-acknowledge svg { width: 13px; height: 13px; }
-.btn-acknowledge:hover {
-  background: var(--success);
-  color: #fff;
-  border-color: var(--success);
-  box-shadow: 0 2px 8px rgba(26, 158, 92, 0.30);
-}
-
-.btn-open-reply {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.32rem 0.9rem;
-  border-radius: 999px;
-  border: 1.5px solid var(--border-mid);
-  background: #f8fafc;
-  color: var(--navy);
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-open-reply svg { width: 13px; height: 13px; }
-.btn-open-reply:hover {
-  background: var(--navy);
-  color: #fff;
-  border-color: var(--navy);
-  box-shadow: 0 2px 8px rgba(13, 27, 62, 0.20);
-}
-
-/* Acknowledged state */
-.ack-state {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--success);
-}
-.ack-state svg { width: 15px; height: 15px; flex-shrink: 0; }
-
-.btn-reply-link {
-  background: none;
-  border: none;
-  color: var(--primary);
-  font-size: 0.76rem;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
-  margin-left: 0.25rem;
-}
-.btn-reply-link:hover { color: var(--primary-lt); }
-
-/* Inline reply box */
-.reply-box {
-  background: #f8fafc;
-  border: 1.5px solid var(--border-mid);
-  border-radius: 12px;
-  padding: 0.9rem 1rem;
-}
-
-.reply-box-label {
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.4rem;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.reply-textarea {
-  width: 100%;
-  border: 1.5px solid var(--border-mid);
-  border-radius: 10px;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.88rem;
-  resize: vertical;
-  min-height: 65px;
-  color: var(--text-main);
-  background: #fff;
-  font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  box-sizing: border-box;
-}
-.reply-textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(30, 111, 217, 0.12);
-}
-
-.reply-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.55rem;
-}
-
-.btn-send-reply {
+.btn-like {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.42rem 1.1rem;
-  border-radius: 10px;
-  border: none;
-  background: var(--primary);
-  color: #fff;
-  font-size: 0.82rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(30, 111, 217, 0.30);
-  transition: filter 0.18s, transform 0.15s;
-}
-.btn-send-reply:hover:not(:disabled) {
-  filter: brightness(1.10);
-  transform: translateY(-1px);
-}
-.btn-send-reply:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
-
-.btn-cancel-reply {
-  background: transparent;
-  border: 1.5px solid var(--border-mid);
-  border-radius: 10px;
-  padding: 0.38rem 0.9rem;
+  padding: 0.32rem 0.85rem;
+  border-radius: 999px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
   font-size: 0.78rem;
   font-weight: 700;
-  color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
-.btn-cancel-reply:hover { border-color: #94a3b8; color: var(--text-main); }
+.btn-like svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+.btn-like:hover {
+  border-color: #e8476a;
+  color: #e8476a;
+  background: rgba(232, 71, 106, 0.06);
+}
+.btn-like:hover svg {
+  transform: scale(1.2);
+}
+.btn-like--active {
+  background: rgba(232, 71, 106, 0.10);
+  border-color: rgba(232, 71, 106, 0.40);
+  color: #e8476a;
+}
+.btn-like--active svg {
+  transform: scale(1.1);
+}
+.btn-like--active:hover {
+  background: rgba(232, 71, 106, 0.18);
+}
 
-.spin {
-  width: 12px; height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #fff;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  display: inline-block;
+/* Liked count badge in hero */
+.liked-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(232, 71, 106, 0.18);
+  color: #fca5a5;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: 1px solid rgba(232, 71, 106, 0.30);
 }
 
 /* ── Photo lightbox overlay ───────────────────────────────────────── */

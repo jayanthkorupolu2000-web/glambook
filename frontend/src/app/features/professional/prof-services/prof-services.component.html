@@ -107,8 +107,10 @@
 
           <div class="col-md-4">
             <label class="form-label">Discount %</label>
-            <input type="number" class="form-control" formControlName="discountPct" min="0" max="100" (blur)="clampDiscount()" (input)="clampDiscount()" placeholder="0">
-            <small style="color:#8a90a0;font-size:.74rem;">0–100. Negative values reset to 0.</small>
+            <input type="number" class="form-control" formControlName="discountPct"
+              min="0" max="100" step="0.01"
+              (blur)="clampDiscount()" placeholder="0">
+            <small style="color:#8a90a0;font-size:.74rem;">0–100. Supports decimals (e.g. 12.5%). Negative values reset to 0.</small>
           </div>
 
         </div>
@@ -136,7 +138,15 @@
     <div class="ps-table-header">
       <i class="fa-solid fa-scissors me-2"></i>
       My Services
-      <span class="ps-table-header__count">{{ services.length }}</span>
+      <span class="ps-table-header__count">{{ filteredServices.length }}</span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:0.4rem;">
+        <i class="fa-solid fa-filter" style="font-size:0.75rem;color:#94a3b8;"></i>
+        <select class="ps-filter-select" [(ngModel)]="availabilityFilter">
+          <option value="ALL">All Services</option>
+          <option value="available">Available</option>
+          <option value="unavailable">Unavailable</option>
+        </select>
+      </div>
     </div>
 
     <div class="table-responsive">
@@ -149,13 +159,13 @@
             <th>Duration</th>
             <th>Price</th>
             <th>Discount</th>
-            <th>Effective</th>
-            <th>Status</th>
+            <th>Final Price</th>
+            <th>Availability</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let s of services" class="ps-row">
+          <tr *ngFor="let s of filteredServices" class="ps-row">
             <td class="ps-cell--name">{{ s.name }}</td>
             <td class="ps-cell--meta">{{ s.category }}</td>
             <td>
@@ -167,16 +177,16 @@
             </td>
             <td class="ps-cell--meta">{{ s.durationMins }} min</td>
             <td class="ps-cell--price">₹{{ s.price }}</td>
-            <td class="ps-cell--meta">{{ s.discountPct || 0 }}%</td>
-            <td class="ps-cell--effective">₹{{ effectivePrice(s.price, s.discountPct) | number:'1.0-0' }}</td>
+            <td class="ps-cell--meta">{{ s.discountPct || 0 | number:'1.0-2' }}%</td>
+            <td class="ps-cell--effective">₹{{ effectivePrice(s.price, s.discountPct) | number:'1.0-2' }}</td>
             <td>
               <select class="ps-status-select"
-                      [class.ps-status-select--active]="s.isActive !== false"
-                      [class.ps-status-select--inactive]="s.isActive === false"
+                      [class.ps-status-select--available]="s.isActive !== false"
+                      [class.ps-status-select--unavailable]="s.isActive === false"
                       [value]="s.isActive === false ? 'inactive' : 'active'"
                       (change)="onStatusChange(s, $event)">
-                <option value="active">● Active</option>
-                <option value="inactive">✕ Inactive</option>
+                <option value="active">✔ Available</option>
+                <option value="inactive">✕ Unavailable</option>
               </select>
             </td>
             <td>
@@ -186,10 +196,12 @@
             </td>
           </tr>
 
-          <tr *ngIf="services.length === 0">
+          <tr *ngIf="filteredServices.length === 0">
             <td colspan="9" class="ps-empty">
               <i class="fa-solid fa-scissors"></i>
-              <span>No services yet. Click <strong>Add Service</strong> to get started.</span>
+              <span *ngIf="availabilityFilter === 'ALL'">No services yet. Click <strong>Add Service</strong> to get started.</span>
+              <span *ngIf="availabilityFilter === 'available'">No available services found.</span>
+              <span *ngIf="availabilityFilter === 'unavailable'">No unavailable services found.</span>
             </td>
           </tr>
         </tbody>
