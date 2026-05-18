@@ -50,7 +50,6 @@ public class ProductController {
             @RequestParam(defaultValue = "name") String sortBy,
             HttpServletRequest req) {
 
-        // Validate price range
         if (minPrice != null && minPrice.compareTo(BigDecimal.ZERO) < 0)
             throw new com.salon.exception.ValidationException(
                     "Please provide a valid minPrice — must be greater than or equal to 0");
@@ -91,7 +90,7 @@ public class ProductController {
 
     @GetMapping("/{id}/can-review")
     @PreAuthorize("hasRole('CUSTOMER')")
-    @Operation(summary = "Check if the logged-in customer can review this product (must have a DELIVERED order)")
+    @Operation(summary = "Check if the logged-in customer can review this product")
     public ResponseEntity<java.util.Map<String, Object>> canReview(
             @PathVariable Long id, HttpServletRequest req) {
         Long customerId = extractCustomerId(req);
@@ -143,7 +142,7 @@ public class ProductController {
 
     @PostMapping("/orders/{orderId}/pay")
     @PreAuthorize("hasRole('CUSTOMER')")
-    @Operation(summary = "Pay for a product order (marks it as DELIVERED and awards loyalty points)")
+    @Operation(summary = "Pay for a product order")
     public ResponseEntity<ProductOrderResponseDTO> payOrder(
             @PathVariable Long orderId,
             @RequestBody java.util.Map<String, Object> body,
@@ -189,7 +188,7 @@ public class ProductController {
 
     @PostMapping("/{id}/reviews")
     @PreAuthorize("hasRole('CUSTOMER')")
-    @Operation(summary = "Add a review for a product (must have ordered it)")
+    @Operation(summary = "Add a review for a product")
     public ResponseEntity<ProductReviewResponseDTO> addReview(
             @PathVariable Long id,
             @Valid @RequestBody ProductReviewRequest request,
@@ -207,6 +206,52 @@ public class ProductController {
             HttpServletRequest req) {
         Long customerId = extractCustomerId(req);
         return ResponseEntity.ok(productService.updateReview(customerId, id, request));
+    }
+
+    // ── Product CRUD endpoints ────────────────────────────────────────────────
+
+    @GetMapping("/meta/brands")
+    @Operation(summary = "Get all distinct brands from active products")
+    public ResponseEntity<List<String>> getBrands() {
+        Pageable all = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("name"));
+        List<String> brands = productService.getAllProducts(null, null, null, null, null, all)
+                .getContent().stream()
+                .map(ProductResponseDTO::getBrand)
+                .filter(b -> b != null && !b.isBlank())
+                .distinct()
+                .sorted()
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(brands);
+    }
+
+    @GetMapping("/admin")
+    @Operation(summary = "Get all products")
+    public ResponseEntity<List<ProductResponseDTO>> adminGetAll() {
+        Pageable all = PageRequest.of(0, Integer.MAX_VALUE, Sort.by("name"));
+        return ResponseEntity.ok(
+                productService.getAllProducts(null, null, null, null, null, all).getContent());
+    }
+
+    @PostMapping("/admin")
+    @Operation(summary = "Create a new product")
+    public ResponseEntity<ProductResponseDTO> adminCreate(
+            @RequestBody java.util.Map<String, Object> body) {
+        return ResponseEntity.status(201).body(productService.createProduct(body));
+    }
+
+    @PutMapping("/admin/{id}")
+    @Operation(summary = "Update an existing product")
+    public ResponseEntity<ProductResponseDTO> adminUpdate(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, Object> body) {
+        return ResponseEntity.ok(productService.updateProduct(id, body));
+    }
+
+    @DeleteMapping("/admin/{id}")
+    @Operation(summary = "Soft-delete a product")
+    public ResponseEntity<Void> adminDelete(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        return ResponseEntity.noContent().build();
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

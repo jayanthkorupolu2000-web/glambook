@@ -26,13 +26,8 @@ export class CustomerProductsComponent implements OnInit {
   maxPrice: number | null = null;
   priceError = '';
   categories = ['HAIRCARE', 'SKINCARE', 'MAKEUP', 'NAILCARE', 'FRAGRANCE', 'TOOLS'];
-  brands = [
-    'Ajmal', 'CND SolarOil', 'Chanel', 'Essie', 'Forest Essentials',
-    'Herbivore Botanicals', 'Himalaya', 'L\'Oreal Paris', 'Lakme Sun Expert',
-    'MAC Cosmetics', 'Mamaearth', 'Maybelline New York', 'Minimalist',
-    'Mount Lai', 'Neutrogena', 'OPI', 'Olay Regenerist', 'Revlon',
-    'Sigma Beauty', 'TRESemmé', 'Urban Decay', 'Wella Professionals'
-  ];
+  // brands populated dynamically from loaded products
+  brands: string[] = [];
 
   // Pagination
   currentPage = 0;
@@ -104,6 +99,7 @@ export class CustomerProductsComponent implements OnInit {
   constructor(private http: HttpClient, private auth: AuthService, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
+    this.loadAllBrands();
     this.load();
     if (this.auth.getUserId()) this.loadRecommended();
 
@@ -120,6 +116,18 @@ export class CustomerProductsComponent implements OnInit {
   }
 
   // ── Load products ──────────────────────────────────────────────────────────
+
+  /** Fetch distinct brands from the server so manually-added products always appear in the filter */
+  loadAllBrands(): void {
+    this.http.get<string[]>(`${BASE}/api/products/meta/brands`).subscribe({
+      next: data => { this.brands = Array.isArray(data) ? data : []; },
+      error: () => {
+        // fallback: derive from currently loaded products
+        const brandSet = new Set<string>(this.products.map((p: any) => p.brand).filter(Boolean));
+        this.brands = Array.from(brandSet).sort();
+      }
+    });
+  }
 
   load(page = 0): void {
     this.loading = true;
@@ -529,13 +537,149 @@ export class CustomerProductsComponent implements OnInit {
 
   stars(n: number): number[] { return [1, 2, 3, 4, 5]; }
 
+  // ── Admin / Product CRUD ───────────────────────────────────────────────────
+
+  // Form modal
+  showProductForm = false;
+  productFormMode: 'add' | 'edit' = 'add';
+  productFormSaving = false;
+  productFormError = '';
+  productFormSuccess = '';
+  productForm: any = {};
+
+  // Delete confirm
+  deletingProduct: any = null;
+  deleteInProgress = false;
+  deleteError = '';
+
+  private authHeaders(): Record<string, string> {
+    const token = this.auth.getToken();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
+  openAddProduct(): void {
+    this.productFormMode = 'add';
+    this.productForm = { category: 'HAIRCARE', stock: 0 };
+    this.productFormError = '';
+    this.productFormSuccess = '';
+    this.showProductForm = true;
+  }
+
+  openEditProduct(product: any, event: Event): void {
+    event.stopPropagation();
+    this.productFormMode = 'edit';
+    this.productForm = {
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      category: product.category,
+      description: product.description || '',
+      ingredients: product.ingredients || '',
+      usageTips: product.usageTips || '',
+      price: product.price,
+      stock: product.stockQuantity,
+      imageUrl: product.imageUrl || '',
+      recommendedFor: product.recommendedFor || ''
+    };
+    this.productFormError = '';
+    this.productFormSuccess = '';
+    this.showProductForm = true;
+  }
+
+  closeProductForm(): void {
+    this.showProductForm = false;
+    this.productForm = {};
+    this.productFormError = '';
+  }
+
+  saveProduct(): void {
+    if (!this.productForm.name?.trim() || !this.productForm.brand?.trim() ||
+        !this.productForm.category || !this.productForm.price) {
+      this.productFormError = 'Name, brand, category and price are required.';
+      return;
+    }
+    this.productFormSaving = true;
+    this.productFormError = '';
+
+    const payload = {
+      name:           this.productForm.name.trim(),
+      brand:          this.productForm.brand.trim(),
+      category:       this.productForm.category,
+      description:    this.productForm.description || '',
+      ingredients:    this.productForm.ingredients || '',
+      usageTips:      this.productForm.usageTips || '',
+      price:          this.productForm.price,
+      stock:          this.productForm.stock ?? 0,
+      imageUrl:       this.productForm.imageUrl || '',
+      recommendedFor: this.productForm.recommendedFor || ''
+    };
+
+    const url = this.productFormMode === 'edit'
+      ? `${BASE}/api/products/admin/${this.productForm.id}`
+      : `${BASE}/api/products/admin`;
+
+    const req$ = this.productFormMode === 'edit'
+      ? this.http.put<any>(url, payload, { headers: this.authHeaders() })
+      : this.http.post<any>(url, payload, { headers: this.authHeaders() });
+
+    req$.subscribe({
+      next: () => {
+        this.productFormSaving = false;
+        this.showProductForm = false;
+        this.productFormSuccess = this.productFormMode === 'edit'
+          ? 'Product updated successfully!'
+          : 'Product added successfully!';
+        // Show toast then clear
+        setTimeout(() => this.productFormSuccess = '', 3500);
+        this.loadAllBrands();
+        this.load(this.currentPage);
+      },
+      error: (e: any) => {
+        this.productFormError = e?.error?.message || 'Failed to save product. Please try again.';
+        this.productFormSaving = false;
+      }
+    });
+  }
+
+  confirmDeleteProduct(product: any, event: Event): void {
+    event.stopPropagation();
+    this.deletingProduct = product;
+    this.deleteError = '';
+  }
+
+  cancelDelete(): void {
+    this.deletingProduct = null;
+    this.deleteError = '';
+  }
+
+  doDeleteProduct(): void {
+    if (!this.deletingProduct) return;
+    this.deleteInProgress = true;
+    this.deleteError = '';
+    this.http.delete(`${BASE}/api/products/admin/${this.deletingProduct.id}`,
+      { headers: this.authHeaders() }).subscribe({
+      next: () => {
+        this.deleteInProgress = false;
+        this.deletingProduct = null;
+        this.productFormSuccess = 'Product removed from catalog.';
+        setTimeout(() => this.productFormSuccess = '', 3500);
+        this.loadAllBrands();
+        this.load(this.currentPage);
+      },
+      error: (e: any) => {
+        this.deleteError = e?.error?.message || 'Failed to delete product.';
+        this.deleteInProgress = false;
+      }
+    });
+  }
+
   /** Returns local asset image paths — save images to assets/products/ with these filenames */
   productImageUrl(product: any): string {
     if (product?.imageUrl) return product.imageUrl;
 
     const byName: Record<string, string> = {
       // HAIRCARE
-      'Argan Oil Shampoo':                    'assets/products/argan-oil-shampoo.jpg',
+      'Argan Oil Shampoo':                    'assets/products/argan-oil-shampoo.png',
       'Keratin Repair Conditioner':           'assets/products/keratin-conditioner.jpg',
       'Hair Growth Serum':                    'assets/products/hair-growth-serum.jpg',
       'Protein Hair Mask':                    'assets/products/protein-hair-mask.jpg',

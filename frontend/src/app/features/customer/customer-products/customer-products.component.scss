@@ -304,3 +304,246 @@
   .prod-grid { grid-template-columns:1fr; }
   .prod-rec-grid { grid-template-columns:1fr; }
 }
+
+
+/* ══ Product CRUD additions ══════════════════════════════════════════════════ */
+
+/* Count row with Add button */
+.prod-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Add Product button */
+.btn-add-product {
+  background: #244AFD;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+  &:hover { background: #1a38d4; }
+}
+
+/* Success toast */
+.prod-toast {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  &--success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+}
+
+/* Edit / Delete buttons on each card */
+.prod-card__admin-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.btn-prod-edit {
+  flex: 1;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s;
+  &:hover { background: #dbeafe; }
+}
+
+.btn-prod-delete {
+  flex: 1;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s;
+  &:hover { background: #fecaca; }
+}
+
+/* Modal backdrop */
+.prod-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1050;
+}
+
+/* Add/Edit form modal */
+.prod-form-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1051;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: min(660px, 95vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #1a1f36; }
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #6b7280;
+    &:hover { color: #111; }
+  }
+
+  &__body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e5e7eb;
+  }
+}
+
+/* Delete confirm modal (smaller) */
+.prod-delete-modal {
+  @extend .prod-form-modal;
+  width: min(420px, 95vw);
+}
+
+.prod-delete-hint {
+  font-size: 0.82rem;
+  color: #6b7280;
+  margin-top: 0.4rem;
+}
+
+/* Form grid inside modal */
+.prod-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.prod-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  &--full { grid-column: 1 / -1; }
+}
+
+.prod-form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1a1f36;
+}
+
+.prod-form-input,
+.prod-form-select,
+.prod-form-textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #1f2937;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+  &:focus { border-color: #244AFD; }
+}
+
+.prod-form-textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+/* Alert inside modal */
+.prod-form-alert {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  &--error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+}
+
+/* Modal footer buttons */
+.btn-prod-form-cancel {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  &:hover { background: #e5e7eb; }
+}
+
+.btn-prod-form-save {
+  background: #244AFD;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover:not(:disabled) { background: #1a38d4; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.btn-prod-form-delete {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover:not(:disabled) { background: #b91c1c; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .prod-form-grid { grid-template-columns: 1fr; }
+  .prod-form-field--full { grid-column: 1; }
+}

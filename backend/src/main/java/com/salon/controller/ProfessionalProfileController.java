@@ -96,10 +96,12 @@ public class ProfessionalProfileController {
             @RequestParam(required = false) String targetGroup,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Boolean homeAvailable,
+            @RequestParam(required = false) Boolean salonAvailable,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) Double minRating) {
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) String date) {
 
         // Validate price range
         if (minPrice != null && minPrice < 0)
@@ -112,8 +114,15 @@ public class ProfessionalProfileController {
             throw new com.salon.exception.ValidationException(
                     "maxPrice must be greater than or equal to minPrice");
 
+        // Parse date string (yyyy-MM-dd) if provided
+        java.time.LocalDate availDate = null;
+        if (date != null && !date.isBlank()) {
+            try { availDate = java.time.LocalDate.parse(date); } catch (Exception ignored) {}
+        }
+
         return ResponseEntity.ok(profileService.searchProfessionalsWithPrice(
-                city, targetGroup, category, homeAvailable, keyword, minPrice, maxPrice, minRating));
+                city, targetGroup, category, homeAvailable, salonAvailable,
+                keyword, minPrice, maxPrice, minRating, availDate));
     }
 
     @GetMapping("/{id}/services")

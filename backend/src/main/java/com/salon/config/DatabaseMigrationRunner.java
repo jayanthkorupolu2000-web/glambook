@@ -1,4 +1,4 @@
-package com.salon.config;
+package com.glambook.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +52,19 @@ public class DatabaseMigrationRunner implements ApplicationRunner {
         runSilently(
             "ALTER TABLE services ADD COLUMN gender ENUM('MEN','WOMEN','KIDS') NOT NULL DEFAULT 'WOMEN'",
             "services.gender column"
+        );
+
+        // Fix 5b: correct services that were defaulted to WOMEN due to missing gender column.
+        // Services whose name/category clearly indicate MEN should be updated.
+        runSilently(
+            "UPDATE services SET gender = 'MEN' WHERE gender = 'WOMEN' AND (" +
+            "  LOWER(name) IN ('beard trim','beard style','beard color','shave','men haircut','men package','grooming package') " +
+            "  OR LOWER(category) IN ('beard','grooming') " +
+            "  OR LOWER(name) LIKE '%beard%' " +
+            "  OR LOWER(name) LIKE '%shave%' " +
+            "  OR LOWER(category) LIKE '%beard%'" +
+            ")",
+            "correct beard/grooming services gender to MEN"
         );
 
         // Fix 6: services.professional_id — add column if missing

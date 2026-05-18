@@ -89,7 +89,15 @@
       </div>
 
       <ng-container *ngIf="!loading">
-        <div class="prod-count">{{ totalElements }} products found</div>
+        <div class="prod-count-row">
+          <div class="prod-count">{{ totalElements }} products found</div>
+          <button class="btn-add-product" (click)="openAddProduct()">+ Add Product</button>
+        </div>
+
+        <!-- Success toast -->
+        <div *ngIf="productFormSuccess" class="prod-toast prod-toast--success">
+          ✅ {{ productFormSuccess }}
+        </div>
 
         <div class="prod-grid">
           <div *ngFor="let p of products" class="prod-card" (click)="openDetail(p)">
@@ -132,6 +140,11 @@
               <button class="btn-order-now" (click)="openOrder(p, $event)" [disabled]="p.stockQuantity === 0">
                 {{ p.stockQuantity === 0 ? 'Out of Stock' : 'Order Now' }}
               </button>
+              <!-- CRUD actions -->
+              <div class="prod-card__admin-actions">
+                <button class="btn-prod-edit" (click)="openEditProduct(p, $event)">✏️ Edit</button>
+                <button class="btn-prod-delete" (click)="confirmDeleteProduct(p, $event)">🗑️ Delete</button>
+              </div>
             </div>
           </div>
 
@@ -729,4 +742,125 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- ══ Add / Edit Product Modal ══════════════════════════════════════════════ -->
+<div class="prod-modal-backdrop" *ngIf="showProductForm" (click)="closeProductForm()"></div>
+<div class="prod-form-modal" *ngIf="showProductForm" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+
+  <div class="prod-form-modal__header">
+    <h3>{{ productFormMode === 'edit' ? '✏️ Edit Product' : '➕ Add New Product' }}</h3>
+    <button class="prod-form-modal__close" (click)="closeProductForm()">✕</button>
+  </div>
+
+  <div class="prod-form-modal__body">
+    <div *ngIf="productFormError" class="prod-form-alert prod-form-alert--error">{{ productFormError }}</div>
+
+    <div class="prod-form-grid">
+
+      <!-- Name -->
+      <div class="prod-form-field prod-form-field--full">
+        <label class="prod-form-label">Product Name *</label>
+        <input class="prod-form-input" type="text" [(ngModel)]="productForm.name"
+               placeholder="e.g. Argan Oil Shampoo">
+      </div>
+
+      <!-- Brand -->
+      <div class="prod-form-field">
+        <label class="prod-form-label">Brand *</label>
+        <input class="prod-form-input" type="text" [(ngModel)]="productForm.brand"
+               placeholder="e.g. L'Oreal Paris">
+      </div>
+
+      <!-- Category -->
+      <div class="prod-form-field">
+        <label class="prod-form-label">Category *</label>
+        <select class="prod-form-select" [(ngModel)]="productForm.category">
+          <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+
+      <!-- Price -->
+      <div class="prod-form-field">
+        <label class="prod-form-label">Price (₹) *</label>
+        <input class="prod-form-input" type="number" [(ngModel)]="productForm.price"
+               min="0" placeholder="e.g. 450">
+      </div>
+
+      <!-- Stock -->
+      <div class="prod-form-field">
+        <label class="prod-form-label">Stock Quantity</label>
+        <input class="prod-form-input" type="number" [(ngModel)]="productForm.stock"
+               min="0" placeholder="e.g. 100">
+      </div>
+
+      <!-- Image URL -->
+      <div class="prod-form-field prod-form-field--full">
+        <label class="prod-form-label">Image URL</label>
+        <input class="prod-form-input" type="text" [(ngModel)]="productForm.imageUrl"
+               placeholder="https://… or assets/products/filename.jpg">
+      </div>
+
+      <!-- Description -->
+      <div class="prod-form-field prod-form-field--full">
+        <label class="prod-form-label">Description</label>
+        <textarea class="prod-form-textarea" [(ngModel)]="productForm.description"
+                  rows="3" placeholder="Short product description…"></textarea>
+      </div>
+
+      <!-- Ingredients -->
+      <div class="prod-form-field prod-form-field--full">
+        <label class="prod-form-label">Ingredients</label>
+        <textarea class="prod-form-textarea" [(ngModel)]="productForm.ingredients"
+                  rows="2" placeholder="Key ingredients…"></textarea>
+      </div>
+
+      <!-- Usage Tips -->
+      <div class="prod-form-field prod-form-field--full">
+        <label class="prod-form-label">Usage Tips</label>
+        <textarea class="prod-form-textarea" [(ngModel)]="productForm.usageTips"
+                  rows="2" placeholder="How to use…"></textarea>
+      </div>
+
+      <!-- Recommended For -->
+      <div class="prod-form-field prod-form-field--full">
+        <label class="prod-form-label">Recommended For</label>
+        <input class="prod-form-input" type="text" [(ngModel)]="productForm.recommendedFor"
+               placeholder="e.g. HAIR, SKIN">
+      </div>
+
+    </div>
+  </div>
+
+  <div class="prod-form-modal__footer">
+    <button class="btn-prod-form-cancel" (click)="closeProductForm()">Cancel</button>
+    <button class="btn-prod-form-save" (click)="saveProduct()" [disabled]="productFormSaving">
+      {{ productFormSaving ? 'Saving…' : (productFormMode === 'edit' ? 'Update Product' : 'Add Product') }}
+    </button>
+  </div>
+
+</div>
+
+<!-- ══ Delete Confirm Modal ══════════════════════════════════════════════════ -->
+<div class="prod-modal-backdrop" *ngIf="deletingProduct" (click)="cancelDelete()"></div>
+<div class="prod-delete-modal" *ngIf="deletingProduct" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+
+  <div class="prod-form-modal__header">
+    <h3>🗑️ Delete Product</h3>
+    <button class="prod-form-modal__close" (click)="cancelDelete()">✕</button>
+  </div>
+
+  <div class="prod-form-modal__body">
+    <div *ngIf="deleteError" class="prod-form-alert prod-form-alert--error">{{ deleteError }}</div>
+    <p>Are you sure you want to remove <strong>{{ deletingProduct.name }}</strong> from the catalog?</p>
+    <p class="prod-delete-hint">This hides the product from the store. Existing orders are not affected.</p>
+  </div>
+
+  <div class="prod-form-modal__footer">
+    <button class="btn-prod-form-cancel" (click)="cancelDelete()">Cancel</button>
+    <button class="btn-prod-form-delete" (click)="doDeleteProduct()" [disabled]="deleteInProgress">
+      {{ deleteInProgress ? 'Deleting…' : 'Yes, Delete' }}
+    </button>
+  </div>
+
 </div>

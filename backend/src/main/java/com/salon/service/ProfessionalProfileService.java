@@ -14,6 +14,7 @@ public interface ProfessionalProfileService {
 
     List<ProfessionalProfileResponse> searchProfessionalsWithPrice(
             String city, String targetGroup, String category,
-            Boolean homeAvailable, String keyword,
-            Double minPrice, Double maxPrice, Double minRating);
+            Boolean homeAvailable, Boolean salonAvailable, String keyword,
+            Double minPrice, Double maxPrice, Double minRating,
+            java.time.LocalDate availableDate);
 }

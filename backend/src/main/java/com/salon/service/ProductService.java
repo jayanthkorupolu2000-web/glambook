@@ -30,7 +30,6 @@ public interface ProductService {
 
     ProductOrderResponseDTO getOrderById(Long customerId, Long orderId);
 
-    /** Process payment for a product order and mark it DELIVERED */
     ProductOrderResponseDTO payOrder(Long customerId, Long orderId, String method);
 
     FavoriteResponseDTO addToFavorites(Long customerId, Long productId);
@@ -48,4 +47,12 @@ public interface ProductService {
     boolean hasDeliveredOrder(Long customerId, Long productId);
 
     boolean hasReviewed(Long customerId, Long productId);
+
+    // ── Admin CRUD ────────────────────────────────────────────────────────────
+
+    ProductResponseDTO createProduct(java.util.Map<String, Object> body);
+
+    ProductResponseDTO updateProduct(Long productId, java.util.Map<String, Object> body);
+
+    void deleteProduct(Long productId);
 }

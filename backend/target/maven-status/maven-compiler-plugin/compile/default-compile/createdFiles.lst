@@ -132,6 +132,7 @@ com\salon\repository\WalletTransactionRepository.class
 com\salon\exception\ComplaintNotFoundException.class
 com\salon\security\JwtAuthenticationFilter.class
 com\salon\entity\Complaint$ComplaintBuilder.class
+com\glambook\config\DatabaseMigrationRunner.class
 com\salon\entity\Appointment.class
 com\salon\entity\LoyaltyTransaction.class
 com\salon\dto\response\SalonPolicyResponse.class
@@ -304,7 +305,6 @@ com\salon\service\SalonOwnerEditService.class
 com\salon\dto\request\SalonOwnerManagementEditRequest.class
 com\salon\dto\response\FavoriteResponseDTO$FavoriteResponseDTOBuilder.class
 com\salon\service\impl\SalonPolicyServiceImpl.class
-com\salon\config\DatabaseMigrationRunner.class
 com\salon\entity\PaymentMethod.class
 com\salon\dto\request\UpdateAppointmentStatusRequest.class
 com\salon\exception\ValidationException.class

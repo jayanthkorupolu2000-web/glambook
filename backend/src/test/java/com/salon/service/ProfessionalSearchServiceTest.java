@@ -31,6 +31,7 @@ class ProfessionalSearchServiceTest {
     @Mock PortfolioRepository portfolioRepository;
     @Mock ServiceRepository serviceRepository;
     @Mock FileStorageService fileStorageService;
+    @Mock com.salon.repository.ProfessionalAvailabilityRepository availabilityRepository;
 
     @InjectMocks ProfessionalProfileServiceImpl searchService;
 
@@ -83,7 +84,7 @@ class ProfessionalSearchServiceTest {
 
         // Filter: minPrice=200, maxPrice=500 → only p1 should match
         List<ProfessionalProfileResponse> result = searchService.searchProfessionalsWithPrice(
-                "Hyderabad", null, null, null, null, 200.0, 500.0, null);
+                "Hyderabad", null, null, null, null, null, 200.0, 500.0, null, null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
@@ -99,7 +100,7 @@ class ProfessionalSearchServiceTest {
         when(serviceRepository.findByProfessionalId(anyLong())).thenReturn(List.of());
 
         List<ProfessionalProfileResponse> result = searchService.searchProfessionalsWithPrice(
-                "Hyderabad", null, null, null, null, null, null, null);
+                "Hyderabad", null, null, null, null, null, null, null, null, null);
 
         assertThat(result).hasSize(2);
     }
@@ -117,7 +118,7 @@ class ProfessionalSearchServiceTest {
 
         // Filter: max ₹500 — p1's service is ₹1500, no match
         List<ProfessionalProfileResponse> result = searchService.searchProfessionalsWithPrice(
-                "Hyderabad", null, null, null, null, null, 500.0, null);
+                "Hyderabad", null, null, null, null, null, null, 500.0, null, null);
 
         assertThat(result).isEmpty();
     }
@@ -136,7 +137,7 @@ class ProfessionalSearchServiceTest {
         when(reviewRepository.findAverageRatingByProfessionalId(2L)).thenReturn(2.0);
 
         List<ProfessionalProfileResponse> result = searchService.searchProfessionalsWithPrice(
-                "Hyderabad", null, null, null, null, null, null, 4.0);
+                "Hyderabad", null, null, null, null, null, null, null, 4.0, null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);

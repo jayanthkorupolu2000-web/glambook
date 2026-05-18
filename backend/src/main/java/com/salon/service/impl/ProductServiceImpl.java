@@ -13,6 +13,7 @@ import com.salon.exception.ResourceNotFoundException;
 import com.salon.repository.*;
 import com.salon.service.LoyaltyService;
 import com.salon.service.ProductService;
+import com.salon.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -39,7 +40,7 @@ public class ProductServiceImpl implements ProductService {
     private final CustomerRepository customerRepository;
     private final AppointmentRepository appointmentRepository;
     private final LoyaltyService loyaltyService;
-    private final com.salon.service.WalletService walletService;
+    private final WalletService walletService;
 
     // ── Browse / Search ───────────────────────────────────────────────────────
 
@@ -65,7 +66,6 @@ public class ProductServiceImpl implements ProductService {
                 .map(p -> toDTO(p, favIds))
                 .collect(Collectors.toList());
 
-        // Manual pagination
         int start = (int) pageable.getOffset();
         int end   = Math.min(start + pageable.getPageSize(), dtos.size());
         List<ProductResponseDTO> page = start >= dtos.size() ? List.of() : dtos.subList(start, end);
@@ -92,7 +92,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductResponseDTO> getRecommendedProducts(Long customerId) {
-        // Recommend products whose category matches the customer's past appointment service categories
         List<Appointment> appointments = appointmentRepository.findByCustomerId(customerId);
         Set<String> serviceCategories = appointments.stream()
                 .filter(a -> a.getService() != null && a.getService().getCategory() != null)
@@ -102,7 +101,6 @@ public class ProductServiceImpl implements ProductService {
         Set<Long> favIds = getFavIds(customerId);
         List<Product> all = productRepository.findByIsActiveTrue();
 
-        // Map service categories to product categories
         Map<String, String> categoryMap = Map.of(
                 "HAIR", "HAIRCARE",
                 "HAIRCARE", "HAIRCARE",
@@ -122,7 +120,6 @@ public class ProductServiceImpl implements ProductService {
                 .filter(p -> productCategories.contains(p.getCategory().toUpperCase()))
                 .collect(Collectors.toList());
 
-        // Fall back to top-rated products if no match
         if (recommended.isEmpty()) {
             recommended = all.stream()
                     .sorted(Comparator.comparingDouble(
@@ -142,9 +139,8 @@ public class ProductServiceImpl implements ProductService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
 
-        if (customer.getStatus() == UserStatus.SUSPENDED) {
+        if (customer.getStatus() == UserStatus.SUSPENDED)
             throw new InvalidOperationException("Your account is suspended. You cannot place orders.");
-        }
 
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + request.getProductId()));
@@ -153,10 +149,8 @@ public class ProductServiceImpl implements ProductService {
             throw new InvalidOperationException("Product is not available");
 
         if (product.getStock() < request.getQuantity())
-            throw new InvalidOperationException(
-                    "Insufficient stock. Available: " + product.getStock());
+            throw new InvalidOperationException("Insufficient stock. Available: " + product.getStock());
 
-        // Deduct stock
         product.setStock(product.getStock() - request.getQuantity());
         productRepository.save(product);
 
@@ -173,10 +167,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
 
         ProductOrder saved = orderRepository.save(order);
-        log.info("Product order {} placed by customer {} for product {}",
-                saved.getId(), customerId, product.getId());
-
-        // Do NOT award loyalty points here — they are awarded on payment (payOrder)
+        log.info("Product order {} placed by customer {} for product {}", saved.getId(), customerId, product.getId());
         return toOrderDTO(saved, 0);
     }
 
@@ -212,7 +203,6 @@ public class ProductServiceImpl implements ProductService {
         if (order.getStatus() == ProductOrderStatus.DELIVERED)
             throw new InvalidOperationException("Order has already been paid");
 
-        // Deduct wallet if used
         if (walletAmountUsed != null && walletAmountUsed.compareTo(BigDecimal.ZERO) > 0) {
             walletService.debit(
                 order.getCustomer(),
@@ -222,7 +212,6 @@ public class ProductServiceImpl implements ProductService {
             );
         }
 
-        // Mark as DELIVERED
         order.setStatus(ProductOrderStatus.DELIVERED);
         order.setDeliveryDate(java.time.LocalDate.now());
         ProductOrder saved = orderRepository.save(order);
@@ -230,7 +219,6 @@ public class ProductServiceImpl implements ProductService {
         log.info("Product order {} paid via {} (wallet: ₹{}) by customer {} — marked DELIVERED",
                 orderId, method, walletAmountUsed, customerId);
 
-        // Award loyalty points on payment: ₹100 = 10 pts
         int points = saved.getTotalPrice()
                 .divide(BigDecimal.valueOf(100), 0, java.math.RoundingMode.DOWN)
                 .multiply(BigDecimal.valueOf(POINTS_PER_100_RUPEES)).intValue();
@@ -292,17 +280,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public ProductReviewResponseDTO addReview(Long customerId, Long productId,
-                                              ProductReviewRequest request) {
+    public ProductReviewResponseDTO addReview(Long customerId, Long productId, ProductReviewRequest request) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
 
-        // Must have a DELIVERED order for this product
         if (!orderRepository.existsDeliveredOrderByCustomerIdAndProductId(customerId, productId))
-            throw new InvalidOperationException(
-                    "You can only review products from a delivered order");
+            throw new InvalidOperationException("You can only review products from a delivered order");
 
         if (reviewRepository.existsByCustomerIdAndProductId(customerId, productId))
             throw new ConflictException("You have already reviewed this product");
@@ -319,11 +304,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public ProductReviewResponseDTO updateReview(Long customerId, Long productId,
-                                                 ProductReviewRequest request) {
+    public ProductReviewResponseDTO updateReview(Long customerId, Long productId, ProductReviewRequest request) {
         ProductReview review = reviewRepository.findByCustomerIdAndProductId(customerId, productId)
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found"));
-
         review.setRating(request.getRating());
         review.setReviewText(request.getReviewText());
         return toReviewDTO(reviewRepository.save(review));
@@ -343,6 +326,60 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public boolean hasReviewed(Long customerId, Long productId) {
         return reviewRepository.existsByCustomerIdAndProductId(customerId, productId);
+    }
+
+    // ── Admin CRUD ────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public ProductResponseDTO createProduct(java.util.Map<String, Object> body) {
+        Product p = Product.builder()
+                .name(require(body, "name"))
+                .brand(require(body, "brand"))
+                .category(require(body, "category"))
+                .description(str(body, "description"))
+                .ingredients(str(body, "ingredients"))
+                .usageTips(str(body, "usageTips"))
+                .price(new BigDecimal(require(body, "price")))
+                .stock(body.get("stock") != null ? Integer.parseInt(body.get("stock").toString()) : 0)
+                .imageUrl(str(body, "imageUrl"))
+                .recommendedFor(str(body, "recommendedFor"))
+                .isActive(true)
+                .build();
+        Product saved = productRepository.save(p);
+        log.info("Created product id={} name={}", saved.getId(), saved.getName());
+        return toDTO(saved, Set.of());
+    }
+
+    @Override
+    @Transactional
+    public ProductResponseDTO updateProduct(Long productId, java.util.Map<String, Object> body) {
+        Product p = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
+        if (body.containsKey("name"))           p.setName(body.get("name").toString());
+        if (body.containsKey("brand"))          p.setBrand(body.get("brand").toString());
+        if (body.containsKey("category"))       p.setCategory(body.get("category").toString());
+        if (body.containsKey("description"))    p.setDescription(str(body, "description"));
+        if (body.containsKey("ingredients"))    p.setIngredients(str(body, "ingredients"));
+        if (body.containsKey("usageTips"))      p.setUsageTips(str(body, "usageTips"));
+        if (body.containsKey("price"))          p.setPrice(new BigDecimal(body.get("price").toString()));
+        if (body.containsKey("stock"))          p.setStock(Integer.parseInt(body.get("stock").toString()));
+        if (body.containsKey("imageUrl"))       p.setImageUrl(str(body, "imageUrl"));
+        if (body.containsKey("recommendedFor")) p.setRecommendedFor(str(body, "recommendedFor"));
+        if (body.containsKey("isActive"))       p.setActive(Boolean.parseBoolean(body.get("isActive").toString()));
+        Product saved = productRepository.save(p);
+        log.info("Updated product id={}", saved.getId());
+        return toDTO(saved, Set.of());
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(Long productId) {
+        Product p = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + productId));
+        p.setActive(false);
+        productRepository.save(p);
+        log.info("Soft-deleted product id={}", productId);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -399,5 +436,17 @@ public class ProductServiceImpl implements ProductService {
                 .reviewText(r.getReviewText())
                 .createdAt(r.getCreatedAt())
                 .build();
+    }
+
+    private String require(java.util.Map<String, Object> body, String key) {
+        Object v = body.get(key);
+        if (v == null || v.toString().isBlank())
+            throw new com.salon.exception.ValidationException("Field '" + key + "' is required");
+        return v.toString().trim();
+    }
+
+    private String str(java.util.Map<String, Object> body, String key) {
+        Object v = body.get(key);
+        return v != null ? v.toString() : null;
     }
 }

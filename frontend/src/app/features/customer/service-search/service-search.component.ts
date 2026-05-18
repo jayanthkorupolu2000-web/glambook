@@ -97,11 +97,13 @@ export class ServiceSearchComponent implements OnInit {
     if (v.city)        params['city'] = v.city;
     if (v.targetGroup) params['targetGroup'] = v.targetGroup;
     if (v.category)    params['category'] = v.category;
-    if (v.serviceType === 'HOME') params['homeAvailable'] = 'true';
+    if (v.serviceType === 'HOME')  params['homeAvailable']  = 'true';
+    if (v.serviceType === 'SALON') params['salonAvailable'] = 'true';
     if (v.keyword)     params['keyword'] = v.keyword;
     if (minP !== null && minP >= 0) params['minPrice'] = minP.toString();
     if (maxP !== null && maxP > 0)  params['maxPrice'] = maxP.toString();
     if (v.minRating && +v.minRating > 0) params['minRating'] = v.minRating;
+    if (v.date)        params['date'] = v.date;   // yyyy-MM-dd from date input
 
     const query = new URLSearchParams(params).toString();
     const url = `${BASE}/professionals/search${query ? '?' + query : ''}`;
